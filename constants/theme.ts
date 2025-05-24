@@ -30,21 +30,14 @@ export const solaceTheme = extendTheme({
     onboardingButtonText: '#FFFFFF',
   },
   fontConfig: {
-    SystemDefault: { // Using SystemDefault as a placeholder name
-      300: { normal: 'System' }, // Maps to system default light
-      400: { normal: 'System' }, // Maps to system default regular
-      500: { normal: 'System' }, // Maps to system default medium (approx)
-      600: { normal: 'System' }, // Maps to system default semibold (approx)
-      700: { normal: 'System' }, // Maps to system default bold
-    },
-    // TODO: Add actual custom font configurations here later
-    // SpaceMono: { // Example if you were to use SpaceMono from your assets
-    //   400: { normal: 'SpaceMono-Regular' },
-    // },
+    // We are loading 'SpaceMono' in app/_layout.tsx
+    // NativeBase will pick up fonts loaded via useFonts if the names match.
+    // Let's try to rely on system defaults more directly for heading/body initially
+    // to isolate the issue, and ensure SpaceMono is correctly named if used.
   },
   fonts: {
-    heading: 'SystemDefault', // Placeholder, will be updated
-    body: 'SystemDefault',    // Placeholder, will be updated
+    heading: undefined, // Let NativeBase/system decide for now
+    body: undefined,    // Let NativeBase/system decide for now
     mono: 'SpaceMono', // You have SpaceMono, can be used for mono text
   },
   components: {
@@ -102,18 +95,18 @@ export const solaceTheme = extendTheme({
           fontFamily: 'heading',
           color: 'textPrimary',
           textAlign: 'center',
-          lineHeight: '36px', // Example explicit line height
+          lineHeight: 36,
         },
         subtitle: {
           fontSize: 'lg',
           color: 'textSecondary',
           textAlign: 'center',
-          lineHeight: '28px',
+          lineHeight: 28,
           fontFamily: 'body',
         },
         body: {
           fontSize: 'md',
-          lineHeight: '24px',
+          lineHeight: 24,
           color: 'textPrimary',
         },
         quote: {
@@ -124,7 +117,7 @@ export const solaceTheme = extendTheme({
           paddingX: 6,
           paddingY: 10,
           fontFamily: 'heading',
-          lineHeight: '32px',
+          lineHeight: 32,
         },
         small: {
           fontSize: 'sm',
