@@ -16,20 +16,7 @@ const OnboardingStepLayout: React.FC<{
 }> = ({ title, children, onNext, isNextDisabled, onSkip, nextButtonText = "Continue" }) => {
   return (
     <Box flex={1} bg="backgroundLight" safeArea p={6} justifyContent="space-between">
-      <VStack space={5} mt={8}> {/* Added mt for back button spacing */}
-        {router.canGoBack() && (
-          <Button
-            onPress={() => router.back()}
-            variant="outline" // Change to outline to ensure it's not an icon issue for now
-            size="sm"
-            position="absolute" // Keep positioning for layout test
-            top={-6}
-            left={-3}
-            zIndex={1}
-          >
-            <Text>Back</Text>
-          </Button>
-        )}
+      <VStack space={5} mt={8}>
         <Text variant="title" textAlign="left" fontSize="3xl">{title}</Text>
         {children}
       </VStack>
