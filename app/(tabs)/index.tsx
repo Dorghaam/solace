@@ -1,4 +1,4 @@
-import { Box, Text, VStack } from 'native-base';
+import { Box, Text, VStack, Button } from 'native-base';
 
 export default function HomeScreen() {
   return (
@@ -6,6 +6,9 @@ export default function HomeScreen() {
       <VStack space={4} alignItems="center" justifyContent="center" flex={1}>
         <Text variant="title">Welcome to Solace</Text>
         <Text variant="subtitle">Your mindfulness companion</Text>
+        <Button onPress={() => console.log('Button pressed!')} mt={4}>
+          Test NativeBase Button
+        </Button>
       </VStack>
     </Box>
   );
