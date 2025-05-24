@@ -1,7 +1,7 @@
 import { useUserStore } from '@/store/userStore';
 import { Box, Button, Text, VStack } from 'native-base';
 import React, { useState } from 'react';
-import { Keyboard, Platform, TextInput } from 'react-native';
+import { Keyboard, TextInput } from 'react-native';
 
 // A simple layout component for onboarding steps (can be expanded later)
 const OnboardingStepLayout: React.FC<{
@@ -38,14 +38,24 @@ export default function NameInputScreen() {
   const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleNext = () => {
+    console.log('🔄 handleNext called with name:', name);
+    
     if (name.trim()) {
-      setUserName(name.trim());
-      Keyboard.dismiss();
-      // Navigate to next onboarding step when ready
-      // router.push('/(onboarding)/affirmationFamiliarity');
+      console.log('✅ Name is valid, processing...');
       
-      // For now, complete onboarding
+      // First dismiss keyboard
+      Keyboard.dismiss();
+      console.log('⌨️ Keyboard dismissed');
+      
+      // Save the name
+      setUserName(name.trim());
+      console.log('💾 Name saved to store');
+      
+      // Complete onboarding
       setHasCompletedOnboarding(true);
+      console.log('🎉 Onboarding completed!');
+    } else {
+      console.log('❌ Name is empty');
     }
   };
 
@@ -66,13 +76,21 @@ export default function NameInputScreen() {
         <TextInput
           placeholder="Your name or nickname"
           value={name}
-          onChangeText={setName}
+          onChangeText={(text) => {
+            console.log('📝 Text changed:', text);
+            setName(text);
+          }}
           style={{
             fontSize: 18,
             color: '#000',
+            minHeight: 40,
           }}
-          onSubmitEditing={handleNext}
-          returnKeyType={Platform.OS === 'ios' ? 'done' : 'next'}
+          returnKeyType="done"
+          onSubmitEditing={() => {
+            console.log('🚀 onSubmitEditing triggered');
+            handleNext();
+          }}
+          blurOnSubmit={true}
         />
       </Box>
       <Text variant="small" mt={2}>
