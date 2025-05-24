@@ -8,6 +8,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="name" />
       <Stack.Screen name="familiarity" />
+      <Stack.Screen name="categories" />
       {/* We'll add more screens like 'affirmationFamiliarity', 'interestCategories' here later */}
     </Stack>
   );

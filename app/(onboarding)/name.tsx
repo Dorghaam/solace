@@ -1,36 +1,9 @@
+import { OnboardingStepLayout } from '@/components/onboarding';
 import { useUserStore } from '@/store/userStore';
 import { router } from 'expo-router';
-import { Box, Button, Text, VStack } from 'native-base';
+import { Text } from 'native-base';
 import React, { useEffect, useRef, useState } from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
-
-// A simple layout component for onboarding steps (can be expanded later)
-const OnboardingStepLayout: React.FC<{
-  title: string;
-  children: React.ReactNode;
-  onNext: () => void;
-  isNextDisabled?: boolean;
-  onSkip?: () => void; // Optional skip
-}> = ({ title, children, onNext, isNextDisabled, onSkip }) => {
-  return (
-    <Box flex={1} bg="backgroundLight" safeArea p={6} justifyContent="space-between">
-      <VStack space={5}>
-        <Text variant="title" textAlign="left" fontSize="3xl">{title}</Text>
-        {children}
-      </VStack>
-      <VStack space={3}>
-        {onSkip && (
-          <Button variant="ghost" onPress={onSkip}>
-            <Text>Skip for now</Text>
-          </Button>
-        )}
-        <Button onPress={onNext} isDisabled={isNextDisabled}>
-          <Text>Continue</Text>
-        </Button>
-      </VStack>
-    </Box>
-  );
-};
 
 const styles = StyleSheet.create({
   textInput: {
@@ -112,6 +85,7 @@ export default function NameInputScreen() {
       title="What should we call you?"
       onNext={handleNext}
       isNextDisabled={!name.trim()}
+      showBackButton={false} // First screen shouldn't have back button
     >
       <TextInput
         ref={inputRef}
