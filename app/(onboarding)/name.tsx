@@ -21,11 +21,11 @@ const OnboardingStepLayout: React.FC<{
       <VStack space={3}>
         {onSkip && (
           <Button variant="ghost" onPress={onSkip}>
-            Skip for now
+            <Text>Skip for now</Text>
           </Button>
         )}
         <Button onPress={onNext} isDisabled={isNextDisabled}>
-          Continue
+          <Text>Continue</Text>
         </Button>
       </VStack>
     </Box>
@@ -100,12 +100,8 @@ export default function NameInputScreen() {
       setUserName(name.trim());
       console.log('💾 Name saved to store');
       
-      // Complete onboarding
-      setHasCompletedOnboarding(true);
-      console.log('🎉 Onboarding completed!');
-
-      // Explicitly navigate to the main app's initial route AFTER state update
-      router.replace('/(main)');
+      // Navigate to the next onboarding step
+      router.push('/(onboarding)/familiarity');
     } else {
       console.log('❌ Name is empty');
     }

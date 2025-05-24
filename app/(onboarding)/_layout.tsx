@@ -7,6 +7,7 @@ export default function OnboardingLayout() {
       {/* The initial route is (onboarding)/index.tsx (WelcomeScreen) by convention */}
       <Stack.Screen name="index" />
       <Stack.Screen name="name" />
+      <Stack.Screen name="familiarity" />
       {/* We'll add more screens like 'affirmationFamiliarity', 'interestCategories' here later */}
     </Stack>
   );
