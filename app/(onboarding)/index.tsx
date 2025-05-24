@@ -1,4 +1,5 @@
 import { useUserStore } from '@/store/userStore'; // Assuming store is at @/store
+import { router } from 'expo-router';
 import { Box, Button, Text, VStack } from 'native-base';
 import React from 'react';
 
@@ -8,8 +9,7 @@ export default function WelcomeScreen() {
   const handleGetStarted = () => {
     // For now, let's just skip to the main app to test navigation.
     // Later, this will navigate to the next onboarding step.
-    // router.push('/(onboarding)/name');
-    setHasCompletedOnboarding(true); // This will trigger the RootLayout to switch
+    router.push('/(onboarding)/name'); // Navigate to the name input screen
   };
 
   return (
