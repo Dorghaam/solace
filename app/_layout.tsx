@@ -19,6 +19,15 @@ export default function RootLayout() {
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   const zustandHasRehydrated = useUserStore.persist.hasHydrated();
 
+  // Debug logging
+  useEffect(() => {
+    console.log('RootLayout Debug:', {
+      hasCompletedOnboarding,
+      zustandHasRehydrated,
+      loaded
+    });
+  }, [hasCompletedOnboarding, zustandHasRehydrated, loaded]);
+
   useEffect(() => {
     if (loaded && zustandHasRehydrated) {
       SplashScreen.hideAsync();

@@ -1,7 +1,7 @@
 import { useUserStore } from '@/store/userStore';
-import { Box, Button, Input, Text, VStack } from 'native-base';
+import { Box, Button, Text, VStack } from 'native-base';
 import React, { useState } from 'react';
-import { Platform } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 
 // A simple layout component for onboarding steps (can be expanded later)
 const OnboardingStepLayout: React.FC<{
@@ -52,17 +52,27 @@ export default function NameInputScreen() {
       onNext={handleNext}
       isNextDisabled={!name.trim()}
     >
-      <Input
-        placeholder="Your name or nickname"
-        value={name}
-        onChangeText={setName}
-        size="xl" // Uses theme's defaultProps for Input
-        autoFocus
-        // Enforce single line and handle submission for better UX
-        blurOnSubmit={false}
-        onSubmitEditing={handleNext} // Allow "Enter" key to submit
-        returnKeyType={Platform.OS === 'ios' ? 'done' : 'next'}
-      />
+      <Box
+        borderWidth={1}
+        borderColor="gray.300"
+        borderRadius="md"
+        px={4}
+        py={3}
+        bg="white"
+      >
+        <TextInput
+          placeholder="Your name or nickname"
+          value={name}
+          onChangeText={setName}
+          style={{
+            fontSize: 18,
+            color: '#000',
+          }}
+          blurOnSubmit={false}
+          onSubmitEditing={handleNext}
+          returnKeyType={Platform.OS === 'ios' ? 'done' : 'next'}
+        />
+      </Box>
       <Text variant="small" mt={2}>
         This helps us personalize your affirmations.
       </Text>
