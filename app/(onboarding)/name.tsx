@@ -1,7 +1,7 @@
 import { useUserStore } from '@/store/userStore';
 import { Box, Button, Text, VStack } from 'native-base';
 import React, { useState } from 'react';
-import { Platform, TextInput } from 'react-native';
+import { Keyboard, Platform, TextInput } from 'react-native';
 
 // A simple layout component for onboarding steps (can be expanded later)
 const OnboardingStepLayout: React.FC<{
@@ -35,13 +35,16 @@ const OnboardingStepLayout: React.FC<{
 export default function NameInputScreen() {
   const [name, setName] = useState('');
   const setUserName = useUserStore((state) => state.setUserName);
+  const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleNext = () => {
     if (name.trim()) {
       setUserName(name.trim());
-      // router.push('/(onboarding)/affirmationFamiliarity'); // Next step
-      // For now, let's go to main app to test this step in isolation
-      const setHasCompletedOnboarding = useUserStore.getState().setHasCompletedOnboarding;
+      Keyboard.dismiss();
+      // Navigate to next onboarding step when ready
+      // router.push('/(onboarding)/affirmationFamiliarity');
+      
+      // For now, complete onboarding
       setHasCompletedOnboarding(true);
     }
   };
@@ -68,7 +71,6 @@ export default function NameInputScreen() {
             fontSize: 18,
             color: '#000',
           }}
-          blurOnSubmit={false}
           onSubmitEditing={handleNext}
           returnKeyType={Platform.OS === 'ios' ? 'done' : 'next'}
         />
