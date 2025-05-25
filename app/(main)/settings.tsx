@@ -84,7 +84,7 @@ export default function SettingsScreen() {
         <VStack divider={<Divider />}>
           <Box>
             <Text fontWeight="semibold" fontSize="sm" color="textSecondary" mt={4} mb={1} px={4}>ACCOUNT</Text>
-            <SettingItem label="Name" value={userName || "Not set"} onPress={() => router.push('/(onboarding)/name')} />
+            <SettingItem label="Name" value={userName || "Not set"} onPress={() => router.push({ pathname: '/(onboarding)/name', params: { editing: 'true' } })} />
           </Box>
           <Box>
             <Text fontWeight="semibold" fontSize="sm" color="textSecondary" mt={4} mb={1} px={4}>CONTENT & PREFERENCES</Text>
@@ -92,7 +92,7 @@ export default function SettingsScreen() {
             <SettingItem
               label="Affirmation Topics"
               value={interestCategories.length > 0 ? `${interestCategories.length} selected` : "None selected"}
-              onPress={() => router.push('/(onboarding)/categories')}
+              onPress={() => router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true' } })}
             />
           </Box>
           <Box>

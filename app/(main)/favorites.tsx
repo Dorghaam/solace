@@ -155,7 +155,7 @@ export default function FavoritesScreen() {
         <VStack flex={1} safeAreaTop>
           {/* Header with title and settings */}
           <HStack px={4} py={2} justifyContent="space-between" alignItems="center">
-            <Text fontSize="lg" fontWeight="semibold" color="gray.800">
+            <Text fontSize="lg" fontWeight="light" color="gray.300">
               My Favorites
             </Text>
             <IconButton

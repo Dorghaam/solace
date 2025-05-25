@@ -22,7 +22,7 @@ export default function MainAppTabLayout() {
         options={{
           title: 'Feed',
           tabBarIcon: ({ color, size }) => (
-            <Icon as={Ionicons} name="heart-outline" size={size} color={color} />
+            <Icon as={Ionicons} name="home-outline" size={size} color={color} />
           ),
         }}
       />
@@ -31,7 +31,7 @@ export default function MainAppTabLayout() {
         options={{
           title: 'Favorites',
           tabBarIcon: ({ color, size }) => (
-            <Icon as={Ionicons} name="heart" size={size} color={color} />
+            <Icon as={Ionicons} name="heart-outline" size={size} color={color} />
           ),
         }}
       />

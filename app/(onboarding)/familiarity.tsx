@@ -1,6 +1,6 @@
 import { OnboardingStepLayout, SelectionCard } from '@/components/onboarding';
 import { useUserStore } from '@/store/userStore';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { VStack } from 'native-base';
 import React, { useState } from 'react';
 
@@ -14,6 +14,7 @@ const options: { value: FamiliarityOption; label: string }[] = [
 export default function AffirmationFamiliarityScreen() {
   const currentFamiliarity = useUserStore((state) => state.affirmationFamiliarity);
   const setAffirmationFamiliarity = useUserStore((state) => state.setAffirmationFamiliarity);
+  const { editing } = useLocalSearchParams<{ editing?: string }>();
   const [selectedOption, setSelectedOption] = useState<FamiliarityOption | null>(currentFamiliarity);
 
   const handleSelectOption = (option: FamiliarityOption) => {
@@ -23,7 +24,11 @@ export default function AffirmationFamiliarityScreen() {
   const handleNext = () => {
     if (selectedOption) {
       setAffirmationFamiliarity(selectedOption);
-      router.push('/(onboarding)/categories'); // Navigate to categories screen
+      if (editing === 'true') {
+        router.replace('/(main)/settings'); // Go back to settings if editing
+      } else {
+        router.push('/(onboarding)/categories'); // Continue onboarding
+      }
     }
   };
 

@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Button, Icon, ScrollView, Text, VStack } from 'native-base';
+import { Box, Button, Icon, IconButton, ScrollView, Text, VStack } from 'native-base';
 import React from 'react';
 
 export const OnboardingStepLayout: React.FC<{
@@ -24,22 +24,23 @@ export const OnboardingStepLayout: React.FC<{
 }) => {
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
+      {/* Back Button - positioned absolutely at top-left */}
+      {showBackButton && router.canGoBack() && (
+        <IconButton
+          icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
+          position="absolute"
+          top={12}
+          left={4}
+          zIndex={10}
+          variant="ghost"
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+        />
+      )}
+      
       <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
         <VStack p={6} space={5} flexGrow={1} justifyContent="space-between">
-          <VStack space={2}>
-            {/* Back Button */}
-            {showBackButton && router.canGoBack() && (
-              <Button
-                variant="ghost"
-                onPress={() => router.back()}
-                leftIcon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" size="md" />}
-                alignSelf="flex-start"
-                mb={2}
-              >
-                <Text color="textPrimary">Back</Text>
-              </Button>
-            )}
-            
+          <VStack space={2} pt={showBackButton && router.canGoBack() ? 8 : 0}>
             <Text variant="title" textAlign="left" fontSize="3xl">{title}</Text>
             {subtitle && (
               <Text variant="subtitle" textAlign="left" color="textSecondary" fontSize="md">

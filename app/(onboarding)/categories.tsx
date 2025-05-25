@@ -1,16 +1,20 @@
 import { MultiSelectionCard, OnboardingStepLayout } from '@/components/onboarding';
 import { breakupInterestCategories, useUserStore } from '@/store/userStore';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { VStack } from 'native-base';
 import React from 'react';
 
 export default function InterestCategoriesScreen() {
   const selectedCategories = useUserStore((state) => state.interestCategories);
   const toggleInterestCategory = useUserStore((state) => state.toggleInterestCategory);
+  const { editing } = useLocalSearchParams<{ editing?: string }>();
 
   const handleNext = () => {
-    // Navigate to notifications preferences
-    router.push('/(onboarding)/notifications');
+    if (editing === 'true') {
+      router.replace('/(main)/settings'); // Go back to settings if editing
+    } else {
+      router.push('/(onboarding)/notifications'); // Continue onboarding
+    }
   };
 
   return (

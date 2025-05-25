@@ -1,6 +1,6 @@
 import { OnboardingStepLayout } from '@/components/onboarding';
 import { useUserStore } from '@/store/userStore';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { Text } from 'native-base';
 import React, { useEffect, useRef, useState } from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
@@ -21,6 +21,7 @@ export default function NameInputScreen() {
   const [name, setName] = useState('');
   const setUserName = useUserStore((state) => state.setUserName);
   const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
+  const { editing } = useLocalSearchParams<{ editing?: string }>();
   const inputRef = useRef<TextInput>(null);
   const mountedRef = useRef(true);
 
@@ -73,8 +74,11 @@ export default function NameInputScreen() {
       setUserName(name.trim());
       console.log('💾 Name saved to store');
       
-      // Navigate to the next onboarding step
-      router.push('/(onboarding)/familiarity');
+      if (editing === 'true') {
+        router.replace('/(main)/settings'); // Go back to settings if editing
+      } else {
+        router.push('/(onboarding)/familiarity'); // Continue onboarding
+      }
     } else {
       console.log('❌ Name is empty');
     }
