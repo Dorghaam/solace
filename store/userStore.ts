@@ -22,6 +22,14 @@ export interface NotificationSettings {
   // customTimes?: string[]; // For later if 'custom' frequency is used
 }
 
+// Widget Settings
+export type WidgetTheme = 'light' | 'dark_text_on_pink' | 'pink_text_on_white'; // From widgetconfig.tsx
+
+export interface WidgetSettings {
+  category: BreakupCategory | 'favorites' | 'all';
+  theme: WidgetTheme;
+}
+
 interface UserState {
   hasCompletedOnboarding: boolean;
   userName: string | null;
@@ -30,6 +38,7 @@ interface UserState {
   notificationSettings: NotificationSettings;
   pushToken: string | null;
   favoriteQuoteIds: string[];
+  widgetSettings: WidgetSettings;
 
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
@@ -40,11 +49,12 @@ interface UserState {
   setPushToken: (token: string | null) => void;
   addFavoriteQuoteId: (quoteId: string) => void;
   removeFavoriteQuoteId: (quoteId: string) => void;
-  isQuoteFavorite: (quoteId: string) => boolean;
+  // isQuoteFavorite: (quoteId: string) => boolean; // Selector can be derived in component
+  setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
   resetState: () => void;
 }
 
-const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'isQuoteFavorite' | 'resetState'> = {
+const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'resetState'> = {
   hasCompletedOnboarding: false,
   userName: null,
   affirmationFamiliarity: null,
@@ -52,6 +62,10 @@ const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' 
   notificationSettings: { frequency: '3x', enabled: false },
   pushToken: null,
   favoriteQuoteIds: [],
+  widgetSettings: { // Default widget settings
+    category: 'all',
+    theme: 'light',
+  },
 };
 
 export const useUserStore = create<UserState>()(
@@ -80,7 +94,9 @@ export const useUserStore = create<UserState>()(
         })),
       removeFavoriteQuoteId: (quoteId) =>
         set((state) => ({ favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId) })),
-      isQuoteFavorite: (quoteId: string): boolean => get().favoriteQuoteIds.includes(quoteId),
+      // isQuoteFavorite can be derived in components: favoriteQuoteIds.includes(id)
+      setWidgetSettings: (settings) =>
+        set((state) => ({ widgetSettings: { ...state.widgetSettings, ...settings } })),
       resetState: () => set(initialState),
     }),
     {
