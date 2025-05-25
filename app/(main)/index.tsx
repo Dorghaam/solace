@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Box, Button, HStack, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions } from 'react-native'; // Import Dimensions for card height
-import { Swiper } from 'rn-swiper-list'; // Import the swiper correctly
+import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to more reliable swiper
 
 interface Quote {
   id: string;
@@ -48,13 +48,17 @@ export default function FeedScreen() {
 
       if (dbError) throw dbError;
 
+      console.log('Raw data from Supabase:', data); // Added debug log
+
       if (data && data.length > 0) {
         // Simple shuffle for variety if needed, or just use the fetched order
         // const shuffledData = [...data].sort(() => 0.5 - Math.random());
         // setQuotes(shuffledData);
         setQuotes(data);
+        console.log('Successfully set quotes:', data.length, 'quotes loaded'); // Added debug log
       } else {
         setQuotes([]);
+        console.log('No quotes returned from database'); // Added debug log
         // Optionally set a specific message if no quotes match filters
         if (interestCategories && interestCategories.length > 0) {
           setError("No affirmations match your selected topics yet. Try adjusting categories in Settings or check back later!");
@@ -96,6 +100,9 @@ export default function FeedScreen() {
     );
   }
 
+  // Add console log for debugging before return
+  console.log('FeedScreen - Number of quotes to render:', quotes.length, quotes.map(q => q.id));
+
   return (
     <Box flex={1} bg="backgroundLight">
       {/* Clean minimal layout without overlapping elements */}
@@ -132,59 +139,57 @@ export default function FeedScreen() {
 
           {/* Full screen quote swiper */}
           <Box flex={1}>
-            <Swiper
+            <SwiperFlatList
               data={quotes}
-              renderCard={(item: Quote) => (
-                <VStack
-                  flex={1}
-                  justifyContent="center"
-                  alignItems="center"
-                  px={6}
-                  py={8}
-                  key={item.id}
-                >
-                  {/* Clean quote card like the second image */}
+              renderItem={({ item, index }: { item: Quote; index: number }) => {
+                console.log(`Rendering item at index ${index}:`, item.id);
+                return (
                   <Box
-                    bg="white"
-                    rounded="3xl"
-                    shadow="6"
-                    p={8}
-                    mx={4}
-                    minH={screenHeight * 0.4}
-                    maxH={screenHeight * 0.7}
-                    w={screenWidth - 32}
+                    key={item.id}
+                    width={screenWidth}
+                    height={screenHeight * 0.8}
                     justifyContent="center"
                     alignItems="center"
+                    px={4}
                   >
-                    <Text 
-                      fontSize="2xl" 
-                      fontWeight="medium" 
-                      color="gray.800" 
-                      textAlign="center"
-                      lineHeight="2xl"
-                      letterSpacing="sm"
+                    {/* Clean quote card like the second image */}
+                    <Box
+                      bg="white"
+                      rounded="3xl"
+                      shadow="6"
+                      p={8}
+                      minH={screenHeight * 0.4}
+                      maxH={screenHeight * 0.7}
+                      width="90%"
+                      justifyContent="center"
+                      alignItems="center"
                     >
-                      {item.text}
-                    </Text>
-                    {item.author && (
                       <Text 
-                        mt={6} 
-                        fontSize="md" 
-                        color="gray.500" 
-                        fontStyle="italic"
+                        fontSize="2xl" 
+                        fontWeight="medium" 
+                        color="gray.800" 
                         textAlign="center"
+                        lineHeight="2xl"
+                        letterSpacing="sm"
                       >
-                        — {item.author}
+                        {item.text}
                       </Text>
-                    )}
+                      {item.author && (
+                        <Text 
+                          mt={6} 
+                          fontSize="md" 
+                          color="gray.500" 
+                          fontStyle="italic"
+                          textAlign="center"
+                        >
+                          — {item.author}
+                        </Text>
+                      )}
+                    </Box>
                   </Box>
-                </VStack>
-              )}
-              onIndexChange={(index) => console.log('Current quote index:', index)}
-              cardStyle={{ flex: 1, width: '100%' }}
-              disableLeftSwipe={false}
-              disableRightSwipe={false}
-              disableTopSwipe={true}
+                );
+              }}
+              onChangeIndex={({ index }: { index: number }) => console.log('Swiper index changed to:', index)}
             />
           </Box>
 
