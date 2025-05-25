@@ -260,12 +260,12 @@ export default function FavoritesScreen() {
                 <Icon
                   as={Ionicons}
                   name={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "heart" : "heart-outline"}
-                  color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red.500" : "primary.500"}
+                  color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "primary.500" : "primary.500"}
                 />
               }
               size="lg"
               variant="ghost"
-              colorScheme={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red" : "primary"}
+              colorScheme="primary"
               onPress={handleToggleFavorite}
               accessibilityLabel="Favorite affirmation"
             />

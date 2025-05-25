@@ -9,7 +9,7 @@ export default ({ config }) => {
   return {
     expo: {
       name: "Solace",
-      slug: "Solace",
+      slug: "solace",
       version: "1.0.0",
       orientation: "portrait",
       icon: "./assets/images/icon.png", // Ensure this path is correct
@@ -17,13 +17,15 @@ export default ({ config }) => {
       userInterfaceStyle: "light",
       newArchEnabled: true, // You have this enabled
       ios: {
-        supportsTablet: true
+        supportsTablet: true,
+        bundleIdentifier: "com.yourcompany.solace"
       },
       android: {
         adaptiveIcon: {
           foregroundImage: "./assets/images/adaptive-icon.png", // Ensure this path is correct
           backgroundColor: "#FEF7F5"
         },
+        package: "com.yourcompany.solace",
         edgeToEdgeEnabled: true // You have this enabled
       },
       web: {
@@ -59,8 +61,7 @@ export default ({ config }) => {
         supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
         supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
         eas: {
-          // You can also make EAS Project ID an env var if you like
-          projectId: process.env.EAS_PROJECT_ID || "your-eas-project-id" // FIXME: Update your-eas-project-id or set EAS_PROJECT_ID in .env
+          projectId: "e4df03cb-901d-4754-bb0e-e21f845c013b"
         }
       }
     }
