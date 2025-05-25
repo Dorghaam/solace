@@ -54,8 +54,10 @@ export default function NotificationPreferencesScreen() {
   };
 
   const handleContinue = () => {
-    // Navigate to next onboarding step or complete onboarding
-    router.push('/(main)');
+    // Complete onboarding and navigate to main app
+    const setHasCompletedOnboarding = useUserStore.getState().setHasCompletedOnboarding;
+    setHasCompletedOnboarding(true);
+    router.replace('/(main)');
   };
 
   const formatTime = (hour: number, minute: number) => {

@@ -9,13 +9,8 @@ export default function InterestCategoriesScreen() {
   const toggleInterestCategory = useUserStore((state) => state.toggleInterestCategory);
 
   const handleNext = () => {
-    // Next step would be notification preferences or completing onboarding
-    // router.push('/(onboarding)/notifications');
-    
-    // For now, complete onboarding
-    const setHasCompletedOnboarding = useUserStore.getState().setHasCompletedOnboarding;
-    setHasCompletedOnboarding(true);
-    router.replace('/(main)');
+    // Navigate to notifications preferences
+    router.push('/(onboarding)/notifications');
   };
 
   return (
