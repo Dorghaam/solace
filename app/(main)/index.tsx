@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Box, Button, HStack, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions } from 'react-native'; // Import Dimensions for card height
+import { Alert, Dimensions, Share } from 'react-native'; // Import Share and Dimensions
 import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to more reliable swiper
 
 interface Quote {
@@ -86,7 +86,7 @@ export default function FeedScreen() {
     fetchQuotes();
   }, [fetchQuotes]);
 
-  const handleToggleFavorite = () => {
+  const handleToggleFavorite = useCallback(() => {
     if (!currentQuote) return;
     
     const isCurrentlyFavorite = favoriteQuoteIds.includes(currentQuote.id);
@@ -97,13 +97,36 @@ export default function FeedScreen() {
       addFavorite(currentQuote.id);
       console.log('Added to favorites:', currentQuote.id);
     }
-  };
+  }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]); // Dependencies for useCallback
 
-  const handleShare = (quoteText: string) => {
-    console.log('Share pressed for quote:', quoteText);
-    // TODO: Implement share logic (e.g., React Native Share API)
-    Alert.alert("Share", "Sharing this quote (feature coming soon)!");
-  };
+  const handleShare = useCallback(async () => {
+    if (!currentQuote) {
+      console.log('Share pressed, but no current quote to share.');
+      return;
+    }
+    console.log('Attempting to share quote:', currentQuote.text);
+
+    try {
+      const result = await Share.share({
+        message: `"${currentQuote.text}"${currentQuote.author ? ` — ${currentQuote.author}` : ''} - via Solace App`,
+        // title: 'Share Affirmation', // Optional: For some platforms like email
+        // url: 'https://yourappstorelink.com' // Optional: Link to your app
+      });
+
+      if (result.action === Share.sharedAction) {
+        if (result.activityType) {
+          console.log('Shared with activity type:', result.activityType);
+        } else {
+          console.log('Shared successfully');
+        }
+      } else if (result.action === Share.dismissedAction) {
+        console.log('Share dismissed');
+      }
+    } catch (error: any) {
+      Alert.alert("Error", error.message);
+      console.error('Error sharing:', error.message);
+    }
+  }, [currentQuote]); // Dependency for useCallback: re-create handleShare if currentQuote changes
 
   if (isLoading) {
     return (
@@ -243,7 +266,7 @@ export default function FeedScreen() {
               size="lg"
               variant="ghost"
               colorScheme="primary"
-              onPress={() => Alert.alert("Share coming soon!")}
+              onPress={handleShare}
               accessibilityLabel="Share affirmation"
             />
             <IconButton
