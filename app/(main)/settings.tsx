@@ -10,10 +10,10 @@ const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void
 ({ label, value, onPress, rightContent }) => (
   <Pressable onPress={onPress} disabled={!onPress} _pressed={{bg: "coolGray.50"}}>
     <HStack justifyContent="space-between" alignItems="center" py={4} px={4} minH="56px">
-      <Text fontSize="md" color="textPrimary" fontWeight="medium">{label}</Text>
+      <Text fontSize="md" color={(onPress || rightContent) ? "textPrimary" : "textSecondary"} fontWeight="medium">{label}</Text>
       <HStack alignItems="center" space={2}>
         {rightContent ? rightContent : (
-          <Text color="textSecondary" fontSize="sm" numberOfLines={1} ellipsizeMode="tail" textAlign="right">
+          <Text color={onPress ? "textSecondary" : "textTertiary"} fontSize="sm" numberOfLines={1} ellipsizeMode="tail" textAlign="right">
             {value || ''}
           </Text>
         )}
@@ -70,7 +70,7 @@ export default function SettingsScreen() {
       if (token) {
         setPushToken(token);
         setNotificationSettings({ ...notificationSettings, enabled: true, frequency: notificationSettings.frequency || '3x' });
-        await scheduleDailyAffirmationReminders(notificationSettings.frequency || '3x');
+        await scheduleDailyAffirmationReminders(notificationSettings.frequency || '3x', undefined, interestCategories);
         console.log('🔔 Notifications enabled and scheduled.');
       } else {
         // Permission denied or failed to get token, revert switch in UI
@@ -114,7 +114,10 @@ export default function SettingsScreen() {
                 onPress={() => router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true' } })}
               />
               <Divider />
-              <SettingItem label="Home Screen Widget" onPress={() => router.push('/(main)/widgetconfig')} />
+              <SettingItem 
+                label="Home Screen Widget" 
+                value="Coming Soon"
+              />
             </Box>
           </Box>
 

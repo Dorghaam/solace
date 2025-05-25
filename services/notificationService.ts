@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import { Alert, Platform } from 'react-native';
+import { supabase } from './supabaseClient';
 
 // Configure notification handler (important for foreground notifications)
 Notifications.setNotificationHandler({
@@ -14,6 +15,71 @@ Notifications.setNotificationHandler({
 });
 
 const REMINDER_CHANNEL_ID = 'solaceDailyReminders';
+
+// Function to fetch random quotes from Supabase for notifications
+const fetchRandomQuotesForNotifications = async (count: number = 20, categories?: string[]) => {
+  try {
+    let query = supabase
+      .from('quotes')
+      .select('text, author, category');
+
+    // Filter by categories if provided
+    if (categories && categories.length > 0) {
+      query = query.in('category', categories);
+    }
+
+    const { data, error } = await query
+      .order('created_at', { ascending: Math.random() > 0.5 })
+      .limit(count);
+
+    if (error) {
+      console.error('Error fetching quotes for notifications:', error);
+      return null;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('Failed to fetch quotes for notifications:', error);
+    return null;
+  }
+};
+
+// Fallback messages if Supabase is unavailable
+const fallbackMessages = [
+  "Take a moment to breathe and center yourself.",
+  "You deserve peace and kindness today.",
+  "A gentle reminder to be compassionate with yourself.",
+  "Time for a moment of self-reflection and growth.",
+  "Your healing journey matters. Take a pause.",
+  "Remember: you are stronger than you think.",
+  "A quiet moment awaits you in Solace.",
+  "Time to nurture your inner peace.",
+  "You've got this. Take a mindful break.",
+  "Your well-being is worth this moment."
+];
+
+// Function to get a quote message based on index and date for variety
+const getQuoteMessage = (quotes: any[], index: number) => {
+  if (!quotes || quotes.length === 0) {
+    // Use fallback messages if no quotes available
+    return fallbackMessages[index % fallbackMessages.length];
+  }
+  
+  // Use current date to add variety - different quotes will be selected on different days
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  const seed = dayOfYear + index; // Combine day of year with reminder index
+  
+  const quoteIndex = seed % quotes.length;
+  const quote = quotes[quoteIndex];
+  
+  // Format the quote nicely for notifications
+  let message = `"${quote.text}"`;
+  if (quote.author) {
+    message += ` — ${quote.author}`;
+  }
+  return message;
+};
 
 // Call this once, e.g., when app starts or when notifications are first enabled
 export const setupNotificationChannelsAsync = async () => {
@@ -48,12 +114,16 @@ const defaultReminderTimes = {
   'custom': [] as { hour: number; minute: number }[]
 };
 
-export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' | '5x' | 'custom' = '3x', customTimes?: { hour: number; minute: number }[]) => {
+export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' | '5x' | 'custom' = '3x', customTimes?: { hour: number; minute: number }[], categories?: string[]) => {
   await setupNotificationChannelsAsync(); // Ensure channel exists
   await Notifications.cancelAllScheduledNotificationsAsync(); // Clear existing Solace reminders first
   console.log(`Scheduling ${frequency} daily reminders...`);
 
   const reminderTimes = frequency === 'custom' && customTimes ? customTimes : defaultReminderTimes[frequency];
+
+  // Fetch quotes from Supabase for notifications
+  console.log('Fetching quotes from Supabase for notifications...');
+  const quotes = await fetchRandomQuotesForNotifications(reminderTimes.length * 7, categories); // Get enough quotes for a week
 
   const reminderPromises = reminderTimes.map(async (time, index) => {
     const identifier = `dailyAffirmationReminder-${index}`;
@@ -69,23 +139,26 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
         (trigger as any).channelId = REMINDER_CHANNEL_ID;
       }
 
+      // Get a quote message for this reminder
+      const message = getQuoteMessage(quotes || [], index);
+
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "💖 Your Daily Solace Reminder",
-          body: "Time for a moment of peace and self-reflection. Open Solace for an affirmation.",
+          title: "Your Daily Solace Reminder",
+          body: message,
           // data: { type: 'affirmationReminder' }, // Optional data for handling notification tap
           sound: 'default', // Or custom sound
         },
         trigger,
         // identifier: identifier, // Useful for managing specific notifications, but cancelAll works for now
       });
-      console.log(`Scheduled daily reminder for ${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute}`);
+      console.log(`Scheduled daily reminder for ${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute} with quote: "${message.substring(0, 50)}..."`);
     } catch (e) {
       console.error(`Failed to schedule reminder ${identifier}`, e);
     }
   });
   await Promise.all(reminderPromises);
-  console.log(`All ${frequency} daily reminders scheduled.`);
+  console.log(`All ${frequency} daily reminders scheduled with quotes from database.`);
 };
 
 // Helper function to get the reminder times for a given frequency

@@ -29,7 +29,11 @@ export default function FavoritesScreen() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  const currentQuote = quotes[currentIndex] || null;
+  // Create infinite scroll data by repeating quotes multiple times
+  // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling
+  const repetitions = quotes.length > 0 ? Math.max(10, Math.ceil(100 / quotes.length)) : 0;
+  const infiniteQuotes = quotes.length > 0 ? Array(repetitions).fill(quotes).flat() : [];
+  const currentQuote = quotes.length > 0 ? quotes[currentIndex % quotes.length] : null;
 
   const fetchFavoriteQuotes = useCallback(async () => {
     setIsLoading(true);
@@ -127,7 +131,7 @@ export default function FavoritesScreen() {
     );
   }
 
-  console.log('FavoritesScreen - Number of quotes to render:', quotes.length, quotes.map(q => q.id));
+  console.log('FavoritesScreen - Number of quotes to render:', quotes.length, 'Infinite quotes:', infiniteQuotes.length);
 
   return (
     <Box flex={1} bg="backgroundLight">
@@ -174,12 +178,12 @@ export default function FavoritesScreen() {
             </Text>
             
             <SwiperFlatList
-              data={quotes}
+              data={infiniteQuotes}
+              keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering favorite item at index ${index}:`, item.id);
                 return (
                   <Box
-                    key={item.id}
                     width={screenWidth}
                     height={screenHeight - 180}
                     justifyContent="center"

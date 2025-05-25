@@ -28,9 +28,12 @@ export default function FeedScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  // currentQuote will be managed by the Swiper's current index
 
-  const currentQuote = quotes[currentIndex] || null;
+  // Create infinite scroll data by repeating quotes multiple times
+  // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling
+  const repetitions = quotes.length > 0 ? Math.max(10, Math.ceil(100 / quotes.length)) : 0;
+  const infiniteQuotes = quotes.length > 0 ? Array(repetitions).fill(quotes).flat() : [];
+  const currentQuote = quotes.length > 0 ? quotes[currentIndex % quotes.length] : null;
 
   const fetchQuotes = useCallback(async () => {
     setIsLoading(true);
@@ -49,7 +52,7 @@ export default function FeedScreen() {
       // For true randomness on each fetch, Supabase might need a function or view.
       // As a simple client-side pseudo-random, we fetch more and then shuffle locally or rely on DB order.
       query = query.order('created_at', { ascending: Math.random() > 0.5 }); // Simple variation
-      query = query.limit(20); // Fetch a batch of quotes
+      query = query.limit(50); // Fetch more quotes for better variety in infinite scroll
 
       const { data, error: dbError } = await query;
 
@@ -138,7 +141,7 @@ export default function FeedScreen() {
   }
 
   // Add console log for debugging before return
-  console.log('FeedScreen - Number of quotes to render:', quotes.length, quotes.map(q => q.id));
+  console.log('FeedScreen - Number of quotes to render:', quotes.length, 'Infinite quotes:', infiniteQuotes.length);
 
   return (
     <Box flex={1} bg="backgroundLight">
@@ -184,12 +187,12 @@ export default function FeedScreen() {
             </Text>
             
             <SwiperFlatList
-              data={quotes}
+              data={infiniteQuotes}
+              keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering item at index ${index}:`, item.id);
                 return (
                   <Box
-                    key={item.id}
                     width={screenWidth}
                     height={screenHeight - 180} // Adjust to match positioning
                     justifyContent="center"

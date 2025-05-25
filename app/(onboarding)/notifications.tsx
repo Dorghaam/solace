@@ -8,6 +8,7 @@ export default function NotificationPreferencesScreen() {
   const storeNotificationSettings = useUserStore((state) => state.notificationSettings);
   const setStoreNotificationSettings = useUserStore((state) => state.setNotificationSettings);
   const setPushToken = useUserStore((state) => state.setPushToken);
+  const interestCategories = useUserStore((state) => state.interestCategories);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(storeNotificationSettings.enabled);
   const [selectedFrequency, setSelectedFrequency] = useState<'1x' | '3x' | '5x'>(
@@ -27,7 +28,7 @@ export default function NotificationPreferencesScreen() {
       if (token) {
         setPushToken(token);
         setStoreNotificationSettings({ enabled: true, frequency: selectedFrequency }); // Set in store
-        await scheduleDailyAffirmationReminders(selectedFrequency); // Schedule them
+        await scheduleDailyAffirmationReminders(selectedFrequency, undefined, interestCategories); // Schedule them
       } else {
         // Failed to get token or permission, revert UI
         setNotificationsEnabled(false);
@@ -49,7 +50,7 @@ export default function NotificationPreferencesScreen() {
     // If notifications are currently enabled, reschedule with new frequency
     if (notificationsEnabled) {
       setStoreNotificationSettings({ enabled: true, frequency });
-      await scheduleDailyAffirmationReminders(frequency);
+      await scheduleDailyAffirmationReminders(frequency, undefined, interestCategories);
     }
   };
 
