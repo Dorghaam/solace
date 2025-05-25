@@ -14,7 +14,7 @@ interface Quote {
   category?: string; // For potential filtering later
 }
 
-const { height: screenHeight } = Dimensions.get('window');
+const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 
 export default function FeedScreen() {
   const theme = useTheme(); // NativeBase theme hook
@@ -97,21 +97,10 @@ export default function FeedScreen() {
   }
 
   return (
-    <Box flex={1} bg="backgroundLight" safeAreaTop>
-      {/* Top Bar: User Greeting and Settings Icon */}
-      <HStack px={4} py={3} justifyContent="space-between" alignItems="center" borderBottomWidth={1} borderColor="gray.200">
-        <Text fontSize="lg" fontWeight="semibold" color="primary.600" numberOfLines={1} ellipsizeMode="tail" flexShrink={1}>
-          {userName ? `For You, ${userName}` : "Solace"}
-        </Text>
-        <IconButton
-          icon={<Icon as={Ionicons} name="settings-outline" color="textSecondary" />}
-          size="lg"
-          variant="ghost"
-          onPress={() => router.push('/(main)/settings')}
-        />
-      </HStack>
-
-      {/* Main Content: Swiper for Quotes */}
+    <Box flex={1} bg="backgroundLight">
+      {/* Clean minimal layout without overlapping elements */}
+      
+      {/* Error States */}
       {error && !isLoading && quotes.length === 0 && (
         <VStack flex={1} justifyContent="center" alignItems="center" p={6} space={3}>
           <Icon as={Ionicons} name="sad-outline" size="6xl" color="textTertiary" />
@@ -128,79 +117,112 @@ export default function FeedScreen() {
         </VStack>
       )}
       
+      {/* Main Quote Display - Full screen, clean layout */}
       {quotes.length > 0 && (
-        <Swiper
-          data={quotes}
-          renderCard={(item: Quote) => (
-            <VStack
-              height={screenHeight * 0.6} // Adjust height as needed for card appearance
-              justifyContent="center"
-              alignItems="center"
-              p={8} // Generous padding for text
-              bg="quoteBackground" // White card like "I am" app
-              mx={4} // Horizontal margin for card effect
-              my={screenHeight * 0.05} // Vertical margin for card effect
-              rounded="2xl" // More rounded corners
-              shadow="5"
-              key={item.id}
-            >
-              <Text variant="quote" color="quoteText">
-                {item.text}
-              </Text>
-              {item.author && (
-                <Text mt={4} fontSize="sm" color="textSecondary" fontStyle="italic">
-                  — {item.author}
-                </Text>
-              )}
-            </VStack>
-          )}
-          // Swiper specific props (refer to rn-swiper-list docs)
-          onIndexChange={(index) => console.log('Current quote index:', index)}
-          cardStyle={{ flex: 1, width: '100%' }} // Ensure card takes full space
-          disableLeftSwipe={false} // Allow left swipe (reject)
-          disableRightSwipe={false} // Allow right swipe (like)
-          disableTopSwipe={false} // Allow top swipe (super like)
-        />
-      )}
+        <VStack flex={1} safeAreaTop>
+          {/* Minimal top bar */}
+          <HStack px={4} py={2} justifyContent="flex-end" alignItems="center">
+            <IconButton
+              icon={<Icon as={Ionicons} name="settings-outline" color="textSecondary" />}
+              size="md"
+              variant="ghost"
+              onPress={() => router.push('/(main)/settings')}
+            />
+          </HStack>
 
-      {/* Bottom Action Bar - Only show if there are quotes and no error */}
-      {quotes.length > 0 && !error && (
-        <HStack 
-          justifyContent="space-around" 
-          alignItems="center" 
-          py={2} px={4} 
-          borderTopWidth={1} 
-          borderColor="gray.200" 
-          bg="backgroundFocused" // Match tab bar background
-          safeAreaBottom // Ensure it's above home indicator etc.
-        >
-          <IconButton
-            icon={<Icon as={Ionicons} name="refresh-outline" />}
-            size="lg"
-            variant="ghost"
-            colorScheme="primary"
-            onPress={fetchQuotes}
-            accessibilityLabel="Refresh affirmations"
-          />
-          <IconButton
-            icon={<Icon as={Ionicons} name="share-social-outline" />}
-            size="lg"
-            variant="ghost"
-            colorScheme="primary"
-            // onPress={() => handleShare(quotes[currentIndex].text)} // Need currentIndex from swiper
-            onPress={() => Alert.alert("Share coming soon!")}
-            accessibilityLabel="Share affirmation"
-          />
-          <IconButton
-            icon={<Icon as={Ionicons} name="heart-outline" />} // Toggle to "heart" when favorited
-            size="lg"
-            variant="ghost"
-            colorScheme="primary"
-            // onPress={() => handleFavorite(quotes[currentIndex].id)} // Need currentIndex
-            onPress={() => Alert.alert("Favorite coming soon!")}
-            accessibilityLabel="Favorite affirmation"
-          />
-        </HStack>
+          {/* Full screen quote swiper */}
+          <Box flex={1}>
+            <Swiper
+              data={quotes}
+              renderCard={(item: Quote) => (
+                <VStack
+                  flex={1}
+                  justifyContent="center"
+                  alignItems="center"
+                  px={6}
+                  py={8}
+                  key={item.id}
+                >
+                  {/* Clean quote card like the second image */}
+                  <Box
+                    bg="white"
+                    rounded="3xl"
+                    shadow="6"
+                    p={8}
+                    mx={4}
+                    minH={screenHeight * 0.4}
+                    maxH={screenHeight * 0.7}
+                    w={screenWidth - 32}
+                    justifyContent="center"
+                    alignItems="center"
+                  >
+                    <Text 
+                      fontSize="2xl" 
+                      fontWeight="medium" 
+                      color="gray.800" 
+                      textAlign="center"
+                      lineHeight="2xl"
+                      letterSpacing="sm"
+                    >
+                      {item.text}
+                    </Text>
+                    {item.author && (
+                      <Text 
+                        mt={6} 
+                        fontSize="md" 
+                        color="gray.500" 
+                        fontStyle="italic"
+                        textAlign="center"
+                      >
+                        — {item.author}
+                      </Text>
+                    )}
+                  </Box>
+                </VStack>
+              )}
+              onIndexChange={(index) => console.log('Current quote index:', index)}
+              cardStyle={{ flex: 1, width: '100%' }}
+              disableLeftSwipe={false}
+              disableRightSwipe={false}
+              disableTopSwipe={true}
+            />
+          </Box>
+
+          {/* Clean bottom action bar */}
+          <HStack 
+            justifyContent="center" 
+            alignItems="center" 
+            py={4} 
+            px={6}
+            space={8}
+            safeAreaBottom
+          >
+            <IconButton
+              icon={<Icon as={Ionicons} name="refresh-outline" />}
+              size="lg"
+              variant="ghost"
+              colorScheme="primary"
+              onPress={fetchQuotes}
+              accessibilityLabel="Refresh affirmations"
+            />
+            <IconButton
+              icon={<Icon as={Ionicons} name="share-social-outline" />}
+              size="lg"
+              variant="ghost"
+              colorScheme="primary"
+              onPress={() => Alert.alert("Share coming soon!")}
+              accessibilityLabel="Share affirmation"
+            />
+            <IconButton
+              icon={<Icon as={Ionicons} name="heart-outline" />}
+              size="lg"
+              variant="ghost"
+              colorScheme="primary"
+              onPress={() => Alert.alert("Favorite coming soon!")}
+              accessibilityLabel="Favorite affirmation"
+            />
+          </HStack>
+        </VStack>
       )}
     </Box>
   );
