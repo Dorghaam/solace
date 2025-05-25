@@ -49,13 +49,20 @@ export default function SettingsScreen() {
   } = useUserStore();
 
   const handleToggleNotifications = async (isEnabled: boolean) => {
+    console.log('🔔 Toggle notifications called with:', isEnabled);
+    console.log('🔔 Current notification settings:', notificationSettings);
+    
     // Simplified: just update enabled status. Token registration/unregistration
     // would happen here in a full implementation or in the notification settings screen.
     setNotificationSettings({ enabled: isEnabled });
+    console.log('🔔 Updated notification settings to enabled:', isEnabled);
+    
     if (!isEnabled) {
       setPushToken(null); // Clear token if user disables
+      console.log('🔔 Push token cleared due to notifications being disabled');
       // TODO: Optionally unregister from push notifications server-side if applicable
     } else {
+      console.log('🔔 Notifications enabled - token should be preserved or re-registered');
       // TODO: Re-trigger registerForPushNotificationsAsync if enabling from here and token is null
       // For now, assume token was obtained during onboarding if enabled.
       // If not, user might need to go to a dedicated notification settings screen
