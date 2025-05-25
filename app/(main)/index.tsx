@@ -20,10 +20,17 @@ export default function FeedScreen() {
   const theme = useTheme(); // NativeBase theme hook
   const userName = useUserStore((state) => state.userName);
   const interestCategories = useUserStore((state) => state.interestCategories);
+  const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
+  const addFavorite = useUserStore((state) => state.addFavoriteQuoteId);
+  const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
+  
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
   // currentQuote will be managed by the Swiper's current index
+
+  const currentQuote = quotes[currentIndex] || null;
 
   const fetchQuotes = useCallback(async () => {
     setIsLoading(true);
@@ -79,10 +86,17 @@ export default function FeedScreen() {
     fetchQuotes();
   }, [fetchQuotes]);
 
-  const handleFavorite = (quoteId: string) => {
-    console.log('Favorite pressed for quote ID:', quoteId);
-    // TODO: Implement favorite logic (add to Zustand store, sync with Supabase)
-    Alert.alert("Favorite", "This quote has been favorited (feature coming soon)!");
+  const handleToggleFavorite = () => {
+    if (!currentQuote) return;
+    
+    const isCurrentlyFavorite = favoriteQuoteIds.includes(currentQuote.id);
+    if (isCurrentlyFavorite) {
+      removeFavorite(currentQuote.id);
+      console.log('Removed from favorites:', currentQuote.id);
+    } else {
+      addFavorite(currentQuote.id);
+      console.log('Added to favorites:', currentQuote.id);
+    }
   };
 
   const handleShare = (quoteText: string) => {
@@ -192,7 +206,10 @@ export default function FeedScreen() {
                   </Box>
                 );
               }}
-              onChangeIndex={({ index }: { index: number }) => console.log('Swiper index changed to:', index)}
+              onChangeIndex={({ index }: { index: number }) => {
+                console.log('Swiper index changed to:', index);
+                setCurrentIndex(index);
+              }}
             />
             
             {/* Swipe indicator - centered under the cards */}
@@ -230,11 +247,17 @@ export default function FeedScreen() {
               accessibilityLabel="Share affirmation"
             />
             <IconButton
-              icon={<Icon as={Ionicons} name="heart-outline" />}
+              icon={
+                <Icon
+                  as={Ionicons}
+                  name={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "heart" : "heart-outline"}
+                  color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red.500" : "primary.500"}
+                />
+              }
               size="lg"
               variant="ghost"
-              colorScheme="primary"
-              onPress={() => Alert.alert("Favorite coming soon!")}
+              colorScheme={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red" : "primary"}
+              onPress={handleToggleFavorite}
               accessibilityLabel="Favorite affirmation"
             />
           </HStack>

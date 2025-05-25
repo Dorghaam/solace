@@ -1,5 +1,5 @@
-import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 // Breakup-specific categories (example)
@@ -29,6 +29,7 @@ interface UserState {
   interestCategories: BreakupCategory[];
   notificationSettings: NotificationSettings;
   pushToken: string | null;
+  favoriteQuoteIds: string[];
 
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
@@ -37,21 +38,25 @@ interface UserState {
   toggleInterestCategory: (category: BreakupCategory) => void;
   setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   setPushToken: (token: string | null) => void;
+  addFavoriteQuoteId: (quoteId: string) => void;
+  removeFavoriteQuoteId: (quoteId: string) => void;
+  isQuoteFavorite: (quoteId: string) => boolean;
   resetState: () => void;
 }
 
-const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'resetState'> = {
+const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'isQuoteFavorite' | 'resetState'> = {
   hasCompletedOnboarding: false,
   userName: null,
   affirmationFamiliarity: null,
   interestCategories: [],
   notificationSettings: { frequency: '3x', enabled: false },
   pushToken: null,
+  favoriteQuoteIds: [],
 };
 
 export const useUserStore = create<UserState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       ...initialState,
       setHasCompletedOnboarding: (status) => set({ hasCompletedOnboarding: status }),
       setUserName: (name) => set({ userName: name }),
@@ -67,6 +72,15 @@ export const useUserStore = create<UserState>()(
         notificationSettings: { ...state.notificationSettings, ...settings }
       })),
       setPushToken: (token) => set({ pushToken: token }),
+      addFavoriteQuoteId: (quoteId) =>
+        set((state) => ({
+          favoriteQuoteIds: state.favoriteQuoteIds.includes(quoteId)
+            ? state.favoriteQuoteIds
+            : [...state.favoriteQuoteIds, quoteId],
+        })),
+      removeFavoriteQuoteId: (quoteId) =>
+        set((state) => ({ favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId) })),
+      isQuoteFavorite: (quoteId: string): boolean => get().favoriteQuoteIds.includes(quoteId),
       resetState: () => set(initialState),
     }),
     {
