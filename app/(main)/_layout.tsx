@@ -44,6 +44,12 @@ export default function MainAppTabLayout() {
           ),
         }}
       />
+      <Tabs.Screen
+        name="widgetconfig"
+        options={{
+          href: null, // Hide from tab bar
+        }}
+      />
     </Tabs>
   );
 } 

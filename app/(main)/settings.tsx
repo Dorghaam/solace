@@ -113,6 +113,8 @@ export default function SettingsScreen() {
                 value={interestCategories.length > 0 ? `${interestCategories.length} selected` : "None selected"}
                 onPress={() => router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true' } })}
               />
+              <Divider />
+              <SettingItem label="Home Screen Widget" onPress={() => router.push('/(main)/widgetconfig')} />
             </Box>
           </Box>
 
