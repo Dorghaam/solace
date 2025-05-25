@@ -127,8 +127,11 @@ export default function FeedScreen() {
       {/* Main Quote Display - Full screen, clean layout */}
       {quotes.length > 0 && (
         <VStack flex={1} safeAreaTop>
-          {/* Minimal top bar */}
-          <HStack px={4} py={2} justifyContent="flex-end" alignItems="center">
+          {/* Minimal header with just Solace branding */}
+          <HStack px={4} py={2} justifyContent="space-between" alignItems="center">
+            <Text fontSize="lg" fontWeight="light" color="gray.300">
+              Solace
+            </Text>
             <IconButton
               icon={<Icon as={Ionicons} name="settings-outline" color="textSecondary" />}
               size="md"
@@ -137,8 +140,8 @@ export default function FeedScreen() {
             />
           </HStack>
 
-          {/* Full screen quote swiper */}
-          <Box flex={1}>
+          {/* Full screen quote swiper - horizontal with fixed centering */}
+          <Box flex={1} position="relative">
             <SwiperFlatList
               data={quotes}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
@@ -147,19 +150,19 @@ export default function FeedScreen() {
                   <Box
                     key={item.id}
                     width={screenWidth}
-                    height={screenHeight * 0.8}
+                    height={screenHeight - 200} // Fixed height to account for header and footer
                     justifyContent="center"
                     alignItems="center"
                     px={4}
                   >
-                    {/* Clean quote card like the second image */}
+                    {/* Clean quote card */}
                     <Box
                       bg="white"
                       rounded="3xl"
                       shadow="6"
                       p={8}
-                      minH={screenHeight * 0.4}
-                      maxH={screenHeight * 0.7}
+                      minH={screenHeight * 0.35}
+                      maxH={screenHeight * 0.55}
                       width="90%"
                       justifyContent="center"
                       alignItems="center"
@@ -191,14 +194,22 @@ export default function FeedScreen() {
               }}
               onChangeIndex={({ index }: { index: number }) => console.log('Swiper index changed to:', index)}
             />
+            
+            {/* Swipe indicator - centered under the cards */}
+            <Box alignItems="center" pb={4}>
+              <Icon as={Ionicons} name="chevron-forward-outline" size="sm" color="gray.400" />
+              <Text fontSize="xs" color="gray.400" textAlign="center">
+                Swipe right
+              </Text>
+            </Box>
           </Box>
 
           {/* Clean bottom action bar */}
           <HStack 
             justifyContent="center" 
             alignItems="center" 
-            py={4} 
             px={6}
+            py={4}
             space={8}
             safeAreaBottom
           >
