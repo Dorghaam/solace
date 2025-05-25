@@ -1,3 +1,4 @@
+import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -52,21 +53,25 @@ export default function SettingsScreen() {
     console.log('🔔 Toggle notifications called with:', isEnabled);
     console.log('🔔 Current notification settings:', notificationSettings);
     
-    // Simplified: just update enabled status. Token registration/unregistration
-    // would happen here in a full implementation or in the notification settings screen.
-    setNotificationSettings({ enabled: isEnabled });
-    console.log('🔔 Updated notification settings to enabled:', isEnabled);
-    
     if (!isEnabled) {
+      setNotificationSettings({ ...notificationSettings, enabled: false });
       setPushToken(null); // Clear token if user disables
+      await cancelAllScheduledAffirmationReminders();
       console.log('🔔 Push token cleared due to notifications being disabled');
       // TODO: Optionally unregister from push notifications server-side if applicable
     } else {
-      console.log('🔔 Notifications enabled - token should be preserved or re-registered');
-      // TODO: Re-trigger registerForPushNotificationsAsync if enabling from here and token is null
-      // For now, assume token was obtained during onboarding if enabled.
-      // If not, user might need to go to a dedicated notification settings screen
-      // to re-attempt registration.
+      const token = await getPushTokenAndPermissionsAsync(); // Request permission & get token
+      if (token) {
+        setPushToken(token);
+        setNotificationSettings({ ...notificationSettings, enabled: true, frequency: notificationSettings.frequency || '3x' });
+        await scheduleDailyAffirmationReminders(notificationSettings.frequency || '3x');
+        console.log('🔔 Notifications enabled and scheduled.');
+      } else {
+        // Permission denied or failed to get token, revert switch in UI
+        setNotificationSettings({ ...notificationSettings, enabled: false });
+        // The getPushTokenAndPermissionsAsync function should alert the user.
+        console.log('🔔 Failed to enable notifications (no token or permission).');
+      }
     }
   };
 
@@ -101,8 +106,7 @@ export default function SettingsScreen() {
                   colorScheme="primary"
                 />}
             />
-            {/* TODO: Add item to configure frequency, navigating to a new or onboarding/notifications screen */}
-            {/* <SettingItem label="Reminder Frequency" value={notificationSettings.frequency} onPress={() => router.push('/(onboarding)/notifications')} /> */}
+            <SettingItem label="Reminder Frequency" value={notificationSettings.frequency} onPress={() => router.push('/(onboarding)/notifications')} />
           </Box>
           {/* Temporary reset button for testing */}
           <Box px={4} mt={8} mb={6}>
