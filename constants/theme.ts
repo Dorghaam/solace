@@ -3,20 +3,20 @@ import { extendTheme } from 'native-base';
 export const solaceTheme = extendTheme({
   colors: {
     primary: {
-      50: '#EBF1FF',
-      100: '#CEDFFF',
-      200: '#ADCFFE',
-      300: '#8AC0FE',
-      400: '#67B0FD',
-      500: '#44A1FC',
-      600: '#3A88DE',
-      700: '#3070BF',
-      800: '#2658A0',
-      900: '#1C4081',
+      50: '#FFF0F5',
+      100: '#FFE6EE',
+      200: '#FFDDE8',
+      300: '#FFD1E1',
+      400: '#FFC4DA',
+      500: '#FFB3D1',
+      600: '#FFACCB',
+      700: '#FF9CC2',
+      800: '#FF8AB8',
+      900: '#FF7AAF',
     },
-    backgroundLight: '#FEF7F5',
+    backgroundLight: '#FFF9FB',
     backgroundFocused: '#FFFFFF',
-    textPrimary: '#333333',
+    textPrimary: '#424242',
     textSecondary: '#757575',
     textTertiary: '#BDBDBD',
     accentWarm: '#FFDAB9',
@@ -26,8 +26,9 @@ export const solaceTheme = extendTheme({
     error: '#F44336',
     warning: '#FF9800',
     quoteBackground: '#FFFFFF',
-    quoteText: '#3D3D3D',
+    quoteText: '#333333',
     onboardingButtonText: '#FFFFFF',
+    titleGrey: '#6C7A89',
   },
   fontConfig: {
     // We are loading 'SpaceMono' in app/_layout.tsx
@@ -57,10 +58,10 @@ export const solaceTheme = extendTheme({
         },
       },
       variants: {
-        solid: ({ colorScheme }: any) => ({
+        solid: ({ colorScheme, theme }: any) => ({
           bg: `${colorScheme}.500`,
           _pressed: { bg: `${colorScheme}.600` },
-          _text: { color: colorScheme === 'primary' ? 'onboardingButtonText' : 'textPrimary' }
+          _text: { color: colorScheme === 'primary' ? theme.colors.textPrimary : theme.colors.white }
         }),
         subtle: ({ colorScheme }: any) => ({
           bg: `${colorScheme}.100`,
@@ -154,7 +155,22 @@ export const solaceTheme = extendTheme({
       defaultProps: {
         variant: 'ghost',
       }
-    }
+    },
+    Switch: {
+      defaultProps: {
+        colorScheme: 'primary',
+      },
+    },
+    Radio: {
+      defaultProps: {
+        colorScheme: 'primary',
+      },
+      baseStyle: {
+        _icon: {
+          color: 'white',
+        },
+      },
+    },
   },
   config: {
     initialColorMode: 'light',

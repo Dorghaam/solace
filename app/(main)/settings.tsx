@@ -8,11 +8,17 @@ import React from 'react';
 // Reusable Setting Item Component
 const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void, rightContent?: React.ReactNode }> = 
 ({ label, value, onPress, rightContent }) => (
-  <Pressable onPress={onPress} disabled={!onPress} _pressed={{bg: "coolGray.100"}}>
-    <HStack justifyContent="space-between" alignItems="center" p={4} minH="50px">
-      <Text fontSize="md">{label}</Text>
-      {rightContent ? rightContent : <Text color="textSecondary" numberOfLines={1} ellipsizeMode="tail">{value || ''}</Text>}
-      {onPress && !rightContent && <Icon as={Ionicons} name="chevron-forward" color="textTertiary" size="sm" />}
+  <Pressable onPress={onPress} disabled={!onPress} _pressed={{bg: "coolGray.50"}}>
+    <HStack justifyContent="space-between" alignItems="center" py={4} px={4} minH="56px">
+      <Text fontSize="md" color="textPrimary" fontWeight="medium">{label}</Text>
+      <HStack alignItems="center" space={2}>
+        {rightContent ? rightContent : (
+          <Text color="textSecondary" fontSize="sm" numberOfLines={1} ellipsizeMode="tail" textAlign="right">
+            {value || ''}
+          </Text>
+        )}
+        {onPress && !rightContent && <Icon as={Ionicons} name="chevron-forward" color="textTertiary" size="sm" />}
+      </HStack>
     </HStack>
   </Pressable>
 );
@@ -77,45 +83,86 @@ export default function SettingsScreen() {
 
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
-      <HStack px={4} py={3} justifyContent="center" alignItems="center" borderBottomWidth={1} borderColor="gray.100">
-        <Text fontSize="xl" fontWeight="semibold">Settings</Text>
-      </HStack>
+      <Box px={4} py={4} justifyContent="center" alignItems="center" borderBottomWidth={1} borderColor="gray.100">
+        <Text fontSize="xl" fontWeight="bold" color="textPrimary">Settings</Text>
+      </Box>
       <ScrollView>
-        <VStack divider={<Divider />}>
+        <VStack space={6} py={2}>
           <Box>
-            <Text fontWeight="semibold" fontSize="sm" color="textSecondary" mt={4} mb={1} px={4}>ACCOUNT</Text>
-            <SettingItem label="Name" value={userName || "Not set"} onPress={() => router.push({ pathname: '/(onboarding)/name', params: { editing: 'true' } })} />
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mt={4} mb={3} px={4} letterSpacing="0.5">
+              ACCOUNT
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem 
+                label="Name" 
+                value={userName || "Not set"} 
+                onPress={() => router.push({ pathname: '/(onboarding)/name', params: { editing: 'true' } })} 
+              />
+            </Box>
           </Box>
+
           <Box>
-            <Text fontWeight="semibold" fontSize="sm" color="textSecondary" mt={4} mb={1} px={4}>CONTENT & PREFERENCES</Text>
-            <SettingItem label="My Favorites" onPress={() => router.push('/(main)/favorites')} />
-            <SettingItem
-              label="Affirmation Topics"
-              value={interestCategories.length > 0 ? `${interestCategories.length} selected` : "None selected"}
-              onPress={() => router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true' } })}
-            />
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+              CONTENT & PREFERENCES
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem label="My Favorites" onPress={() => router.push('/(main)/favorites')} />
+              <Divider />
+              <SettingItem
+                label="Affirmation Topics"
+                value={interestCategories.length > 0 ? `${interestCategories.length} selected` : "None selected"}
+                onPress={() => router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true' } })}
+              />
+            </Box>
           </Box>
+
           <Box>
-            <Text fontWeight="semibold" fontSize="sm" color="textSecondary" mt={4} mb={1} px={4}>NOTIFICATIONS</Text>
-            <SettingItem
-              label="Daily Reminders"
-              rightContent={
-                <Switch
-                  isChecked={notificationSettings.enabled}
-                  onToggle={handleToggleNotifications}
-                  colorScheme="primary"
-                />}
-            />
-            <SettingItem label="Reminder Frequency" value={notificationSettings.frequency} onPress={() => router.push('/(onboarding)/notifications')} />
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+              NOTIFICATIONS
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem
+                label="Daily Reminders"
+                rightContent={
+                  <Switch
+                    isChecked={notificationSettings.enabled}
+                    onToggle={handleToggleNotifications}
+                    colorScheme="primary"
+                    size="md"
+                  />
+                }
+              />
+              <Divider />
+              <SettingItem 
+                label="Reminder Frequency" 
+                value={notificationSettings.frequency} 
+                onPress={() => router.push('/(onboarding)/notifications')} 
+              />
+            </Box>
           </Box>
-          {/* Temporary reset button for testing */}
-          <Box px={4} mt={8} mb={6}>
-            <Text fontSize="sm" color="textSecondary" mb={2}>Development Tools:</Text>
-            <VStack space={2}>
-              <Button variant="outline" colorScheme="coolGray" onPress={handleResetOnboarding}>
+
+          {/* Development Tools */}
+          <Box px={4} mt={4} mb={6}>
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} letterSpacing="0.5">
+              DEVELOPMENT TOOLS
+            </Text>
+            <VStack space={3}>
+              <Button 
+                variant="outline" 
+                colorScheme="coolGray" 
+                onPress={handleResetOnboarding}
+                rounded="lg"
+                _text={{ fontSize: "sm", fontWeight: "medium" }}
+              >
                 Reset & Re-Onboard (Dev)
               </Button>
-              <Button variant="outline" colorScheme="orange" onPress={handleHardReset}>
+              <Button 
+                variant="outline" 
+                colorScheme="orange" 
+                onPress={handleHardReset}
+                rounded="lg"
+                _text={{ fontSize: "sm", fontWeight: "medium" }}
+              >
                 Force App Restart (Dev)
               </Button>
             </VStack>

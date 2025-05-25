@@ -1,10 +1,11 @@
 import { supabase } from '@/services/supabaseClient';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Box, Button, HStack, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, Share } from 'react-native';
+import { Alert, Dimensions, Share, StyleSheet } from 'react-native';
 import { SwiperFlatList } from 'react-native-swiper-flatlist';
 
 interface Quote {
@@ -153,21 +154,25 @@ export default function FavoritesScreen() {
       {/* Main Quote Display - Full screen, clean layout */}
       {quotes.length > 0 && (
         <VStack flex={1} safeAreaTop>
-          {/* Header with title and settings */}
-          <HStack px={4} py={2} justifyContent="space-between" alignItems="center">
-            <Text fontSize="lg" fontWeight="light" color="gray.300">
+          {/* Full screen quote swiper - horizontal with fixed centering */}
+          <LinearGradient
+            colors={[theme.colors.primary[50], theme.colors.backgroundLight, theme.colors.backgroundLight]}
+            style={StyleSheet.absoluteFill}
+          />
+          <Box flex={1} position="relative">
+            {/* My Favorites title positioned on the page */}
+            <Text 
+              fontSize="lg" 
+              fontWeight="light" 
+              color="gray.300"
+              position="absolute"
+              top={4}
+              left={4}
+              zIndex={1}
+            >
               My Favorites
             </Text>
-            <IconButton
-              icon={<Icon as={Ionicons} name="settings-outline" color="textSecondary" />}
-              size="md"
-              variant="ghost"
-              onPress={() => router.push('/(main)/settings')}
-            />
-          </HStack>
-
-          {/* Full screen quote swiper - horizontal with fixed centering */}
-          <Box flex={1} position="relative">
+            
             <SwiperFlatList
               data={quotes}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
@@ -176,38 +181,30 @@ export default function FavoritesScreen() {
                   <Box
                     key={item.id}
                     width={screenWidth}
-                    height={screenHeight - 200}
+                    height={screenHeight - 180}
                     justifyContent="center"
                     alignItems="center"
                     px={4}
                   >
-                    {/* Clean quote card */}
                     <Box
-                      bg="white"
+                      bg="quoteBackground"
                       rounded="3xl"
-                      shadow="6"
-                      p={8}
+                      shadow="5"
+                      p={{base: 6, md: 8}}
                       minH={screenHeight * 0.35}
-                      maxH={screenHeight * 0.55}
+                      maxH={screenHeight * 0.6}
                       width="90%"
                       justifyContent="center"
                       alignItems="center"
                     >
-                      <Text 
-                        fontSize="2xl" 
-                        fontWeight="medium" 
-                        color="gray.800" 
-                        textAlign="center"
-                        lineHeight="2xl"
-                        letterSpacing="sm"
-                      >
+                      <Text variant="quote">
                         {item.text}
                       </Text>
                       {item.author && (
                         <Text 
-                          mt={6} 
-                          fontSize="md" 
-                          color="gray.500" 
+                          mt={4} 
+                          fontSize="sm" 
+                          color="textSecondary" 
                           fontStyle="italic"
                           textAlign="center"
                         >

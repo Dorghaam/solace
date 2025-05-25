@@ -1,10 +1,10 @@
 import { supabase } from '@/services/supabaseClient'; // Ensure this path is correct
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
 import { Box, Button, HStack, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
 import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, Share } from 'react-native'; // Import Share and Dimensions
+import { Alert, Dimensions, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet
 import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to more reliable swiper
 
 interface Quote {
@@ -164,21 +164,25 @@ export default function FeedScreen() {
       {/* Main Quote Display - Full screen, clean layout */}
       {quotes.length > 0 && (
         <VStack flex={1} safeAreaTop>
-          {/* Minimal header with just Solace branding */}
-          <HStack px={4} py={2} justifyContent="space-between" alignItems="center">
-            <Text fontSize="lg" fontWeight="light" color="gray.300">
+          {/* Full screen quote swiper - horizontal with fixed centering */}
+          <LinearGradient
+            colors={[theme.colors.primary[50], theme.colors.backgroundLight, theme.colors.backgroundLight]} // Subtle pink to backgroundLight
+            style={StyleSheet.absoluteFill} // Make gradient fill the container
+          />
+          <Box flex={1} position="relative"> {/* Swiper now sits on top of the gradient */}
+            {/* Solace title positioned on the page */}
+            <Text 
+              fontSize="lg" 
+              fontWeight="light" 
+              color="gray.300"
+              position="absolute"
+              top={4}
+              left={4}
+              zIndex={1}
+            >
               Solace
             </Text>
-            <IconButton
-              icon={<Icon as={Ionicons} name="settings-outline" color="textSecondary" />}
-              size="md"
-              variant="ghost"
-              onPress={() => router.push('/(main)/settings')}
-            />
-          </HStack>
-
-          {/* Full screen quote swiper - horizontal with fixed centering */}
-          <Box flex={1} position="relative">
+            
             <SwiperFlatList
               data={quotes}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
@@ -187,38 +191,33 @@ export default function FeedScreen() {
                   <Box
                     key={item.id}
                     width={screenWidth}
-                    height={screenHeight - 200} // Fixed height to account for header and footer
+                    height={screenHeight - 180} // Adjust to match positioning
                     justifyContent="center"
                     alignItems="center"
                     px={4}
                   >
                     {/* Clean quote card */}
                     <Box
-                      bg="white"
-                      rounded="3xl"
-                      shadow="6"
-                      p={8}
+                      bg="quoteBackground" // Use theme color for card background (e.g., white)
+                      rounded="3xl" // More rounded
+                      shadow="5" // Softer shadow
+                      p={{base: 6, md: 8}}
                       minH={screenHeight * 0.35}
-                      maxH={screenHeight * 0.55}
+                      maxH={screenHeight * 0.6} // Allow slightly taller cards
                       width="90%"
                       justifyContent="center"
                       alignItems="center"
                     >
                       <Text 
-                        fontSize="2xl" 
-                        fontWeight="medium" 
-                        color="gray.800" 
-                        textAlign="center"
-                        lineHeight="2xl"
-                        letterSpacing="sm"
+                        variant="quote" // Use the quote variant from theme
                       >
                         {item.text}
                       </Text>
                       {item.author && (
                         <Text 
-                          mt={6} 
-                          fontSize="md" 
-                          color="gray.500" 
+                          mt={4} 
+                          fontSize="sm" 
+                          color="textSecondary" 
                           fontStyle="italic"
                           textAlign="center"
                         >

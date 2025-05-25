@@ -8,7 +8,7 @@ export default function MainAppTabLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: theme.colors.primary[500],
+        tabBarActiveTintColor: theme.colors.primary[600],
         tabBarInactiveTintColor: theme.colors.textSecondary,
         tabBarStyle: {
           backgroundColor: theme.colors.backgroundFocused,
