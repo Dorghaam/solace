@@ -1,28 +1,61 @@
-import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetTheme } from '@/store/userStore';
+import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetSettings, WidgetTheme } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Button, Divider, HStack, Icon, IconButton, Radio, Select, Switch, Text, VStack } from 'native-base';
-import React, { useState } from 'react';
+import { Box, Button, Divider, HStack, Icon, IconButton, Radio, Switch, Text, VStack } from 'native-base';
+import React, { useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 
 // Import Supabase client if you plan to fetch quotes here for the widget
 // import { supabase } from '@/services/supabaseClient';
 
 export default function WidgetConfigScreen() {
-  const { favoriteQuoteIds } = useUserStore(); // To know if "favorites" is a viable option
-  
-  const storeWidgetSettings = useUserStore((state) => state.widgetSettings);
-  const setStoreWidgetSettings = useUserStore((state) => state.setWidgetSettings);
-  
   // Local state to control the "Customize" toggle, distinct from persisted settings
   const [isCustomizing, setIsCustomizing] = useState(false);
+  const [favoriteQuoteIds, setFavoriteQuoteIds] = useState<string[]>([]);
+  const [storeWidgetSettings, setStoreWidgetSettings] = useState<WidgetSettings | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Safely access store data
+  useEffect(() => {
+    try {
+      const store = useUserStore.getState();
+      setFavoriteQuoteIds(store.favoriteQuoteIds || []);
+      setStoreWidgetSettings(store.widgetSettings || { category: 'all', theme: 'light' });
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error accessing store:', error);
+      // Set default values if store access fails
+      setFavoriteQuoteIds([]);
+      setStoreWidgetSettings({ category: 'all', theme: 'light' });
+      setIsLoading(false);
+    }
+  }, []);
+
+  // Function to update store settings
+  const updateStoreWidgetSettings = (settings: Partial<WidgetSettings>) => {
+    try {
+      useUserStore.getState().setWidgetSettings(settings);
+      setStoreWidgetSettings(prev => prev ? { ...prev, ...settings } : { category: 'all', theme: 'light', ...settings });
+    } catch (error) {
+      console.error('Error updating store:', error);
+    }
+  };
+
+  // Show loading state
+  if (isLoading || !storeWidgetSettings) {
+    return (
+      <Box flex={1} bg="backgroundLight" safeArea justifyContent="center" alignItems="center">
+        <Text>Loading widget settings...</Text>
+      </Box>
+    );
+  }
 
   const handleToggleCustomize = (value: boolean) => {
     setIsCustomizing(value);
   };
 
   const handleCategoryChange = (value: string) => {
-    setStoreWidgetSettings({ category: value as BreakupCategory | 'favorites' | 'all' });
+    updateStoreWidgetSettings({ category: value as BreakupCategory | 'favorites' | 'all' });
     // TODO: When category changes, update shared data for the native widget
     console.log("Widget category changed to:", value);
     Alert.alert("Category Saved", "Widget will now show affirmations from this category (once native widget is built).");
@@ -30,7 +63,7 @@ export default function WidgetConfigScreen() {
   
   const handleThemeChange = (value: WidgetTheme) => {
     // TODO: Update shared theme data for native widget
-    setStoreWidgetSettings({ theme: value as WidgetTheme});
+    updateStoreWidgetSettings({ theme: value as WidgetTheme});
     console.log("Widget theme changed to:", value);
     Alert.alert("Theme Saved", `Widget theme set to ${value} (once native widget is built).`);
   };
@@ -112,24 +145,21 @@ export default function WidgetConfigScreen() {
           <VStack space={4} mt={2}>
             <Box>
               <Text mb={1} color="textSecondary" fontWeight="medium">Affirmation Category</Text>
-              <Select
-                selectedValue={storeWidgetSettings.category}
-                minWidth="200"
-                accessibilityLabel="Choose Category"
-                placeholder="Choose Category"
-                _selectedItem={{
-                  bg: "primary.100",
-                  endIcon: <Icon as={Ionicons} name="checkmark" size={5} />,
-                }}
-                mt={1}
-                onValueChange={handleCategoryChange}
+              <Radio.Group 
+                name="categorySelection" 
+                value={storeWidgetSettings.category} 
+                onChange={(value: string) => handleCategoryChange(value)}
               >
-                <Select.Item label="All Breakup Quotes" value="all" />
-                <Select.Item label="My Favorites" value="favorites" isDisabled={favoriteQuoteIds.length === 0} />
-                {breakupInterestCategories.map(cat => (
-                  <Select.Item key={cat.id} label={cat.label} value={cat.id} />
-                ))}
-              </Select>
+                <VStack space={2}>
+                  <Radio value="all" size="sm">All Breakup Quotes</Radio>
+                  <Radio value="favorites" size="sm" isDisabled={favoriteQuoteIds.length === 0}>
+                    My Favorites {favoriteQuoteIds.length === 0 ? "(No favorites yet)" : ""}
+                  </Radio>
+                  {breakupInterestCategories.map(cat => (
+                    <Radio key={cat.id} value={cat.id} size="sm">{cat.label}</Radio>
+                  ))}
+                </VStack>
+              </Radio.Group>
             </Box>
             <Box>
               <Text mb={1} color="textSecondary" fontWeight="medium">Widget Theme</Text>
