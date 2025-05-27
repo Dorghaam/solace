@@ -18,7 +18,7 @@ export default ({ config }) => {
       newArchEnabled: true, // You have this enabled
       ios: {
         supportsTablet: true,
-        bundleIdentifier: "com.yourcompany.solace"
+        bundleIdentifier: "com.dorghaamhaidar.solace"
       },
       android: {
         adaptiveIcon: {
