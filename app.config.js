@@ -25,7 +25,7 @@ export default ({ config }) => {
           foregroundImage: "./assets/images/adaptive-icon.png", // Ensure this path is correct
           backgroundColor: "#FEF7F5"
         },
-        package: "com.yourcompany.solace",
+        package: "com.dorghaamhaidar.solace",
         edgeToEdgeEnabled: true // You have this enabled
       },
       web: {

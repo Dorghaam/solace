@@ -2,7 +2,7 @@ import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Button, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, VStack } from 'native-base';
+import { Box, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, VStack } from 'native-base';
 import React from 'react';
 
 // Reusable Setting Item Component
@@ -24,29 +24,6 @@ const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void
 );
 
 export default function SettingsScreen() {
-  const resetState = useUserStore((state) => state.resetState);
-  const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
-
-  const handleResetOnboarding = () => {
-    resetState();
-    // Set hasCompletedOnboarding to false AFTER state has been reset
-    // and router has had a chance to potentially react if needed.
-    // The timeout helps ensure navigation occurs after state update propagation.
-    setHasCompletedOnboarding(false);
-    // Force navigation to onboarding
-    setTimeout(() => {
-      router.replace('/(onboarding)');
-    }, 100);
-  };
-
-  const handleHardReset = () => {
-    resetState();
-    setHasCompletedOnboarding(false);
-    // Navigate to root and then to onboarding
-    router.dismissAll(); // Clears navigation stack
-    router.replace('/'); // Go to root, which will then go to (onboarding)
-  };
-
   const {
     userName,
     interestCategories,
@@ -144,33 +121,6 @@ export default function SettingsScreen() {
                 onPress={() => router.push('/(onboarding)/notifications')} 
               />
             </Box>
-          </Box>
-
-          {/* Development Tools */}
-          <Box px={4} mt={4} mb={6}>
-            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} letterSpacing="0.5">
-              DEVELOPMENT TOOLS
-            </Text>
-            <VStack space={3}>
-              <Button 
-                variant="outline" 
-                colorScheme="coolGray" 
-                onPress={handleResetOnboarding}
-                rounded="lg"
-                _text={{ fontSize: "sm", fontWeight: "medium" }}
-              >
-                Reset & Re-Onboard (Dev)
-              </Button>
-              <Button 
-                variant="outline" 
-                colorScheme="orange" 
-                onPress={handleHardReset}
-                rounded="lg"
-                _text={{ fontSize: "sm", fontWeight: "medium" }}
-              >
-                Force App Restart (Dev)
-              </Button>
-            </VStack>
           </Box>
         </VStack>
       </ScrollView>

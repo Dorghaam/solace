@@ -28,7 +28,7 @@
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>solaceapp</string>
-				<string>com.yourcompany.solace</string>
+				<string>com.dorghaamhaidar.solace</string>
 			</array>
 		</dict>
 		<dict>
