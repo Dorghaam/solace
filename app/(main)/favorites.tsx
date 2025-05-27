@@ -11,7 +11,6 @@ import { SwiperFlatList } from 'react-native-swiper-flatlist';
 interface Quote {
   id: string;
   text: string;
-  author?: string;
   category?: string;
 }
 
@@ -49,7 +48,7 @@ export default function FavoritesScreen() {
 
       const { data, error: dbError } = await supabase
         .from('quotes')
-        .select('id, text, author, category')
+        .select('id, text, category')
         .in('id', favoriteQuoteIds)
         .order('created_at', { ascending: false });
 
@@ -104,7 +103,7 @@ export default function FavoritesScreen() {
 
     try {
       const result = await Share.share({
-        message: `"${currentQuote.text}"${currentQuote.author ? ` — ${currentQuote.author}` : ''} - via Solace App`,
+        message: `"${currentQuote.text}" - via Solace App`,
       });
 
       if (result.action === Share.sharedAction) {
@@ -204,17 +203,6 @@ export default function FavoritesScreen() {
                       <Text variant="quote">
                         {item.text}
                       </Text>
-                      {item.author && (
-                        <Text 
-                          mt={4} 
-                          fontSize="sm" 
-                          color="textSecondary" 
-                          fontStyle="italic"
-                          textAlign="center"
-                        >
-                          — {item.author}
-                        </Text>
-                      )}
                     </Box>
                   </Box>
                 );

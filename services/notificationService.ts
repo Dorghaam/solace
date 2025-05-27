@@ -21,7 +21,7 @@ const fetchRandomQuotesForNotifications = async (count: number = 20, categories?
   try {
     let query = supabase
       .from('quotes')
-      .select('text, author, category');
+      .select('text, category');
 
     // Filter by categories if provided
     if (categories && categories.length > 0) {
@@ -75,10 +75,36 @@ const getQuoteMessage = (quotes: any[], index: number) => {
   
   // Format the quote cleanly for notifications - removed quotation marks
   let message = quote.text;
-  if (quote.author) {
-    message += ` — ${quote.author}`;
-  }
   return message;
+};
+
+// Good morning messages to start the day positively
+const goodMorningMessages = [
+  "Good morning, beautiful soul. Today is a new beginning filled with endless possibilities.",
+  "Rise and shine! You are worthy of all the love and happiness this day will bring.",
+  "Good morning! Your strength and resilience inspire everyone around you.",
+  "Wake up knowing that you are enough, you are loved, and you matter.",
+  "Good morning! Today is another chance to be kind to yourself and embrace your journey.",
+  "Rise with confidence! You have everything within you to make today amazing.",
+  "Good morning, warrior. Your healing journey is a testament to your incredible strength."
+];
+
+// Good night messages for peaceful sleep
+const goodNightMessages = [
+  "Good night, dear one. Rest knowing that you've done your best today, and that's enough.",
+  "Sleep peacefully tonight. You are loved, you are valued, and tomorrow holds new hope.",
+  "Good night! Let go of today's worries and embrace the healing power of rest.",
+  "As you close your eyes, remember how far you've come. You're doing amazing.",
+  "Good night, beautiful. May your dreams be filled with peace and your heart with comfort.",
+  "Rest well tonight. You deserve all the love and kindness you've shown others.",
+  "Good night! Tomorrow is a fresh start, and you have the strength to embrace it."
+];
+
+// Function to get a random message from an array
+const getRandomMessage = (messages: string[]) => {
+  const today = new Date();
+  const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24));
+  return messages[dayOfYear % messages.length];
 };
 
 // Call this once, e.g., when app starts or when notifications are first enabled
@@ -111,13 +137,25 @@ const defaultReminderTimes = {
     { hour: 17, minute: 0 }, // 5:00 PM
     { hour: 20, minute: 0 }, // 8:00 PM
   ],
+  '10x': [
+    { hour: 7, minute: 0 },  // 7:00 AM
+    { hour: 9, minute: 0 },  // 9:00 AM
+    { hour: 11, minute: 0 }, // 11:00 AM
+    { hour: 13, minute: 0 }, // 1:00 PM
+    { hour: 15, minute: 0 }, // 3:00 PM
+    { hour: 17, minute: 0 }, // 5:00 PM
+    { hour: 19, minute: 0 }, // 7:00 PM
+    { hour: 20, minute: 30 }, // 8:30 PM
+    { hour: 21, minute: 30 }, // 9:30 PM
+    { hour: 22, minute: 30 }, // 10:30 PM
+  ],
   'custom': [] as { hour: number; minute: number }[]
 };
 
-export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' | '5x' | 'custom' = '3x', customTimes?: { hour: number; minute: number }[], categories?: string[]) => {
+export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' | '5x' | '10x' | 'custom' = '3x', customTimes?: { hour: number; minute: number }[], categories?: string[]) => {
   await setupNotificationChannelsAsync(); // Ensure channel exists
   await Notifications.cancelAllScheduledNotificationsAsync(); // Clear existing Solace reminders first
-  console.log(`Scheduling ${frequency} daily reminders...`);
+  console.log(`Scheduling ${frequency} daily reminders plus good morning/night messages...`);
 
   const reminderTimes = frequency === 'custom' && customTimes ? customTimes : defaultReminderTimes[frequency];
 
@@ -125,6 +163,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
   console.log('Fetching quotes from Supabase for notifications...');
   const quotes = await fetchRandomQuotesForNotifications(reminderTimes.length * 7, categories); // Get enough quotes for a week
 
+  // Schedule regular frequency-based reminders
   const reminderPromises = reminderTimes.map(async (time, index) => {
     const identifier = `dailyAffirmationReminder-${index}`;
     try {
@@ -146,23 +185,81 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
         content: {
           title: "Solace",
           body: message,
-          // data: { type: 'affirmationReminder' }, // Optional data for handling notification tap
-          sound: 'default', // Or custom sound
+          sound: 'default',
         },
         trigger,
-        // identifier: identifier, // Useful for managing specific notifications, but cancelAll works for now
       });
       console.log(`Scheduled daily reminder for ${time.hour}:${time.minute < 10 ? '0' : ''}${time.minute} with quote: "${message.substring(0, 50)}..."`);
     } catch (e) {
       console.error(`Failed to schedule reminder ${identifier}`, e);
     }
   });
-  await Promise.all(reminderPromises);
-  console.log(`All ${frequency} daily reminders scheduled with quotes from database.`);
+
+  // Schedule good morning notification (6:30 AM)
+  const goodMorningPromise = (async () => {
+    try {
+      const trigger: Notifications.DailyTriggerInput = {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: 6,
+        minute: 30,
+      };
+
+      if (Platform.OS === 'android') {
+        (trigger as any).channelId = REMINDER_CHANNEL_ID;
+      }
+
+      const goodMorningMessage = getRandomMessage(goodMorningMessages);
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Good Morning ☀️",
+          body: goodMorningMessage,
+          sound: 'default',
+        },
+        trigger,
+      });
+      console.log(`Scheduled good morning notification for 6:30 AM: "${goodMorningMessage.substring(0, 50)}..."`);
+    } catch (e) {
+      console.error('Failed to schedule good morning notification', e);
+    }
+  })();
+
+  // Schedule good night notification (10:00 PM)
+  const goodNightPromise = (async () => {
+    try {
+      const trigger: Notifications.DailyTriggerInput = {
+        type: Notifications.SchedulableTriggerInputTypes.DAILY,
+        hour: 22,
+        minute: 0,
+      };
+
+      if (Platform.OS === 'android') {
+        (trigger as any).channelId = REMINDER_CHANNEL_ID;
+      }
+
+      const goodNightMessage = getRandomMessage(goodNightMessages);
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: "Good Night 🌙",
+          body: goodNightMessage,
+          sound: 'default',
+        },
+        trigger,
+      });
+      console.log(`Scheduled good night notification for 10:00 PM: "${goodNightMessage.substring(0, 50)}..."`);
+    } catch (e) {
+      console.error('Failed to schedule good night notification', e);
+    }
+  })();
+
+  // Wait for all notifications to be scheduled
+  await Promise.all([...reminderPromises, goodMorningPromise, goodNightPromise]);
+  console.log(`All ${frequency} daily reminders plus good morning/night messages scheduled successfully.`);
 };
 
 // Helper function to get the reminder times for a given frequency
-export const getReminderTimesForFrequency = (frequency: '1x' | '3x' | '5x' | 'custom') => {
+export const getReminderTimesForFrequency = (frequency: '1x' | '3x' | '5x' | '10x' | 'custom') => {
   return defaultReminderTimes[frequency];
 };
 

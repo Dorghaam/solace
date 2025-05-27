@@ -10,7 +10,6 @@ import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to mor
 interface Quote {
   id: string;
   text: string;
-  author?: string;
   category?: string; // For potential filtering later
 }
 
@@ -41,7 +40,7 @@ export default function FeedScreen() {
     console.log('Fetching quotes with categories:', interestCategories);
 
     try {
-      let query = supabase.from('quotes').select('id, text, author, category');
+      let query = supabase.from('quotes').select('id, text, category');
 
       // Filter by selected interest categories if any are present
       if (interestCategories && interestCategories.length > 0) {
@@ -111,7 +110,7 @@ export default function FeedScreen() {
 
     try {
       const result = await Share.share({
-        message: `"${currentQuote.text}"${currentQuote.author ? ` — ${currentQuote.author}` : ''} - via Solace App`,
+        message: `"${currentQuote.text}" - via Solace App`,
         // title: 'Share Affirmation', // Optional: For some platforms like email
         // url: 'https://yourappstorelink.com' // Optional: Link to your app
       });
@@ -216,17 +215,6 @@ export default function FeedScreen() {
                       >
                         {item.text}
                       </Text>
-                      {item.author && (
-                        <Text 
-                          mt={4} 
-                          fontSize="sm" 
-                          color="textSecondary" 
-                          fontStyle="italic"
-                          textAlign="center"
-                        >
-                          — {item.author}
-                        </Text>
-                      )}
                     </Box>
                   </Box>
                 );

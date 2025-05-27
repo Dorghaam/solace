@@ -19,7 +19,7 @@ export const breakupInterestCategories = [
 export type BreakupCategory = typeof breakupInterestCategories[number]['id'];
 
 export interface NotificationSettings {
-  frequency: '1x' | '3x' | '5x' | 'custom';
+  frequency: '1x' | '3x' | '5x' | '10x' | 'custom';
   enabled: boolean;
   // customTimes?: string[]; // For later if 'custom' frequency is used
 }

@@ -11,8 +11,8 @@ export default function NotificationPreferencesScreen() {
   const interestCategories = useUserStore((state) => state.interestCategories);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(storeNotificationSettings.enabled);
-  const [selectedFrequency, setSelectedFrequency] = useState<'1x' | '3x' | '5x'>(
-    (storeNotificationSettings.frequency as '1x' | '3x' | '5x') || '3x'
+  const [selectedFrequency, setSelectedFrequency] = useState<'1x' | '3x' | '5x' | '10x'>(
+    (storeNotificationSettings.frequency as '1x' | '3x' | '5x' | '10x') || '3x'
   );
 
   useEffect(() => {
@@ -44,7 +44,7 @@ export default function NotificationPreferencesScreen() {
   };
 
   const handleFrequencyChange = async (value: string) => {
-    const frequency = value as '1x' | '3x' | '5x';
+    const frequency = value as '1x' | '3x' | '5x' | '10x';
     setSelectedFrequency(frequency);
     
     // If notifications are currently enabled, reschedule with new frequency
@@ -120,6 +120,9 @@ export default function NotificationPreferencesScreen() {
                       </Radio>
                       <Radio value="5x">
                         <Text ml={2}>5 times a day</Text>
+                      </Radio>
+                      <Radio value="10x">
+                        <Text ml={2}>10 times a day</Text>
                       </Radio>
                     </VStack>
                   </Radio.Group>
