@@ -73,8 +73,8 @@ const getQuoteMessage = (quotes: any[], index: number) => {
   const quoteIndex = seed % quotes.length;
   const quote = quotes[quoteIndex];
   
-  // Format the quote nicely for notifications
-  let message = `"${quote.text}"`;
+  // Format the quote cleanly for notifications - removed quotation marks
+  let message = quote.text;
   if (quote.author) {
     message += ` — ${quote.author}`;
   }
@@ -144,7 +144,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
 
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: "Your Daily Solace Reminder",
+          title: "Solace",
           body: message,
           // data: { type: 'affirmationReminder' }, // Optional data for handling notification tap
           sound: 'default', // Or custom sound

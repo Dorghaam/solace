@@ -4,14 +4,16 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 
 // Breakup-specific categories (example)
 export const breakupInterestCategories = [
-  { id: 'self_love', label: 'Self-Love Post-Breakup' },
-  { id: 'healing_heartbreak', label: 'Healing Heartbreak' },
-  { id: 'letting_go', label: 'Letting Go' },
-  { id: 'rebuilding_confidence', label: 'Rebuilding Confidence' },
-  { id: 'overcoming_loneliness', label: 'Overcoming Loneliness' },
-  { id: 'finding_peace', label: 'Finding Peace' },
-  { id: 'moving_forward', label: 'Moving Forward'},
-  { id: 'hope_future', label: 'Hope for the Future' },
+  { id: 'healing_heart', label: 'Healing a Broken Heart' }, // General heartbreak
+  { id: 'self_love_after_loss', label: 'Reclaiming Self Love' }, // Post-breakup/loss
+  { id: 'letting_go_moving_on', label: 'Letting Go & Moving On' },
+  { id: 'rebuilding_my_life', label: 'Rebuilding My Life' }, // Good for after divorce or significant life change
+  { id: 'finding_strength_alone', label: 'Finding Strength in Solitude' }, // Addresses loneliness
+  { id: 'peace_after_pain', label: 'Discovering Peace After Pain' },
+  { id: 'hope_for_new_beginnings', label: 'Hope for New Beginnings' },
+  { id: 'coping_with_grief', label: 'Coping with Grief & Loss' }, // Specifically for loss of a partner
+  { id: 'navigating_change', label: 'Navigating Change & Uncertainty' }, // General, but very relevant
+  { id: 'forgiveness_closure', label: 'Forgiveness & Finding Closure' }
 ] as const;
 
 export type BreakupCategory = typeof breakupInterestCategories[number]['id'];
