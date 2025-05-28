@@ -1,4 +1,5 @@
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
+import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -119,6 +120,19 @@ export default function SettingsScreen() {
                 label="Reminder Frequency" 
                 value={notificationSettings.frequency} 
                 onPress={() => router.push('/(onboarding)/notifications')} 
+              />
+            </Box>
+          </Box>
+
+          <Box>
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+              SUPPORT
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem 
+                label="Rate Solace" 
+                value="Help us improve"
+                onPress={() => reviewService.requestReview()} 
               />
             </Box>
           </Box>

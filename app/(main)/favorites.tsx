@@ -1,3 +1,4 @@
+import { reviewService } from '@/services/reviewService';
 import { supabase } from '@/services/supabaseClient';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -91,6 +92,8 @@ export default function FavoritesScreen() {
     } else {
       addFavorite(currentQuote.id);
       console.log('Added to favorites:', currentQuote.id);
+      // Track favorite added for review prompt
+      reviewService.trackFavoriteAdded();
     }
   }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]);
 

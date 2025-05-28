@@ -52,8 +52,6 @@ const fallbackMessages = [
   "Time for a moment of self-reflection and growth.",
   "Your healing journey matters. Take a pause.",
   "Remember: you are stronger than you think.",
-  "A quiet moment awaits you in Solace.",
-  "Time to nurture your inner peace.",
   "You've got this. Take a mindful break.",
   "Your well-being is worth this moment."
 ];

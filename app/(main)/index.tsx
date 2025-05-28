@@ -1,3 +1,4 @@
+import { reviewService } from '@/services/reviewService'; // Import reviewService
 import { supabase } from '@/services/supabaseClient'; // Ensure this path is correct
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -98,6 +99,8 @@ export default function FeedScreen() {
     } else {
       addFavorite(currentQuote.id);
       console.log('Added to favorites:', currentQuote.id);
+      // Track favorite added for review prompt
+      reviewService.trackFavoriteAdded();
     }
   }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]); // Dependencies for useCallback
 
@@ -222,6 +225,8 @@ export default function FeedScreen() {
               onChangeIndex={({ index }: { index: number }) => {
                 console.log('Swiper index changed to:', index);
                 setCurrentIndex(index);
+                // Track quote viewed for review prompt
+                reviewService.trackQuoteViewed();
               }}
             />
             

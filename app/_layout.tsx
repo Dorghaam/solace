@@ -5,6 +5,7 @@ import { NativeBaseProvider } from 'native-base';
 import 'react-native-reanimated';
 
 import { solaceTheme } from '@/constants/theme';
+import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
 import { SplashScreen } from 'expo-router';
 import { useEffect } from 'react';
@@ -31,6 +32,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (loaded && zustandHasRehydrated) {
       SplashScreen.hideAsync();
+      // Track app open for review prompt
+      reviewService.trackAppOpen();
     }
   }, [loaded, zustandHasRehydrated]);
 
