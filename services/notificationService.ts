@@ -29,7 +29,6 @@ const fetchRandomQuotesForNotifications = async (count: number = 20, categories?
     }
 
     const { data, error } = await query
-      .order('created_at', { ascending: Math.random() > 0.5 })
       .limit(count);
 
     if (error) {
@@ -37,7 +36,9 @@ const fetchRandomQuotesForNotifications = async (count: number = 20, categories?
       return null;
     }
 
-    return data;
+    // Shuffle the quotes for true randomization
+    const shuffledData = data ? [...data].sort(() => Math.random() - 0.5) : null;
+    return shuffledData;
   } catch (error) {
     console.error('Failed to fetch quotes for notifications:', error);
     return null;

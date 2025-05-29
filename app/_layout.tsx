@@ -7,9 +7,12 @@ import 'react-native-reanimated';
 import { solaceTheme } from '@/constants/theme';
 import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
-import { SplashScreen } from 'expo-router';
+import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+
+// Prevent the splash screen from auto-hiding before asset loading is complete
+SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -31,6 +34,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (loaded && zustandHasRehydrated) {
+      // Hide splash screen after everything is loaded
       SplashScreen.hideAsync();
       // Track app open for review prompt
       reviewService.trackAppOpen();

@@ -58,13 +58,11 @@ export default function FavoritesScreen() {
       console.log('Raw favorite data from Supabase:', data);
 
       if (data && data.length > 0) {
-        // Order the quotes based on the favoriteQuoteIds order for consistency
-        const orderedQuotes = favoriteQuoteIds
-          .map(id => data.find(quote => quote.id === id))
-          .filter(Boolean) as Quote[];
+        // Randomize the favorite quotes for variety instead of keeping them in favoriteQuoteIds order
+        const shuffledFavorites = [...data].sort(() => Math.random() - 0.5);
         
-        setQuotes(orderedQuotes);
-        console.log('Successfully set favorite quotes:', orderedQuotes.length, 'quotes loaded');
+        setQuotes(shuffledFavorites);
+        console.log('Successfully set favorite quotes:', shuffledFavorites.length, 'quotes loaded and shuffled');
       } else {
         setQuotes([]);
         console.log('No favorite quotes returned from database');

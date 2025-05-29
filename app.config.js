@@ -38,10 +38,8 @@ export default ({ config }) => {
         [
           "expo-splash-screen",
           {
-            image: "./assets/images/splash-icon.png", // Ensure this path is correct
-            imageWidth: 200,
-            resizeMode: "contain",
-            backgroundColor: "#FEF7F5"
+            backgroundColor: "#FFF9FB", // Match your app's backgroundLight color
+            resizeMode: "contain"
           }
         ],
         [

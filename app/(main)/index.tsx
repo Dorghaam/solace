@@ -48,10 +48,7 @@ export default function FeedScreen() {
         query = query.in('category', interestCategories);
       }
       
-      // Add ordering - for now, simple random order by created_at.
-      // For true randomness on each fetch, Supabase might need a function or view.
-      // As a simple client-side pseudo-random, we fetch more and then shuffle locally or rely on DB order.
-      query = query.order('created_at', { ascending: Math.random() > 0.5 }); // Simple variation
+      // Fetch quotes without specific ordering - we'll randomize client-side
       query = query.limit(50); // Fetch more quotes for better variety in infinite scroll
 
       const { data, error: dbError } = await query;
@@ -61,11 +58,10 @@ export default function FeedScreen() {
       console.log('Raw data from Supabase:', data); // Added debug log
 
       if (data && data.length > 0) {
-        // Simple shuffle for variety if needed, or just use the fetched order
-        // const shuffledData = [...data].sort(() => 0.5 - Math.random());
-        // setQuotes(shuffledData);
-        setQuotes(data);
-        console.log('Successfully set quotes:', data.length, 'quotes loaded'); // Added debug log
+        // ALWAYS shuffle the quotes for true randomization on each app load
+        const shuffledData = [...data].sort(() => Math.random() - 0.5);
+        setQuotes(shuffledData);
+        console.log('Successfully set quotes:', shuffledData.length, 'quotes loaded and shuffled'); // Added debug log
       } else {
         setQuotes([]);
         console.log('No quotes returned from database'); // Added debug log
