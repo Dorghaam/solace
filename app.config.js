@@ -5,7 +5,7 @@ export default ({ config }) => {
     expo: {
       name: "Solace",
       slug: "solace",
-      version: "1.0.1", // bump this when re-submitting
+      version: "1.0.2",
       orientation: "portrait",
       icon: "./assets/images/icon.png",
       scheme: "solaceapp",
@@ -13,14 +13,12 @@ export default ({ config }) => {
       newArchEnabled: true,
       ios: {
         supportsTablet: false,
+        isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace",
+        buildNumber: "4",
         infoPlist: {
-          UIDeviceFamily: [1], // iPhone only
-          UISupportedInterfaceOrientations: [
-            "UIInterfaceOrientationPortrait",
-            "UIInterfaceOrientationPortraitUpsideDown"
-          ]
+          UIDeviceFamily: [1], // ✅ iPhone-only
         }
       },
       android: {
