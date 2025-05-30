@@ -5,8 +5,10 @@ import { NativeBaseProvider } from 'native-base';
 import 'react-native-reanimated';
 
 import { solaceTheme } from '@/constants/theme';
+import { setupNotificationResponseListener } from '@/services/notificationService';
 import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
+import * as Notifications from 'expo-notifications';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -22,6 +24,7 @@ export default function RootLayout() {
 
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   const zustandHasRehydrated = useUserStore.persist.hasHydrated();
+  const setTargetQuote = useUserStore((state) => state.setTargetQuote);
 
   // Debug logging
   useEffect(() => {
@@ -40,6 +43,26 @@ export default function RootLayout() {
       reviewService.trackAppOpen();
     }
   }, [loaded, zustandHasRehydrated]);
+
+  // Set up notification response listener
+  useEffect(() => {
+    const subscription = setupNotificationResponseListener((response: Notifications.NotificationResponse) => {
+      console.log('Notification tapped:', response);
+      
+      const data = response.notification.request.content.data;
+      if (data && typeof data === 'object' && 'type' in data && data.type === 'quote' && 'quoteId' in data) {
+        // Set the target quote for navigation
+        setTargetQuote({
+          id: String(data.quoteId),
+          text: String(data.quoteText || ''),
+          category: data.quoteCategory ? String(data.quoteCategory) : undefined
+        });
+        console.log('Target quote set from notification:', data.quoteId);
+      }
+    });
+
+    return () => subscription.remove();
+  }, [setTargetQuote]);
 
   if (!loaded || !zustandHasRehydrated) {
     return null;

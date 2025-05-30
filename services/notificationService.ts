@@ -21,7 +21,7 @@ const fetchRandomQuotesForNotifications = async (count: number = 20, categories?
   try {
     let query = supabase
       .from('quotes')
-      .select('text, category');
+      .select('id, text, category'); // Include id for navigation
 
     // Filter by categories if provided
     if (categories && categories.length > 0) {
@@ -61,7 +61,8 @@ const fallbackMessages = [
 const getQuoteMessage = (quotes: any[], index: number) => {
   if (!quotes || quotes.length === 0) {
     // Use fallback messages if no quotes available
-    return fallbackMessages[index % fallbackMessages.length];
+    const message = fallbackMessages[index % fallbackMessages.length];
+    return { message, quote: null };
   }
   
   // Use current date to add variety - different quotes will be selected on different days
@@ -74,7 +75,7 @@ const getQuoteMessage = (quotes: any[], index: number) => {
   
   // Format the quote cleanly for notifications - removed quotation marks
   let message = quote.text;
-  return message;
+  return { message, quote };
 };
 
 // Good morning messages to start the day positively
@@ -178,13 +179,19 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
       }
 
       // Get a quote message for this reminder
-      const message = getQuoteMessage(quotes || [], index);
+      const { message, quote } = getQuoteMessage(quotes || [], index);
 
       await Notifications.scheduleNotificationAsync({
         content: {
           title: "Solace",
           body: message,
           sound: 'default',
+          data: quote ? { 
+            type: 'quote',
+            quoteId: quote.id,
+            quoteText: quote.text,
+            quoteCategory: quote.category 
+          } : { type: 'fallback' },
         },
         trigger,
       });
@@ -214,6 +221,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
           title: "Good Morning ☀️",
           body: goodMorningMessage,
           sound: 'default',
+          data: { type: 'greeting', subtype: 'morning' },
         },
         trigger,
       });
@@ -243,6 +251,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
           title: "Good Night 🌙",
           body: goodNightMessage,
           sound: 'default',
+          data: { type: 'greeting', subtype: 'night' },
         },
         trigger,
       });
@@ -265,6 +274,12 @@ export const getReminderTimesForFrequency = (frequency: '1x' | '3x' | '5x' | '10
 export const cancelAllScheduledAffirmationReminders = async () => {
   await Notifications.cancelAllScheduledNotificationsAsync();
   console.log('All scheduled affirmation reminders cancelled.');
+};
+
+// Function to set up notification response listener
+export const setupNotificationResponseListener = (onNotificationResponse: (response: Notifications.NotificationResponse) => void) => {
+  const subscription = Notifications.addNotificationResponseReceivedListener(onNotificationResponse);
+  return subscription;
 };
 
 // You already have a version of this in onboarding/notifications.tsx

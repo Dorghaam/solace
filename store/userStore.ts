@@ -22,6 +22,12 @@ export interface NotificationSettings {
   // customTimes?: string[]; // For later if 'custom' frequency is used
 }
 
+export interface TargetQuote {
+  id: string;
+  text: string;
+  category?: string;
+}
+
 // Widget Settings
 export type WidgetTheme = 'light' | 'dark_text_on_pink' | 'pink_text_on_white'; // From widgetconfig.tsx
 
@@ -39,6 +45,7 @@ interface UserState {
   pushToken: string | null;
   favoriteQuoteIds: string[];
   widgetSettings: WidgetSettings;
+  targetQuote: TargetQuote | null; // For navigation from notifications
 
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
@@ -49,12 +56,13 @@ interface UserState {
   setPushToken: (token: string | null) => void;
   addFavoriteQuoteId: (quoteId: string) => void;
   removeFavoriteQuoteId: (quoteId: string) => void;
-  // isQuoteFavorite: (quoteId: string) => boolean; // Selector can be derived in component
   setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
+  setTargetQuote: (quote: TargetQuote | null) => void;
+  clearTargetQuote: () => void;
   resetState: () => void;
 }
 
-const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'resetState'> = {
+const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'setTargetQuote' | 'clearTargetQuote' | 'resetState'> = {
   hasCompletedOnboarding: false,
   userName: null,
   affirmationFamiliarity: null,
@@ -66,6 +74,7 @@ const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' 
     category: 'all',
     theme: 'light',
   },
+  targetQuote: null,
 };
 
 export const useUserStore = create<UserState>()(
@@ -94,9 +103,10 @@ export const useUserStore = create<UserState>()(
         })),
       removeFavoriteQuoteId: (quoteId) =>
         set((state) => ({ favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId) })),
-      // isQuoteFavorite can be derived in components: favoriteQuoteIds.includes(id)
       setWidgetSettings: (settings) =>
         set((state) => ({ widgetSettings: { ...state.widgetSettings, ...settings } })),
+      setTargetQuote: (quote) => set({ targetQuote: quote }),
+      clearTargetQuote: () => set({ targetQuote: null }),
       resetState: () => set(initialState),
     }),
     {

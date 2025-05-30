@@ -23,6 +23,8 @@ export default function FeedScreen() {
   const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
   const addFavorite = useUserStore((state) => state.addFavoriteQuoteId);
   const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
+  const targetQuote = useUserStore((state) => state.targetQuote);
+  const clearTargetQuote = useUserStore((state) => state.clearTargetQuote);
   
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -84,6 +86,31 @@ export default function FeedScreen() {
   useEffect(() => {
     fetchQuotes();
   }, [fetchQuotes]);
+
+  // Handle target quote from notification
+  useEffect(() => {
+    if (targetQuote && quotes.length > 0) {
+      // Find the target quote in the quotes array
+      const targetIndex = quotes.findIndex(quote => quote.id === targetQuote.id);
+      if (targetIndex !== -1) {
+        // Set the current index to show the target quote
+        setCurrentIndex(targetIndex);
+        console.log('Navigated to target quote from notification:', targetQuote.id, 'at index:', targetIndex);
+      } else {
+        // If the target quote is not in the current quotes array, add it temporarily
+        const tempQuote: Quote = {
+          id: targetQuote.id,
+          text: targetQuote.text,
+          category: targetQuote.category
+        };
+        setQuotes(prevQuotes => [tempQuote, ...prevQuotes]);
+        setCurrentIndex(0);
+        console.log('Added target quote to beginning of quotes array:', targetQuote.id);
+      }
+      // Clear the target quote after handling it
+      clearTargetQuote();
+    }
+  }, [targetQuote, quotes, clearTargetQuote]);
 
   const handleToggleFavorite = useCallback(() => {
     if (!currentQuote) return;
@@ -187,6 +214,7 @@ export default function FeedScreen() {
             <SwiperFlatList
               data={infiniteQuotes}
               keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
+              index={currentIndex}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering item at index ${index}:`, item.id);
                 return (
