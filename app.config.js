@@ -17,7 +17,7 @@ export default ({ config }) => {
       userInterfaceStyle: "light",
       newArchEnabled: true, // You have this enabled
       ios: {
-        supportsTablet: true,
+        supportsTablet: false,
         bundleIdentifier: "com.dorghaamhaidar.solace"
       },
       android: {
