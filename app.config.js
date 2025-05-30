@@ -5,7 +5,7 @@ export default ({ config }) => {
     expo: {
       name: "Solace",
       slug: "solace",
-      version: "1.0.2",
+      version: "1.0.3",
       orientation: "portrait",
       icon: "./assets/images/icon.png",
       scheme: "solaceapp",
@@ -15,8 +15,8 @@ export default ({ config }) => {
         supportsTablet: false,
         isTabletOnly: false,
         requireFullScreen: true,
-        bundleIdentifier: "com.dorghaamhaidar.solace",
-        buildNumber: "4",
+        bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
+        buildNumber: "5",
         infoPlist: {
           UIDeviceFamily: [1], // ✅ iPhone-only
         }
