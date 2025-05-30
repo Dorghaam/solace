@@ -18,7 +18,17 @@ export default ({ config }) => {
       newArchEnabled: true, // You have this enabled
       ios: {
         supportsTablet: false,
-        bundleIdentifier: "com.dorghaamhaidar.solace"
+        isTabletOnly: false,
+        requireFullScreen: false,
+        bundleIdentifier: "com.dorghaamhaidar.solace",
+        infoPlist: {
+          UIDeviceFamily: [1], // 1 = iPhone only, 2 = iPad, [1,2] = Universal
+          UISupportedInterfaceOrientations: [
+            "UIInterfaceOrientationPortrait",
+            "UIInterfaceOrientationPortraitUpsideDown"
+          ]
+          // Explicitly NOT including UISupportedInterfaceOrientations~ipad
+        }
       },
       android: {
         adaptiveIcon: {
