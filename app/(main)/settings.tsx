@@ -30,7 +30,9 @@ export default function SettingsScreen() {
     interestCategories,
     notificationSettings,
     setNotificationSettings, // For toggling directly
-    setPushToken // For clearing token if notifications disabled
+    setPushToken, // For clearing token if notifications disabled
+    resetState,
+    setHasCompletedOnboarding
   } = useUserStore();
 
   const handleToggleNotifications = async (isEnabled: boolean) => {
@@ -57,6 +59,12 @@ export default function SettingsScreen() {
         console.log('🔔 Failed to enable notifications (no token or permission).');
       }
     }
+  };
+
+  const handleResetAndRestartOnboarding = () => {
+    resetState();
+    setHasCompletedOnboarding(false); 
+    router.replace('/(onboarding)');
   };
 
   return (
@@ -136,6 +144,22 @@ export default function SettingsScreen() {
               />
             </Box>
           </Box>
+
+          {/* Development-only section */}
+          {__DEV__ && (
+            <Box>
+              <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+                DEVELOPMENT
+              </Text>
+              <Box bg="white" rounded="lg" mx={4} shadow="1">
+                <SettingItem 
+                  label="Reset & View Onboarding" 
+                  value="Dev only"
+                  onPress={handleResetAndRestartOnboarding} 
+                />
+              </Box>
+            </Box>
+          )}
         </VStack>
       </ScrollView>
     </Box>
