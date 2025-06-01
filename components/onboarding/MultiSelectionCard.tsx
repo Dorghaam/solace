@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Box, Icon, Pressable, Text } from 'native-base';
+import { Box, Icon, Pressable, Text, useTheme } from 'native-base';
 import React from 'react';
 
 export const MultiSelectionCard: React.FC<{
@@ -7,26 +7,40 @@ export const MultiSelectionCard: React.FC<{
   isSelected: boolean;
   onPress: () => void;
 }> = ({ label, isSelected, onPress }) => {
+  const theme = useTheme();
+
   return (
-    <Pressable onPress={onPress} accessibilityRole="checkbox" accessibilityState={{ checked: isSelected }}>
+    <Pressable 
+      onPress={onPress} 
+      accessibilityRole="checkbox" 
+      accessibilityState={{ checked: isSelected }}
+    >
       <Box
-        bg={isSelected ? "primary.100" : "backgroundFocused"}
-        borderColor={isSelected ? "primary.500" : "textTertiary"}
-        borderWidth={isSelected ? 2 : 1}
-        p={4}
+        bg={theme.colors.miracleCardBackground}
+        py={4}
+        px={3}
+        borderBottomWidth={1}
+        borderColor="gray.200"
         rounded="lg"
         flexDirection="row"
         alignItems="center"
         justifyContent="space-between"
+        mb={2}
       >
-        <Text fontWeight={isSelected ? "bold" : "normal"} color={isSelected ? "primary.600" : "textPrimary"}>
+        <Text 
+          fontSize="md"
+          fontWeight="medium"
+          color={theme.colors.textPrimary}
+          flex={1}
+        >
           {label}
         </Text>
         <Icon
           as={Ionicons}
-          name={isSelected ? "checkbox" : "square-outline"}
-          color={isSelected ? "primary.500" : "textTertiary"}
-          size="md"
+          name={isSelected ? "checkmark-circle" : "ellipse-outline"}
+          color={isSelected ? theme.colors.primary[500] : theme.colors.textTertiary}
+          size="lg"
+          ml={3}
         />
       </Box>
     </Pressable>
