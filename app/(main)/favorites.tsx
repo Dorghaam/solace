@@ -124,7 +124,7 @@ export default function FavoritesScreen() {
 
   if (isLoading) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" bg="backgroundLight">
+      <Box flex={1} justifyContent="center" alignItems="center" bg="miracleBackground">
         <Spinner size="lg" color="primary.500" />
         <Text mt={2} color="textSecondary">Loading your favorites...</Text>
       </Box>
@@ -134,7 +134,7 @@ export default function FavoritesScreen() {
   console.log('FavoritesScreen - Number of quotes to render:', quotes.length, 'Infinite quotes:', infiniteQuotes.length);
 
   return (
-    <Box flex={1} bg="backgroundLight">
+    <Box flex={1} bg="miracleBackground">
       {/* Error States */}
       {error && !isLoading && quotes.length === 0 && (
         <VStack flex={1} justifyContent="center" alignItems="center" p={6} space={3}>
@@ -160,7 +160,7 @@ export default function FavoritesScreen() {
         <VStack flex={1} safeAreaTop>
           {/* Full screen quote swiper - horizontal with fixed centering */}
           <LinearGradient
-            colors={[theme.colors.primary[50], theme.colors.backgroundLight, theme.colors.backgroundLight]}
+            colors={[theme.colors.miracleBackground, theme.colors.miracleBackground]}
             style={StyleSheet.absoluteFill}
           />
           <Box flex={1} position="relative">

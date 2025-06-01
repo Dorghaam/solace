@@ -158,7 +158,7 @@ export default function FeedScreen() {
 
   if (isLoading) {
     return (
-      <Box flex={1} justifyContent="center" alignItems="center" bg="backgroundLight">
+      <Box flex={1} justifyContent="center" alignItems="center" bg="miracleBackground">
         <Spinner size="lg" color="primary.500" />
         <Text mt={2} color="textSecondary">Loading affirmations...</Text>
       </Box>
@@ -169,7 +169,7 @@ export default function FeedScreen() {
   console.log('FeedScreen - Number of quotes to render:', quotes.length, 'Infinite quotes:', infiniteQuotes.length);
 
   return (
-    <Box flex={1} bg="backgroundLight">
+    <Box flex={1} bg="miracleBackground">
       {/* Clean minimal layout without overlapping elements */}
       
       {/* Error States */}
@@ -194,7 +194,7 @@ export default function FeedScreen() {
         <VStack flex={1} safeAreaTop>
           {/* Full screen quote swiper - horizontal with fixed centering */}
           <LinearGradient
-            colors={[theme.colors.primary[50], theme.colors.backgroundLight, theme.colors.backgroundLight]} // Subtle pink to backgroundLight
+            colors={[theme.colors.miracleBackground, theme.colors.miracleBackground]} // Updated to miracleBackground
             style={StyleSheet.absoluteFill} // Make gradient fill the container
           />
           <Box flex={1} position="relative"> {/* Swiper now sits on top of the gradient */}

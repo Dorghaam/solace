@@ -82,7 +82,7 @@ export default function RootLayout() {
             <Stack.Screen name="+not-found" />
           </Stack>
         )}
-        <StatusBar style="dark" backgroundColor={solaceTheme.colors.backgroundLight} />
+        <StatusBar style="dark" backgroundColor={solaceTheme.colors.miracleBackground} />
       </NativeBaseProvider>
     </GestureHandlerRootView>
   );
