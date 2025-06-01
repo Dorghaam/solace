@@ -1,5 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Box, HStack, Icon, Pressable, Text } from 'native-base';
+import { Box, Pressable, Text, useTheme } from 'native-base';
 import React from 'react';
 
 export const SelectionCard: React.FC<{
@@ -7,25 +6,31 @@ export const SelectionCard: React.FC<{
   isSelected: boolean;
   onPress: () => void;
 }> = ({ label, isSelected, onPress }) => {
+  const theme = useTheme();
+
   return (
-    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: isSelected }}>
+    <Pressable 
+      onPress={onPress} 
+      accessibilityRole="radio" 
+      accessibilityState={{ checked: isSelected }}
+    >
       <Box
-        bg={isSelected ? "primary.100" : "backgroundFocused"}
-        borderColor={isSelected ? "primary.500" : "textTertiary"}
-        borderWidth={isSelected ? 2 : 1}
-        p={4}
-        rounded="lg"
-        shadow={isSelected ? "2" : "0"}
+        bg={isSelected ? theme.colors.primary[500] : theme.colors.miracleCardBackground}
+        borderColor={isSelected ? theme.colors.primary[500] : theme.colors.primary[300]}
+        borderWidth={1.5}
+        py={3}
+        px={5}
+        rounded="full"
+        alignItems="center"
+        justifyContent="center"
       >
-        <HStack justifyContent="space-between" alignItems="center">
-          <Text fontWeight={isSelected ? "bold" : "normal"} color={isSelected ? "primary.600" : "textPrimary"}>
-            {label}
-          </Text>
-          {isSelected && (
-            // @ts-ignore
-            <Icon as={Ionicons} name="checkmark-circle" color="primary.500" size="md" />
-          )}
-        </HStack>
+        <Text 
+          fontWeight={isSelected ? "semibold" : "medium"}
+          color={isSelected ? theme.colors.onboardingButtonText : theme.colors.primary[500]}
+          textAlign="center"
+        >
+          {label}
+        </Text>
       </Box>
     </Pressable>
   );

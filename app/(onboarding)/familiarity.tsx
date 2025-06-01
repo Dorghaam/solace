@@ -37,9 +37,10 @@ export default function AffirmationFamiliarityScreen() {
       title="How familiar are you with affirmations?"
       onNext={handleNext}
       isNextDisabled={!selectedOption}
-      // onSkip={() => { /* Handle skip logic if needed */ }} // Optional
+      showBackButton={editing === 'true'}
+      nextButtonText="Continue →"
     >
-      <VStack space={4}>
+      <VStack space={4} mt={4}>
         {options.map((opt) => (
           <SelectionCard
             key={opt.value}
