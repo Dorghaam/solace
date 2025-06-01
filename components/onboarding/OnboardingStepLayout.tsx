@@ -1,6 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Button, Icon, IconButton, ScrollView, Text, VStack } from 'native-base';
+import { Box, Button, Icon, IconButton, ScrollView, Text, VStack, useTheme } from 'native-base';
 import React from 'react';
 
 export const OnboardingStepLayout: React.FC<{
@@ -19,45 +19,82 @@ export const OnboardingStepLayout: React.FC<{
   onNext, 
   isNextDisabled, 
   onSkip, 
-  nextButtonText = "Continue",
+  nextButtonText = "Continue →",
   showBackButton = true 
 }) => {
+  const theme = useTheme();
+
   return (
-    <Box flex={1} bg="backgroundLight" safeArea>
-      {/* Back Button - positioned absolutely at top-left */}
+    <Box flex={1} bg="miracleBackground" safeArea>
       {showBackButton && router.canGoBack() && (
         <IconButton
           icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
           position="absolute"
-          top={12}
-          left={4}
+          top={{ base: 10, md: 12 }}
+          left={{ base: 3, md: 4 }}
           zIndex={10}
           variant="ghost"
+          colorScheme="primary"
+          size="lg"
           onPress={() => router.back()}
           accessibilityLabel="Go back"
         />
       )}
       
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <VStack p={6} space={5} flexGrow={1} justifyContent="space-between">
-          <VStack space={2} pt={showBackButton && router.canGoBack() ? 8 : 0}>
-            <Text variant="title" textAlign="left" fontSize="3xl">{title}</Text>
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <VStack 
+          p={6} 
+          space={5} 
+          flexGrow={1} 
+          justifyContent="space-between"
+        >
+          <VStack 
+            space={2} 
+            pt={showBackButton && router.canGoBack() ? { base: 16, md: 20 } : { base: 6, md: 8 }}
+          >
+            <Text 
+              variant="title"
+              textAlign="left" 
+              fontSize={{ base: "2xl", md: "3xl" }}
+              color="textPrimary"
+              mb={1}
+            >
+              {title}
+            </Text>
             {subtitle && (
-              <Text variant="subtitle" textAlign="left" color="textSecondary" fontSize="md">
+              <Text 
+                variant="subtitle"
+                textAlign="left" 
+                color="textSecondary" 
+                fontSize="md"
+                lineHeight="sm"
+              >
                 {subtitle}
               </Text>
             )}
-            <Box mt={4}>{children}</Box>
+            <Box mt={6}>{children}</Box>
           </VStack>
 
           <VStack space={3} mt={6}>
             {onSkip && (
-              <Button variant="ghost" onPress={onSkip}>
-                <Text color="textSecondary">Skip for now</Text>
+              <Button 
+                variant="ghost"
+                colorScheme="primary"
+                onPress={onSkip}
+              >
+                Skip for now 
               </Button>
             )}
-            <Button onPress={onNext} isDisabled={isNextDisabled}>
-              <Text>{nextButtonText}</Text>
+            <Button 
+              onPress={onNext} 
+              isDisabled={isNextDisabled}
+            >
+              <Text color="onboardingButtonText" fontWeight="semibold" fontSize="md">
+                {nextButtonText}
+              </Text>
             </Button>
           </VStack>
         </VStack>
