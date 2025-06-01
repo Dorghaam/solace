@@ -1,21 +1,9 @@
 import { OnboardingStepLayout } from '@/components/onboarding';
 import { useUserStore } from '@/store/userStore';
 import { router, useLocalSearchParams } from 'expo-router';
-import { Text } from 'native-base';
+import { useTheme } from 'native-base';
 import React, { useEffect, useRef, useState } from 'react';
 import { Keyboard, Platform, StyleSheet, TextInput } from 'react-native';
-
-const styles = StyleSheet.create({
-  textInput: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    fontSize: 18,
-    backgroundColor: '#FFFFFF',
-  }
-});
 
 export default function NameInputScreen() {
   const [name, setName] = useState('');
@@ -24,6 +12,8 @@ export default function NameInputScreen() {
   const { editing } = useLocalSearchParams<{ editing?: string }>();
   const inputRef = useRef<TextInput>(null);
   const mountedRef = useRef(true);
+
+  const theme = useTheme();
 
   useEffect(() => {
     // Multiple attempts with different timing strategies
@@ -84,17 +74,39 @@ export default function NameInputScreen() {
     }
   };
 
+  // Define styles dynamically using theme colors
+  const styles = StyleSheet.create({
+    textInput: {
+      height: 55,
+      borderWidth: 1,
+      borderColor: theme.colors.primary[200],
+      borderRadius: 16,
+      paddingHorizontal: 20,
+      fontSize: 18,
+      backgroundColor: theme.colors.miracleCardBackground || '#FFFFFF',
+      color: theme.colors.textPrimary || '#333333',
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 1 },
+      shadowOpacity: 0.05,
+      shadowRadius: 2,
+      elevation: 1,
+    }
+  });
+
   return (
     <OnboardingStepLayout
       title="What should we call you?"
+      subtitle="This helps us personalize your affirmations."
       onNext={handleNext}
       isNextDisabled={!name.trim()}
-      showBackButton={false} // First screen shouldn't have back button
+      showBackButton={editing === 'true'}
+      nextButtonText="Continue →"
     >
       <TextInput
         ref={inputRef}
         style={styles.textInput}
         placeholder="Your name or nickname"
+        placeholderTextColor={theme.colors.textSecondary || '#AEAEAE'}
         value={name}
         onChangeText={setName}
         returnKeyType={Platform.OS === 'ios' ? 'done' : 'next'}
@@ -103,9 +115,6 @@ export default function NameInputScreen() {
         autoCorrect={false}
         autoComplete="name"
       />
-      <Text variant="small" mt={2}>
-        This helps us personalize your affirmations.
-      </Text>
     </OnboardingStepLayout>
   );
 } 
