@@ -3,7 +3,7 @@ import { supabase } from '@/services/supabaseClient'; // Ensure this path is cor
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
-import { Box, Button, HStack, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
+import { Box, Button, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Dimensions, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet
 import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to more reliable swiper
@@ -191,49 +191,41 @@ export default function FeedScreen() {
       
       {/* Main Quote Display - Full screen, clean layout */}
       {quotes.length > 0 && (
-        <VStack flex={1} safeAreaTop>
-          {/* Full screen quote swiper - horizontal with fixed centering */}
+        <VStack flex={1}>
+          {/* Full screen quote swiper - vertical with proper page snapping */}
           <LinearGradient
             colors={[theme.colors.miracleBackground, theme.colors.miracleBackground]} // Updated to miracleBackground
             style={StyleSheet.absoluteFill} // Make gradient fill the container
           />
           <Box flex={1} position="relative"> {/* Swiper now sits on top of the gradient */}
-            {/* Solace title positioned on the page */}
-            <Text 
-              fontSize="lg" 
-              fontWeight="light" 
-              color="gray.300"
-              position="absolute"
-              top={4}
-              left={4}
-              zIndex={1}
-            >
-              Solace
-            </Text>
-            
             <SwiperFlatList
               data={infiniteQuotes}
               keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
               index={currentIndex}
+              vertical={true} // Enable vertical scrolling like TikTok
+              pagingEnabled={true} // Enable proper page snapping
+              showsVerticalScrollIndicator={false} // Hide scroll indicator for clean look
+              snapToInterval={screenHeight} // Snap exactly one screen height
+              snapToAlignment="start" // Align to start of each page
+              decelerationRate="fast" // Fast snapping for better page feel
+              bounces={false} // Disable bouncing for cleaner page transitions
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering item at index ${index}:`, item.id);
                 return (
                   <Box
                     width={screenWidth}
-                    height={screenHeight - 180} // Adjust to match positioning
+                    height={screenHeight} // Full screen height for each quote
                     justifyContent="center"
                     alignItems="center"
-                    px={4}
+                    px={6}
                   >
                     {/* Clean quote card */}
                     <Box
-                      bg="quoteBackground" // Use theme color for card background (e.g., white)
+                      bg="transparent" // Make card background transparent
                       rounded="3xl" // More rounded
-                      shadow="5" // Softer shadow
-                      p={{base: 6, md: 8}}
-                      minH={screenHeight * 0.35}
-                      maxH={screenHeight * 0.6} // Allow slightly taller cards
-                      width="90%"
+                      // shadow="5" // Remove shadow for fully transparent card
+                      p={{base: 8, md: 10}}
+                      width="95%"
                       justifyContent="center"
                       alignItems="center"
                     >
@@ -253,56 +245,57 @@ export default function FeedScreen() {
                 reviewService.trackQuoteViewed();
               }}
             />
-            
-            {/* Swipe indicator - centered under the cards */}
-            <Box alignItems="center" pb={4}>
-              <Icon as={Ionicons} name="chevron-forward-outline" size="sm" color="gray.400" />
-              <Text fontSize="xs" color="gray.400" textAlign="center">
-                Swipe right
-              </Text>
-            </Box>
           </Box>
 
-          {/* Clean bottom action bar */}
-          <HStack 
-            justifyContent="center" 
-            alignItems="center" 
-            px={6}
-            py={4}
-            space={8}
+          {/* Floating bottom action buttons - positioned over the content */}
+          <Box
+            position="absolute"
+            bottom={8}
+            right={4}
+            zIndex={10}
             safeAreaBottom
           >
-            <IconButton
-              icon={<Icon as={Ionicons} name="refresh-outline" />}
-              size="lg"
-              variant="ghost"
-              colorScheme="primary"
-              onPress={fetchQuotes}
-              accessibilityLabel="Refresh affirmations"
-            />
-            <IconButton
-              icon={<Icon as={Ionicons} name="share-social-outline" />}
-              size="lg"
-              variant="ghost"
-              colorScheme="primary"
-              onPress={handleShare}
-              accessibilityLabel="Share affirmation"
-            />
-            <IconButton
-              icon={
-                <Icon
-                  as={Ionicons}
-                  name={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "heart" : "heart-outline"}
-                  color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "primary.500" : "primary.500"}
-                />
-              }
-              size="lg"
-              variant="ghost"
-              colorScheme="primary"
-              onPress={handleToggleFavorite}
-              accessibilityLabel="Favorite affirmation"
-            />
-          </HStack>
+            <VStack space={4} alignItems="center">
+              <IconButton
+                icon={<Icon as={Ionicons} name="refresh-outline" />}
+                size="lg"
+                variant="solid"
+                colorScheme="primary"
+                rounded="full"
+                bg="rgba(255,255,255,0.9)"
+                _icon={{ color: "primary.500" }}
+                onPress={fetchQuotes}
+                accessibilityLabel="Refresh affirmations"
+              />
+              <IconButton
+                icon={<Icon as={Ionicons} name="share-social-outline" />}
+                size="lg"
+                variant="solid"
+                colorScheme="primary"
+                rounded="full"
+                bg="rgba(255,255,255,0.9)"
+                _icon={{ color: "primary.500" }}
+                onPress={handleShare}
+                accessibilityLabel="Share affirmation"
+              />
+              <IconButton
+                icon={
+                  <Icon
+                    as={Ionicons}
+                    name={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "heart" : "heart-outline"}
+                    color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red.500" : "primary.500"}
+                  />
+                }
+                size="lg"
+                variant="solid"
+                colorScheme="primary"
+                rounded="full"
+                bg="rgba(255,255,255,0.9)"
+                onPress={handleToggleFavorite}
+                accessibilityLabel="Favorite affirmation"
+              />
+            </VStack>
+          </Box>
         </VStack>
       )}
     </Box>
