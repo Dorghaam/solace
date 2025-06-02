@@ -221,16 +221,22 @@ export default function FeedScreen() {
                   >
                     {/* Clean quote card */}
                     <Box
-                      bg="transparent" // Make card background transparent
+                      bg="transparent" // Keep transparent background as it was before
                       rounded="3xl" // More rounded
-                      // shadow="5" // Remove shadow for fully transparent card
-                      p={{base: 8, md: 10}}
-                      width="95%"
+                      // shadow="3" // Remove shadow for transparent card
+                      p={6} // Reduced padding
+                      maxWidth="92%" // Made container wider
+                      minH="200px" // Minimum height constraint
+                      maxH="400px" // Maximum height constraint
                       justifyContent="center"
                       alignItems="center"
                     >
                       <Text 
                         variant="quote" // Use the quote variant from theme
+                        allowFontScaling={false} // Prevent font scaling
+                        adjustsFontSizeToFit={false} // Don't auto-adjust font size
+                        numberOfLines={0} // Allow unlimited lines
+                        textBreakStrategy="simple" // Ensure proper word breaking
                       >
                         {item.text}
                       </Text>

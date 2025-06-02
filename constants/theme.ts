@@ -135,7 +135,7 @@ export const solaceTheme = extendTheme({
           color: 'textPrimary',
         },
         quote: {
-          fontSize: '4xl', // Increased from '2xl' to make quotes larger and more prominent
+          fontSize: '2xl', // Changed from '4xl' to make quotes smaller and more readable
           fontWeight: 'semibold', // or 'medium' depending on font
           textAlign: 'center',
           color: 'quoteText',
