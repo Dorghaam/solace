@@ -5,9 +5,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { Box, Button, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, Share, StyleSheet } from 'react-native';
-import { SwiperFlatList } from 'react-native-swiper-flatlist';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Dimensions, FlatList, Share, StyleSheet } from 'react-native';
 
 interface Quote {
   id: string;
@@ -28,6 +27,7 @@ export default function FavoritesScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
 
   // Create infinite scroll data by repeating quotes multiple times
   // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling
@@ -164,17 +164,30 @@ export default function FavoritesScreen() {
             style={StyleSheet.absoluteFill}
           />
           <Box flex={1} position="relative">
-            <SwiperFlatList
+            <FlatList
+              ref={flatListRef}
               data={infiniteQuotes}
               keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
-              index={currentIndex}
-              vertical={true}
+              initialScrollIndex={currentIndex}
+              horizontal={false}
               pagingEnabled={true}
               showsVerticalScrollIndicator={false}
               snapToInterval={screenHeight}
               snapToAlignment="start"
               decelerationRate="fast"
               bounces={false}
+              getItemLayout={(data, index) => ({
+                length: screenHeight,
+                offset: screenHeight * index,
+                index,
+              })}
+              onMomentumScrollEnd={(event) => {
+                const newIndex = Math.round(event.nativeEvent.contentOffset.y / screenHeight);
+                if (newIndex !== currentIndex) {
+                  setCurrentIndex(newIndex);
+                  console.log('Favorites swiper index changed to:', newIndex);
+                }
+              }}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering favorite item at index ${index}:`, item.id);
                 return (
@@ -208,10 +221,6 @@ export default function FavoritesScreen() {
                   </Box>
                 );
               }}
-              onChangeIndex={({ index }: { index: number }) => {
-                console.log('Favorites swiper index changed to:', index);
-                setCurrentIndex(index);
-              }}
             />
           </Box>
 
@@ -230,7 +239,7 @@ export default function FavoritesScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
                 onPress={fetchFavoriteQuotes}
                 accessibilityLabel="Refresh favorites"
@@ -241,7 +250,7 @@ export default function FavoritesScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
                 onPress={handleShare}
                 accessibilityLabel="Share affirmation"
@@ -258,7 +267,7 @@ export default function FavoritesScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 onPress={handleToggleFavorite}
                 accessibilityLabel="Favorite affirmation"
               />

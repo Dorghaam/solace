@@ -3,10 +3,9 @@ import { supabase } from '@/services/supabaseClient'; // Ensure this path is cor
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
-import { Box, Button, Icon, IconButton, Spinner, Text, useTheme, VStack } from 'native-base';
-import React, { useCallback, useEffect, useState } from 'react';
-import { Alert, Dimensions, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet
-import { SwiperFlatList } from 'react-native-swiper-flatlist'; // Changed to more reliable swiper
+import { Box, Button, HStack, Icon, IconButton, Modal, Spinner, Text, useTheme, VStack } from 'native-base';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Alert, Dimensions, FlatList, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet
 
 interface Quote {
   id: string;
@@ -30,6 +29,18 @@ export default function FeedScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [showMoodModal, setShowMoodModal] = useState(false);
+  const [dailyStreak, setDailyStreak] = useState(0);
+  const flatListRef = useRef<FlatList>(null);
+
+  // Mood options for the simple mood check-in
+  const moodOptions = [
+    { emoji: '😊', label: 'Happy' },
+    { emoji: '😌', label: 'Calm' },
+    { emoji: '😔', label: 'Sad' },
+    { emoji: '😤', label: 'Frustrated' },
+    { emoji: '🤔', label: 'Thoughtful' },
+  ];
 
   // Create infinite scroll data by repeating quotes multiple times
   // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling
@@ -156,6 +167,45 @@ export default function FeedScreen() {
     }
   }, [currentQuote]); // Dependency for useCallback: re-create handleShare if currentQuote changes
 
+  const handleMoodSelect = useCallback((mood: { emoji: string; label: string }) => {
+    console.log('Mood selected:', mood);
+    // Store mood for today (could be expanded to store in database later)
+    setShowMoodModal(false);
+    // Simple feedback
+    Alert.alert("Mood Logged", `You're feeling ${mood.label} ${mood.emoji}`);
+  }, []);
+
+  const updateDailyStreak = useCallback(() => {
+    // Simple streak calculation - in a real app you'd want to store this properly
+    const today = new Date().toDateString();
+    const lastVisit = (global as any).lastVisitDate || null;
+    const currentStreak = (global as any).currentStreak || 0;
+
+    if (lastVisit === today) {
+      // Already visited today
+      setDailyStreak(currentStreak);
+    } else {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      
+      if (lastVisit === yesterday.toDateString()) {
+        // Visited yesterday, continue streak
+        const newStreak = currentStreak + 1;
+        (global as any).currentStreak = newStreak;
+        setDailyStreak(newStreak);
+      } else {
+        // Streak broken, start over
+        (global as any).currentStreak = 1;
+        setDailyStreak(1);
+      }
+      (global as any).lastVisitDate = today;
+    }
+  }, []);
+
+  useEffect(() => {
+    updateDailyStreak();
+  }, [updateDailyStreak]);
+
   if (isLoading) {
     return (
       <Box flex={1} justifyContent="center" alignItems="center" bg="miracleBackground">
@@ -198,17 +248,73 @@ export default function FeedScreen() {
             style={StyleSheet.absoluteFill} // Make gradient fill the container
           />
           <Box flex={1} position="relative"> {/* Swiper now sits on top of the gradient */}
-            <SwiperFlatList
+            {/* Floating bubble buttons at the top */}
+            <HStack 
+              position="absolute"
+              top={12}
+              left={6}
+              right={6}
+              justifyContent="space-between"
+              zIndex={10}
+              safeAreaTop
+            >
+              {/* Daily Streak Button */}
+              <Box
+                bg="rgba(255,255,255,0.9)"
+                rounded="full"
+                p={3}
+                shadow="2"
+                alignItems="center"
+                justifyContent="center"
+                minW="70px"
+              >
+                <Icon as={Ionicons} name="flame" color="orange.500" size="sm" />
+                <Text fontSize="xs" fontWeight="bold" color="textPrimary">{dailyStreak}</Text>
+                <Text fontSize="2xs" color="textSecondary">day{dailyStreak !== 1 ? 's' : ''}</Text>
+              </Box>
+
+              {/* Mood Check-in Button */}
+              <Box
+                bg="rgba(255,255,255,0.9)"
+                rounded="full"
+                p={3}
+                shadow="2"
+                alignItems="center"
+                justifyContent="center"
+                minW="70px"
+                onTouchEnd={() => setShowMoodModal(true)}
+              >
+                <Icon as={Ionicons} name="happy" color="primary.500" size="lg" />
+                <Text fontSize="2xs" color="textSecondary" mt={1}>mood</Text>
+              </Box>
+            </HStack>
+
+            <FlatList
+              ref={flatListRef}
               data={infiniteQuotes}
               keyExtractor={(item, index) => `${item.id}-repeat-${index}`}
-              index={currentIndex}
-              vertical={true} // Enable vertical scrolling like TikTok
+              initialScrollIndex={currentIndex}
+              horizontal={false} // Vertical scrolling
               pagingEnabled={true} // Enable proper page snapping
               showsVerticalScrollIndicator={false} // Hide scroll indicator for clean look
               snapToInterval={screenHeight} // Snap exactly one screen height
               snapToAlignment="start" // Align to start of each page
               decelerationRate="fast" // Fast snapping for better page feel
               bounces={false} // Disable bouncing for cleaner page transitions
+              getItemLayout={(data, index) => ({
+                length: screenHeight,
+                offset: screenHeight * index,
+                index,
+              })}
+              onMomentumScrollEnd={(event) => {
+                const newIndex = Math.round(event.nativeEvent.contentOffset.y / screenHeight);
+                if (newIndex !== currentIndex) {
+                  setCurrentIndex(newIndex);
+                  console.log('Swiper index changed to:', newIndex);
+                  // Track quote viewed for review prompt
+                  reviewService.trackQuoteViewed();
+                }
+              }}
               renderItem={({ item, index }: { item: Quote; index: number }) => {
                 console.log(`Rendering item at index ${index}:`, item.id);
                 return (
@@ -244,12 +350,6 @@ export default function FeedScreen() {
                   </Box>
                 );
               }}
-              onChangeIndex={({ index }: { index: number }) => {
-                console.log('Swiper index changed to:', index);
-                setCurrentIndex(index);
-                // Track quote viewed for review prompt
-                reviewService.trackQuoteViewed();
-              }}
             />
           </Box>
 
@@ -268,7 +368,7 @@ export default function FeedScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
                 onPress={fetchQuotes}
                 accessibilityLabel="Refresh affirmations"
@@ -279,7 +379,7 @@ export default function FeedScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
                 onPress={handleShare}
                 accessibilityLabel="Share affirmation"
@@ -296,7 +396,7 @@ export default function FeedScreen() {
                 variant="solid"
                 colorScheme="primary"
                 rounded="full"
-                bg="rgba(255,255,255,0.9)"
+                bg="miracleBackground"
                 onPress={handleToggleFavorite}
                 accessibilityLabel="Favorite affirmation"
               />
@@ -304,6 +404,42 @@ export default function FeedScreen() {
           </Box>
         </VStack>
       )}
+
+      {/* Mood Selection Modal */}
+      <Modal isOpen={showMoodModal} onClose={() => setShowMoodModal(false)} size="lg">
+        <Modal.Content bg="miracleBackground" borderRadius="3xl">
+          <Modal.CloseButton />
+          <Modal.Header borderBottomWidth={0} bg="miracleBackground">
+            <Text fontSize="lg" fontWeight="semibold" color="textPrimary">How are you feeling?</Text>
+          </Modal.Header>
+          <Modal.Body>
+            <VStack space={4} alignItems="center" pb={4}>
+              <Text fontSize="sm" color="textSecondary" textAlign="center" mb={2}>
+                Take a moment to check in with yourself
+              </Text>
+              {moodOptions.map((mood) => (
+                <Button
+                  key={mood.label}
+                  variant="outline"
+                  onPress={() => handleMoodSelect(mood)}
+                  w="full"
+                  h="80px"
+                  bg="white"
+                  borderColor="gray.200"
+                  _pressed={{ bg: "gray.50" }}
+                  justifyContent="center"
+                  alignItems="center"
+                >
+                  <HStack space={4} alignItems="center" justifyContent="center" w="full">
+                    <Text fontSize="2xl">{mood.emoji}</Text>
+                    <Text fontSize="lg" color="textPrimary" fontWeight="medium">{mood.label}</Text>
+                  </HStack>
+                </Button>
+              ))}
+            </VStack>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
     </Box>
   );
 } 

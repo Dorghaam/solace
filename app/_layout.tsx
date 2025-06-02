@@ -2,6 +2,7 @@ import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { NativeBaseProvider } from 'native-base';
+import { BackHandler } from 'react-native';
 import 'react-native-reanimated';
 
 import { solaceTheme } from '@/constants/theme';
@@ -15,6 +16,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
+
+// Polyfill for BackHandler compatibility with newer React Native versions
+if (BackHandler && !(BackHandler as any).removeEventListener) {
+  (BackHandler as any).removeEventListener = (eventType: string, handler: () => boolean) => {
+    // For newer versions, the add method returns a remove function
+    // This is a simple fallback - in practice the remove function should be stored
+    console.warn('BackHandler.removeEventListener is deprecated. Using noop as fallback.');
+  };
+}
 
 export default function RootLayout() {
   const [loaded] = useFonts({
