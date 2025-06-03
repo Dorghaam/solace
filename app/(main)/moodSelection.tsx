@@ -1,7 +1,7 @@
 import { DailyMood, useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, HStack, Icon, Pressable, ScrollView, Text, useTheme, VStack } from 'native-base';
+import { Box, HStack, Icon, IconButton, Pressable, ScrollView, Text, useTheme, VStack } from 'native-base';
 import React from 'react';
 
 // Define mood options here or import from a constants file
@@ -46,30 +46,61 @@ export default function MoodSelectionScreen() {
 
   return (
     <Box flex={1} bg="miracleBackground" safeArea>
-      <VStack flex={1} p={6} space={5}>
-        <HStack alignItems="center" mb={4}>
-          {router.canGoBack() && (
-             <Pressable onPress={() => router.back()} p={2} mr={2}>
-              <Icon as={Ionicons} name="arrow-back" size="xl" color="textPrimary" />
-            </Pressable>
-          )}
-          <Text fontSize="2xl" fontWeight="bold" color="textPrimary">
-            How are you feeling today?
-          </Text>
-        </HStack>
-        
-        <Text fontSize="md" color="textSecondary" textAlign="center" mb={3}>
-          Select a mood that best describes how you feel right now.
-        </Text>
+      {/* Back button positioned absolutely like in OnboardingStepLayout */}
+      {router.canGoBack() && (
+        <IconButton
+          icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
+          position="absolute"
+          top={{ base: 10, md: 12 }}
+          left={{ base: 3, md: 4 }}
+          zIndex={10}
+          variant="ghost"
+          colorScheme="primary"
+          size="lg"
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+        />
+      )}
+      
+      {/* Make the whole page scrollable */}
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+      >
+        <VStack 
+          p={6} 
+          space={5} 
+          flexGrow={1}
+          pt={{ base: 16, md: 20 }} // Top padding to account for back button
+        >
+          {/* Title and subtitle aligned left like OnboardingStepLayout */}
+          <VStack space={2}>
+            <Text 
+              variant="title"
+              textAlign="left" 
+              fontSize={{ base: "2xl", md: "3xl" }}
+              color="textPrimary"
+              mb={1}
+            >
+              How are you feeling today?
+            </Text>
+            <Text 
+              variant="subtitle"
+              textAlign="left" 
+              color="textSecondary" 
+              fontSize="md"
+              lineHeight="sm"
+            >
+              Select a mood that best describes how you feel right now.
+            </Text>
+          </VStack>
 
-        {/* Scrollable Mood Cards */}
-        <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-          <VStack space={3} pb={6}>
+          {/* Mood Cards */}
+          <VStack space={3} mt={6}>
             {moodOptions.map((mood) => (
               <Pressable 
                 key={mood.label} 
                 onPress={() => handleSelectMood(mood)}
-                // Basic card styling for now, will be refined
                 bg="miracleCardBackground"
                 p={4}
                 rounded="lg"
@@ -83,9 +114,8 @@ export default function MoodSelectionScreen() {
               </Pressable>
             ))}
           </VStack>
-        </ScrollView>
-
-      </VStack>
+        </VStack>
+      </ScrollView>
     </Box>
   );
 } 
