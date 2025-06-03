@@ -17,11 +17,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // Prevent the splash screen from auto-hiding before asset loading is complete
 SplashScreen.preventAutoHideAsync();
 
-// Polyfill for BackHandler compatibility with newer React Native versions
+// Polyfill for BackHandler - ensure it's still needed or correctly implemented if you rely on it.
+// Modern React Navigation handles back presses well. This might be legacy.
 if (BackHandler && !(BackHandler as any).removeEventListener) {
   (BackHandler as any).removeEventListener = (eventType: string, handler: () => boolean) => {
-    // For newer versions, the add method returns a remove function
-    // This is a simple fallback - in practice the remove function should be stored
     console.warn('BackHandler.removeEventListener is deprecated. Using noop as fallback.');
   };
 }
@@ -32,35 +31,25 @@ export default function RootLayout() {
     // TODO: Add other custom fonts here when chosen for 'heading' and 'body'
   });
 
-  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
-  const userName = useUserStore((state) => state.userName);
+  // Get all necessary state from Zustand
+  const { 
+    hasCompletedOnboarding, 
+    userName, 
+    setTargetQuote 
+  } = useUserStore(
+    (state) => ({
+      hasCompletedOnboarding: state.hasCompletedOnboarding,
+      userName: state.userName,
+      setTargetQuote: state.setTargetQuote,
+    })
+  );
   const zustandHasRehydrated = useUserStore.persist.hasHydrated();
-  const setTargetQuote = useUserStore((state) => state.setTargetQuote);
-
-  // More robust onboarding check - if store is hydrated but user has no name and hasn't completed onboarding,
-  // we should definitely show onboarding
-  const shouldShowOnboarding = zustandHasRehydrated && (!hasCompletedOnboarding || !userName);
-
-  // Debug logging
-  useEffect(() => {
-    console.log('RootLayout Debug:', {
-      hasCompletedOnboarding,
-      userName,
-      zustandHasRehydrated,
-      loaded,
-      shouldShowOnboarding
-    });
-  }, [hasCompletedOnboarding, userName, zustandHasRehydrated, loaded, shouldShowOnboarding]);
 
   useEffect(() => {
     if (loaded && zustandHasRehydrated) {
-      // Hide splash screen after everything is loaded
       SplashScreen.hideAsync();
-      // Track app open for review prompt
       reviewService.trackAppOpen();
-      
-      // Additional logging for debugging App Store issues
-      console.log('App initialized - Store state:', {
+      console.log('App initialized in RootLayout - Store state after rehydration:', {
         hasCompletedOnboarding,
         userName,
         timestamp: new Date().toISOString()
@@ -89,23 +78,25 @@ export default function RootLayout() {
   }, [setTargetQuote]);
 
   if (!loaded || !zustandHasRehydrated) {
-    return null;
+    console.log('RootLayout: Waiting for fonts to load or store to rehydrate...');
+    return null; // Keep showing splash screen (or a loading component)
   }
 
-  // Final decision logic - be very explicit about when to show onboarding
-  const showMainApp = hasCompletedOnboarding && userName && userName.trim().length > 0;
-  
-  console.log('Navigation decision:', {
-    showMainApp,
-    hasCompletedOnboarding,
-    userName,
-    hasUserName: !!userName
+  // Definitive check for proceeding to main app
+  const isUserActuallyOnboarded = hasCompletedOnboarding && userName && userName.trim().length > 0;
+
+  console.log('RootLayout - Final Navigation Decision:', {
+    loaded,
+    zustandHasRehydrated,
+    hasCompletedOnboardingFromStore: hasCompletedOnboarding,
+    userNameFromStore: userName,
+    isUserActuallyOnboardedLogic: isUserActuallyOnboarded,
   });
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NativeBaseProvider theme={solaceTheme}>
-        {showMainApp ? (
+        {isUserActuallyOnboarded ? (
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(main)" />
             <Stack.Screen name="+not-found" />
