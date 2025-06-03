@@ -33,6 +33,7 @@ export default function FeedScreen() {
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [dailyStreak, setDailyStreak] = useState(0);
+  const [optimisticFavorites, setOptimisticFavorites] = useState<Set<string>>(new Set()); // Add optimistic state
   const flatListRef = useRef<FlatList>(null);
 
   const todayDateString = new Date().toISOString().split('T')[0]; // ADDED: Today's date
@@ -43,6 +44,15 @@ export default function FeedScreen() {
   const repetitions = quotes.length > 0 ? Math.max(10, Math.ceil(100 / quotes.length)) : 0;
   const infiniteQuotes = quotes.length > 0 ? Array(repetitions).fill(quotes).flat() : [];
   const currentQuote = quotes.length > 0 ? quotes[currentIndex % quotes.length] : null;
+
+  // Helper function to check if current quote is favorited (with optimistic updates)
+  const isCurrentQuoteFavorited = useCallback(() => {
+    if (!currentQuote) return false;
+    const inStore = favoriteQuoteIds.includes(currentQuote.id);
+    const optimisticState = optimisticFavorites.has(currentQuote.id);
+    // If quote is in optimistic state, return that; otherwise return store state
+    return optimisticFavorites.size > 0 ? optimisticState : inStore;
+  }, [currentQuote, favoriteQuoteIds, optimisticFavorites]);
 
   const fetchQuotes = useCallback(async () => {
     setIsLoading(true);
@@ -122,7 +132,20 @@ export default function FeedScreen() {
   const handleToggleFavorite = useCallback(async () => {
     if (!currentQuote) return;
     
-    const isCurrentlyFavorite = favoriteQuoteIds.includes(currentQuote.id);
+    const isCurrentlyFavorite = isCurrentQuoteFavorited();
+    
+    // Optimistic update - immediate visual feedback
+    setOptimisticFavorites(prev => {
+      const newSet = new Set(prev);
+      if (isCurrentlyFavorite) {
+        newSet.delete(currentQuote.id);
+      } else {
+        newSet.add(currentQuote.id);
+      }
+      return newSet;
+    });
+
+    // Then update the store
     if (isCurrentlyFavorite) {
       // Removing from favorites - light haptic
       hapticService.light();
@@ -136,7 +159,12 @@ export default function FeedScreen() {
       // Track favorite added for review prompt
       reviewService.trackFavoriteAdded();
     }
-  }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]);
+
+    // Clear optimistic state after a short delay to let store update
+    setTimeout(() => {
+      setOptimisticFavorites(new Set());
+    }, 100);
+  }, [currentQuote, isCurrentQuoteFavorited, addFavorite, removeFavorite]);
 
   const handleShare = useCallback(async () => {
     if (!currentQuote) {
@@ -397,8 +425,8 @@ export default function FeedScreen() {
                 icon={
                   <Icon
                     as={Ionicons}
-                    name={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "heart" : "heart-outline"}
-                    color={currentQuote && favoriteQuoteIds.includes(currentQuote.id) ? "red.500" : "primary.500"}
+                    name={isCurrentQuoteFavorited() ? "heart" : "heart-outline"}
+                    color="primary.500"
                   />
                 }
                 size="lg"
