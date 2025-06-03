@@ -31,18 +31,10 @@ export default function RootLayout() {
     // TODO: Add other custom fonts here when chosen for 'heading' and 'body'
   });
 
-  // Get all necessary state from Zustand
-  const { 
-    hasCompletedOnboarding, 
-    userName, 
-    setTargetQuote 
-  } = useUserStore(
-    (state) => ({
-      hasCompletedOnboarding: state.hasCompletedOnboarding,
-      userName: state.userName,
-      setTargetQuote: state.setTargetQuote,
-    })
-  );
+  // Use separate selectors to avoid infinite re-renders
+  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
+  const userName = useUserStore((state) => state.userName);
+  const setTargetQuote = useUserStore((state) => state.setTargetQuote);
   const zustandHasRehydrated = useUserStore.persist.hasHydrated();
 
   useEffect(() => {
