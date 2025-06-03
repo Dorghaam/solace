@@ -1,11 +1,12 @@
 import { reviewService } from '@/services/reviewService'; // Import reviewService
 import { supabase } from '@/services/supabaseClient'; // Ensure this path is correct
-import { useUserStore } from '@/store/userStore';
+import { useUserStore } from '@/store/userStore'; // ADDED DailyMood import
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
-import { Box, Button, HStack, Icon, IconButton, Modal, Spinner, Text, useTheme, VStack } from 'native-base';
+import { router } from 'expo-router'; // ADDED router import
+import { Box, Button, HStack, Icon, IconButton, Pressable, Spinner, Text, useTheme, VStack } from 'native-base'; // REMOVED Modal from imports, ADDED Pressable
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, Dimensions, FlatList, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet
+import { Alert, Dimensions, FlatList, Share, StyleSheet } from 'react-native'; // Import Share, Dimensions, StyleSheet, Platform
 
 interface Quote {
   id: string;
@@ -24,23 +25,17 @@ export default function FeedScreen() {
   const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
   const targetQuote = useUserStore((state) => state.targetQuote);
   const clearTargetQuote = useUserStore((state) => state.clearTargetQuote);
+  const dailyMood = useUserStore((state) => state.dailyMood); // ADDED: Get dailyMood
   
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showMoodModal, setShowMoodModal] = useState(false);
   const [dailyStreak, setDailyStreak] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  // Mood options for the simple mood check-in
-  const moodOptions = [
-    { emoji: '😊', label: 'Happy' },
-    { emoji: '😌', label: 'Calm' },
-    { emoji: '😔', label: 'Sad' },
-    { emoji: '😤', label: 'Frustrated' },
-    { emoji: '🤔', label: 'Thoughtful' },
-  ];
+  const todayDateString = new Date().toISOString().split('T')[0]; // ADDED: Today's date
+  const moodLoggedToday = dailyMood && dailyMood.date === todayDateString; // ADDED: Check if mood is logged
 
   // Create infinite scroll data by repeating quotes multiple times
   // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling
@@ -167,14 +162,6 @@ export default function FeedScreen() {
     }
   }, [currentQuote]); // Dependency for useCallback: re-create handleShare if currentQuote changes
 
-  const handleMoodSelect = useCallback((mood: { emoji: string; label: string }) => {
-    console.log('Mood selected:', mood);
-    // Store mood for today (could be expanded to store in database later)
-    setShowMoodModal(false);
-    // Simple feedback
-    Alert.alert("Mood Logged", `You're feeling ${mood.label} ${mood.emoji}`);
-  }, []);
-
   const updateDailyStreak = useCallback(() => {
     // Simple streak calculation - in a real app you'd want to store this properly
     const today = new Date().toDateString();
@@ -273,20 +260,27 @@ export default function FeedScreen() {
                 <Text fontSize="2xs" color="textSecondary">day{dailyStreak !== 1 ? 's' : ''}</Text>
               </Box>
 
-              {/* Mood Check-in Button */}
-              <Box
-                bg="rgba(255,255,255,0.9)"
-                rounded="full"
-                p={3}
-                shadow="2"
-                alignItems="center"
-                justifyContent="center"
-                minW="70px"
-                onTouchEnd={() => setShowMoodModal(true)}
-              >
-                <Icon as={Ionicons} name="happy" color="primary.500" size="lg" />
-                <Text fontSize="2xs" color="textSecondary" mt={1}>mood</Text>
-              </Box>
+              {/* UPDATED: Mood Check-in Button */}
+              <Pressable onPress={() => router.push('/(main)/moodSelection')}>
+                <Box
+                  bg="rgba(255,255,255,0.9)"
+                  rounded="full"
+                  p={3}
+                  shadow="2"
+                  alignItems="center"
+                  justifyContent="center"
+                  minW="70px"
+                >
+                  {moodLoggedToday && dailyMood?.emoji ? (
+                    <Text fontSize="xl">{dailyMood.emoji}</Text>
+                  ) : (
+                    <Icon as={Ionicons} name="happy-outline" color="primary.600" size="md" />
+                  )}
+                  <Text fontSize="2xs" color="textSecondary" mt={0.5}>
+                    {moodLoggedToday ? dailyMood?.mood : "mood"}
+                  </Text>
+                </Box>
+              </Pressable>
             </HStack>
 
             <FlatList
@@ -404,42 +398,6 @@ export default function FeedScreen() {
           </Box>
         </VStack>
       )}
-
-      {/* Mood Selection Modal */}
-      <Modal isOpen={showMoodModal} onClose={() => setShowMoodModal(false)} size="lg">
-        <Modal.Content bg="miracleBackground" borderRadius="3xl">
-          <Modal.CloseButton />
-          <Modal.Header borderBottomWidth={0} bg="miracleBackground">
-            <Text fontSize="lg" fontWeight="semibold" color="textPrimary">How are you feeling?</Text>
-          </Modal.Header>
-          <Modal.Body>
-            <VStack space={4} alignItems="center" pb={4}>
-              <Text fontSize="sm" color="textSecondary" textAlign="center" mb={2}>
-                Take a moment to check in with yourself
-              </Text>
-              {moodOptions.map((mood) => (
-                <Button
-                  key={mood.label}
-                  variant="outline"
-                  onPress={() => handleMoodSelect(mood)}
-                  w="full"
-                  h="80px"
-                  bg="white"
-                  borderColor="gray.200"
-                  _pressed={{ bg: "gray.50" }}
-                  justifyContent="center"
-                  alignItems="center"
-                >
-                  <HStack space={4} alignItems="center" justifyContent="center" w="full">
-                    <Text fontSize="2xl">{mood.emoji}</Text>
-                    <Text fontSize="lg" color="textPrimary" fontWeight="medium">{mood.label}</Text>
-                  </HStack>
-                </Button>
-              ))}
-            </VStack>
-          </Modal.Body>
-        </Modal.Content>
-      </Modal>
     </Box>
   );
 } 

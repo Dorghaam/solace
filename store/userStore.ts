@@ -36,6 +36,13 @@ export interface WidgetSettings {
   theme: WidgetTheme;
 }
 
+// ADDED: Interface for DailyMood
+export interface DailyMood {
+  mood: string;
+  emoji: string;
+  date: string; // Store date as YYYY-MM-DD string
+}
+
 interface UserState {
   hasCompletedOnboarding: boolean;
   userName: string | null;
@@ -46,6 +53,7 @@ interface UserState {
   favoriteQuoteIds: string[];
   widgetSettings: WidgetSettings;
   targetQuote: TargetQuote | null; // For navigation from notifications
+  dailyMood: DailyMood | null; // ADDED
 
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
@@ -59,10 +67,11 @@ interface UserState {
   setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
   setTargetQuote: (quote: TargetQuote | null) => void;
   clearTargetQuote: () => void;
+  setDailyMood: (moodData: DailyMood | null) => void; // ADDED
   resetState: () => void;
 }
 
-const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'setTargetQuote' | 'clearTargetQuote' | 'resetState'> = {
+const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'setTargetQuote' | 'clearTargetQuote' | 'setDailyMood' | 'resetState'> = {
   hasCompletedOnboarding: false,
   userName: null,
   affirmationFamiliarity: null,
@@ -75,6 +84,7 @@ const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' 
     theme: 'light',
   },
   targetQuote: null,
+  dailyMood: null, // ADDED
 };
 
 export const useUserStore = create<UserState>()(
@@ -107,7 +117,8 @@ export const useUserStore = create<UserState>()(
         set((state) => ({ widgetSettings: { ...state.widgetSettings, ...settings } })),
       setTargetQuote: (quote) => set({ targetQuote: quote }),
       clearTargetQuote: () => set({ targetQuote: null }),
-      resetState: () => set(initialState),
+      setDailyMood: (moodData) => set({ dailyMood: moodData }), // ADDED
+      resetState: () => set(initialState), // This will now also reset dailyMood to null
     }),
     {
       name: 'solace-user-store-v1', // Unique name for storage, version if schema changes
