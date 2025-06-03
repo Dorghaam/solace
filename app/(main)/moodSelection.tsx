@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService'; // Import haptic service
 import { DailyMood, useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -25,6 +26,9 @@ export default function MoodSelectionScreen() {
   const todayDateString = new Date().toISOString().split('T')[0];
 
   const handleSelectMood = (mood: { emoji: string; label: string }) => {
+    // Selection haptic for choosing a mood
+    hapticService.selection();
+    
     const newMood: DailyMood = {
       emoji: mood.emoji,
       mood: mood.label,
@@ -57,15 +61,22 @@ export default function MoodSelectionScreen() {
           variant="ghost"
           colorScheme="primary"
           size="lg"
-          onPress={() => router.back()}
+          onPress={() => {
+            hapticService.light();
+            router.back();
+          }}
           accessibilityLabel="Go back"
         />
       )}
       
-      {/* Make the whole page scrollable */}
+      {/* Make the whole page scrollable with animation optimization */}
       <ScrollView 
         contentContainerStyle={{ flexGrow: 1 }}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+        bounces={true}
+        decelerationRate="normal"
+        scrollEventThrottle={16}
       >
         <VStack 
           p={6} 

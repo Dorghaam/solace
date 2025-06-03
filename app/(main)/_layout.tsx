@@ -1,9 +1,14 @@
+import { hapticService } from '@/services/hapticService';
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Icon, useTheme } from 'native-base';
 
 export default function MainAppTabLayout() {
   const theme = useTheme();
+
+  const handleTabPress = () => {
+    hapticService.light();
+  };
 
   return (
     <Tabs
@@ -16,7 +21,13 @@ export default function MainAppTabLayout() {
           elevation: 0,
         },
         headerShown: false,
-      }}>
+      }}
+      screenListeners={{
+        tabPress: () => {
+          handleTabPress();
+        },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{

@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Box, Button, Icon, IconButton, ScrollView, Text, VStack, useTheme } from 'native-base';
@@ -24,6 +25,21 @@ export const OnboardingStepLayout: React.FC<{
 }) => {
   const theme = useTheme();
 
+  const handleNext = () => {
+    hapticService.medium();
+    onNext();
+  };
+
+  const handleSkip = () => {
+    hapticService.light();
+    if (onSkip) onSkip();
+  };
+
+  const handleBack = () => {
+    hapticService.light();
+    router.back();
+  };
+
   return (
     <Box flex={1} bg="miracleBackground" safeArea>
       {showBackButton && router.canGoBack() && (
@@ -36,7 +52,7 @@ export const OnboardingStepLayout: React.FC<{
           variant="ghost"
           colorScheme="primary"
           size="lg"
-          onPress={() => router.back()}
+          onPress={handleBack}
           accessibilityLabel="Go back"
         />
       )}
@@ -83,13 +99,13 @@ export const OnboardingStepLayout: React.FC<{
               <Button 
                 variant="ghost"
                 colorScheme="primary"
-                onPress={onSkip}
+                onPress={handleSkip}
               >
                 Skip for now 
               </Button>
             )}
             <Button 
-              onPress={onNext} 
+              onPress={handleNext} 
               isDisabled={isNextDisabled}
             >
               <Text color="onboardingButtonText" fontWeight="semibold" fontSize="md">

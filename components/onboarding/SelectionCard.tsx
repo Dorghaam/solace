@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { Box, Pressable, Text, useTheme } from 'native-base';
 import React from 'react';
 
@@ -8,9 +9,14 @@ export const SelectionCard: React.FC<{
 }> = ({ label, isSelected, onPress }) => {
   const theme = useTheme();
 
+  const handlePress = () => {
+    hapticService.selection();
+    onPress();
+  };
+
   return (
     <Pressable 
-      onPress={onPress} 
+      onPress={handlePress} 
       accessibilityRole="radio" 
       accessibilityState={{ checked: isSelected }}
     >

@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetSettings, WidgetTheme } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -55,6 +56,7 @@ export default function WidgetConfigScreen() {
   };
 
   const handleCategoryChange = (value: string) => {
+    hapticService.selection();
     updateStoreWidgetSettings({ category: value as BreakupCategory | 'favorites' | 'all' });
     // TODO: When category changes, update shared data for the native widget
     console.log("Widget category changed to:", value);
@@ -62,7 +64,7 @@ export default function WidgetConfigScreen() {
   };
   
   const handleThemeChange = (value: WidgetTheme) => {
-    // TODO: Update shared theme data for native widget
+    hapticService.selection();
     updateStoreWidgetSettings({ theme: value as WidgetTheme});
     console.log("Widget theme changed to:", value);
     Alert.alert("Theme Saved", `Widget theme set to ${value} (once native widget is built).`);
@@ -80,15 +82,23 @@ export default function WidgetConfigScreen() {
 
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
-      <HStack px={4} py={3} justifyContent="space-between" alignItems="center" borderBottomWidth={1} borderColor="gray.100">
+      {router.canGoBack() && (
         <IconButton
-          icon={<Icon as={Ionicons} name="arrow-back" />}
+          icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
+          position="absolute"
+          top={{ base: 10, md: 12 }}
+          left={{ base: 3, md: 4 }}
+          zIndex={10}
           variant="ghost"
-          onPress={() => router.back()}
+          colorScheme="primary"
+          size="lg"
+          onPress={() => {
+            hapticService.light();
+            router.back();
+          }}
+          accessibilityLabel="Go back"
         />
-        <Text fontSize="xl" fontWeight="semibold">Home Screen Widget</Text>
-        <Box w="40px" /> {/* Spacer */}
-      </HStack>
+      )}
 
       <ScrollView flex={1} showsVerticalScrollIndicator={false}>
         <VStack p={4} pb={8} space={6}>
@@ -142,12 +152,18 @@ export default function WidgetConfigScreen() {
 
           <Divider />
 
-          <HStack justifyContent="space-between" alignItems="center">
-            <Text fontSize="lg" fontWeight="medium">Customize Widget</Text>
+          <HStack justifyContent="space-between" alignItems="center" mb={4}>
+            <Text fontSize="lg" fontWeight="bold" color="textPrimary">
+              Customize Widget
+            </Text>
             <Switch
               isChecked={isCustomizing}
-              onToggle={handleToggleCustomize}
+              onToggle={(value) => {
+                hapticService.light();
+                setIsCustomizing(value);
+              }}
               colorScheme="primary"
+              size="md"
             />
           </HStack>
 

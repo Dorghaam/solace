@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { Ionicons } from '@expo/vector-icons';
 import { Box, Icon, Pressable, Text, useTheme } from 'native-base';
 import React from 'react';
@@ -9,9 +10,14 @@ export const MultiSelectionCard: React.FC<{
 }> = ({ label, isSelected, onPress }) => {
   const theme = useTheme();
 
+  const handlePress = () => {
+    hapticService.selection();
+    onPress();
+  };
+
   return (
     <Pressable 
-      onPress={onPress} 
+      onPress={handlePress} 
       accessibilityRole="checkbox" 
       accessibilityState={{ checked: isSelected }}
     >

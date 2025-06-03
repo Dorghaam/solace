@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService'; // Import haptic service
 import { useUserStore } from '@/store/userStore'; // Assuming store is at @/store
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -8,6 +9,8 @@ export default function WelcomeScreen() {
   const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleGetStarted = () => {
+    // Medium haptic for important action like starting onboarding
+    hapticService.medium();
     router.push('/(onboarding)/name');
   };
 

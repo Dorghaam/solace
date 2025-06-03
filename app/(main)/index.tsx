@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService'; // Import haptic service
 import { reviewService } from '@/services/reviewService'; // Import reviewService
 import { supabase } from '@/services/supabaseClient'; // Ensure this path is correct
 import { useUserStore } from '@/store/userStore'; // ADDED DailyMood import
@@ -118,26 +119,33 @@ export default function FeedScreen() {
     }
   }, [targetQuote, quotes, clearTargetQuote]);
 
-  const handleToggleFavorite = useCallback(() => {
+  const handleToggleFavorite = useCallback(async () => {
     if (!currentQuote) return;
     
     const isCurrentlyFavorite = favoriteQuoteIds.includes(currentQuote.id);
     if (isCurrentlyFavorite) {
+      // Removing from favorites - light haptic
+      hapticService.light();
       removeFavorite(currentQuote.id);
       console.log('Removed from favorites:', currentQuote.id);
     } else {
+      // Adding to favorites - success haptic for positive action
+      hapticService.success();
       addFavorite(currentQuote.id);
       console.log('Added to favorites:', currentQuote.id);
       // Track favorite added for review prompt
       reviewService.trackFavoriteAdded();
     }
-  }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]); // Dependencies for useCallback
+  }, [currentQuote, favoriteQuoteIds, addFavorite, removeFavorite]);
 
   const handleShare = useCallback(async () => {
     if (!currentQuote) {
       console.log('Share pressed, but no current quote to share.');
       return;
     }
+    
+    // Light haptic for share action
+    hapticService.light();
     console.log('Attempting to share quote:', currentQuote.text);
 
     try {
@@ -261,7 +269,10 @@ export default function FeedScreen() {
               </Box>
 
               {/* UPDATED: Mood Check-in Button */}
-              <Pressable onPress={() => router.push('/(main)/moodSelection')}>
+              <Pressable onPress={() => {
+                hapticService.medium();
+                router.push('/(main)/moodSelection');
+              }}>
                 <Box
                   bg="rgba(255,255,255,0.9)"
                   rounded="full"
@@ -364,7 +375,10 @@ export default function FeedScreen() {
                 rounded="full"
                 bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
-                onPress={fetchQuotes}
+                onPress={() => {
+                  hapticService.medium();
+                  fetchQuotes();
+                }}
                 accessibilityLabel="Refresh affirmations"
               />
               <IconButton

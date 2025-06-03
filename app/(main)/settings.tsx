@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
 import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
@@ -9,7 +10,16 @@ import React from 'react';
 // Reusable Setting Item Component
 const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void, rightContent?: React.ReactNode }> = 
 ({ label, value, onPress, rightContent }) => (
-  <Pressable onPress={onPress} disabled={!onPress} _pressed={{bg: "coolGray.50"}}>
+  <Pressable 
+    onPress={() => {
+      if (onPress) {
+        hapticService.light();
+        onPress();
+      }
+    }} 
+    disabled={!onPress} 
+    _pressed={{bg: "coolGray.50"}}
+  >
     <HStack justifyContent="space-between" alignItems="center" py={4} px={4} minH="56px">
       <Text fontSize="md" color={(onPress || rightContent) ? "textPrimary" : "textSecondary"} fontWeight="medium">{label}</Text>
       <HStack alignItems="center" space={2}>
@@ -36,6 +46,9 @@ export default function SettingsScreen() {
   } = useUserStore();
 
   const handleToggleNotifications = async (isEnabled: boolean) => {
+    // Medium haptic for important toggle action
+    hapticService.medium();
+    
     console.log('🔔 Toggle notifications called with:', isEnabled);
     console.log('🔔 Current notification settings:', notificationSettings);
     

@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { reviewService } from '@/services/reviewService';
 import { supabase } from '@/services/supabaseClient';
 import { useUserStore } from '@/store/userStore';
@@ -80,14 +81,18 @@ export default function FavoritesScreen() {
     fetchFavoriteQuotes();
   }, [fetchFavoriteQuotes]);
 
-  const handleToggleFavorite = useCallback(() => {
+  const handleToggleFavorite = useCallback(async () => {
     if (!currentQuote) return;
     
     const isCurrentlyFavorite = favoriteQuoteIds.includes(currentQuote.id);
     if (isCurrentlyFavorite) {
+      // Removing from favorites - light haptic
+      hapticService.light();
       removeFavorite(currentQuote.id);
       console.log('Removed from favorites:', currentQuote.id);
     } else {
+      // Adding to favorites - success haptic for positive action
+      hapticService.success();
       addFavorite(currentQuote.id);
       console.log('Added to favorites:', currentQuote.id);
       // Track favorite added for review prompt
@@ -100,6 +105,9 @@ export default function FavoritesScreen() {
       console.log('Share pressed, but no current quote to share.');
       return;
     }
+    
+    // Light haptic for share action
+    hapticService.light();
     console.log('Attempting to share quote:', currentQuote.text);
 
     try {
@@ -241,7 +249,10 @@ export default function FavoritesScreen() {
                 rounded="full"
                 bg="miracleBackground"
                 _icon={{ color: "primary.500" }}
-                onPress={fetchFavoriteQuotes}
+                onPress={() => {
+                  hapticService.medium();
+                  fetchFavoriteQuotes();
+                }}
                 accessibilityLabel="Refresh favorites"
               />
               <IconButton
