@@ -123,6 +123,31 @@ export const useUserStore = create<UserState>()(
     {
       name: 'solace-user-store-v1', // Unique name for storage, version if schema changes
       storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        console.log('Store rehydrated:', state);
+        // Validate the rehydrated state and fix any inconsistencies
+        if (state) {
+          // If hasCompletedOnboarding is true but userName is missing, reset onboarding
+          if (state.hasCompletedOnboarding && !state.userName) {
+            console.log('Inconsistent state detected: onboarding completed but no userName. Resetting onboarding state.');
+            state.hasCompletedOnboarding = false;
+          }
+          
+          // Ensure all required fields have default values
+          if (!state.notificationSettings) {
+            state.notificationSettings = { frequency: '3x', enabled: false };
+          }
+          if (!state.widgetSettings) {
+            state.widgetSettings = { category: 'all', theme: 'light' };
+          }
+          if (!Array.isArray(state.favoriteQuoteIds)) {
+            state.favoriteQuoteIds = [];
+          }
+          if (!Array.isArray(state.interestCategories)) {
+            state.interestCategories = [];
+          }
+        }
+      },
     }
   )
 ); 

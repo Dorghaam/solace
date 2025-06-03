@@ -283,13 +283,14 @@ export default function FeedScreen() {
                   minW="70px"
                 >
                   {moodLoggedToday && dailyMood?.emoji ? (
-                    <Text fontSize="xl">{dailyMood.emoji}</Text>
+                    <Text fontSize="xs" fontWeight="bold">{dailyMood.emoji}</Text>
                   ) : (
-                    <Icon as={Ionicons} name="happy-outline" color="primary.600" size="md" />
+                    <Icon as={Ionicons} name="happy-outline" color="primary.600" size="sm" />
                   )}
-                  <Text fontSize="2xs" color="textSecondary" mt={0.5}>
+                  <Text fontSize="xs" fontWeight="bold" color="textPrimary">
                     {moodLoggedToday ? dailyMood?.mood : "mood"}
                   </Text>
+                  <Text fontSize="2xs" color="textSecondary">check-in</Text>
                 </Box>
               </Pressable>
             </HStack>

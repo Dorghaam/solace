@@ -33,17 +33,24 @@ export default function RootLayout() {
   });
 
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
+  const userName = useUserStore((state) => state.userName);
   const zustandHasRehydrated = useUserStore.persist.hasHydrated();
   const setTargetQuote = useUserStore((state) => state.setTargetQuote);
+
+  // More robust onboarding check - if store is hydrated but user has no name and hasn't completed onboarding,
+  // we should definitely show onboarding
+  const shouldShowOnboarding = zustandHasRehydrated && (!hasCompletedOnboarding || !userName);
 
   // Debug logging
   useEffect(() => {
     console.log('RootLayout Debug:', {
       hasCompletedOnboarding,
+      userName,
       zustandHasRehydrated,
-      loaded
+      loaded,
+      shouldShowOnboarding
     });
-  }, [hasCompletedOnboarding, zustandHasRehydrated, loaded]);
+  }, [hasCompletedOnboarding, userName, zustandHasRehydrated, loaded, shouldShowOnboarding]);
 
   useEffect(() => {
     if (loaded && zustandHasRehydrated) {
@@ -51,8 +58,15 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
       // Track app open for review prompt
       reviewService.trackAppOpen();
+      
+      // Additional logging for debugging App Store issues
+      console.log('App initialized - Store state:', {
+        hasCompletedOnboarding,
+        userName,
+        timestamp: new Date().toISOString()
+      });
     }
-  }, [loaded, zustandHasRehydrated]);
+  }, [loaded, zustandHasRehydrated, hasCompletedOnboarding, userName]);
 
   // Set up notification response listener
   useEffect(() => {
@@ -78,10 +92,20 @@ export default function RootLayout() {
     return null;
   }
 
+  // Final decision logic - be very explicit about when to show onboarding
+  const showMainApp = hasCompletedOnboarding && userName && userName.trim().length > 0;
+  
+  console.log('Navigation decision:', {
+    showMainApp,
+    hasCompletedOnboarding,
+    userName,
+    hasUserName: !!userName
+  });
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <NativeBaseProvider theme={solaceTheme}>
-        {hasCompletedOnboarding ? (
+        {showMainApp ? (
           <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="(main)" />
             <Stack.Screen name="+not-found" />
