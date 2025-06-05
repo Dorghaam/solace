@@ -20,6 +20,8 @@ const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 export default function FeedScreen() {
   const theme = useTheme(); // NativeBase theme hook
   const userName = useUserStore((state) => state.userName);
+  const supabaseUser = useUserStore((state) => state.supabaseUser);
+  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   const interestCategories = useUserStore((state) => state.interestCategories);
   const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
   const addFavorite = useUserStore((state) => state.addFavoriteQuoteId);
@@ -38,6 +40,23 @@ export default function FeedScreen() {
 
   const todayDateString = new Date().toISOString().split('T')[0]; // ADDED: Today's date
   const moodLoggedToday = dailyMood && dailyMood.date === todayDateString; // ADDED: Check if mood is logged
+
+  // Authentication guard: redirect to onboarding if not authenticated
+  useEffect(() => {
+    if (!supabaseUser || !hasCompletedOnboarding) {
+      console.log('FeedScreen: User not authenticated or onboarding not completed, redirecting...');
+      router.replace('/(onboarding)');
+    }
+  }, [supabaseUser, hasCompletedOnboarding]);
+
+  // Don't render main content if not authenticated
+  if (!supabaseUser || !hasCompletedOnboarding) {
+    return (
+      <Box flex={1} bg="miracleBackground" justifyContent="center" alignItems="center">
+        <Spinner color="primary.500" size="lg" />
+      </Box>
+    );
+  }
 
   // Create infinite scroll data by repeating quotes multiple times
   // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling

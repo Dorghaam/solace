@@ -39,6 +39,8 @@ const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void
 export default function SettingsScreen() {
   const {
     userName,
+    supabaseUser,
+    hasCompletedOnboarding,
     interestCategories,
     notificationSettings,
     setNotificationSettings, // For toggling directly
@@ -48,6 +50,27 @@ export default function SettingsScreen() {
   } = useUserStore();
 
   const toast = useToast();
+
+  // Authentication guard: redirect to onboarding if not authenticated
+  React.useEffect(() => {
+    if (!supabaseUser || !hasCompletedOnboarding) {
+      console.log('SettingsScreen: User not authenticated or onboarding not completed, redirecting...');
+      router.replace('/(onboarding)');
+    }
+  }, [supabaseUser, hasCompletedOnboarding]);
+
+  // Don't render main content if not authenticated
+  if (!supabaseUser || !hasCompletedOnboarding) {
+    return (
+      <Box flex={1} bg="backgroundLight" justifyContent="center" alignItems="center">
+        <VStack space={3} alignItems="center">
+          <Text fontSize="lg" color="textSecondary">
+            Checking authentication...
+          </Text>
+        </VStack>
+      </Box>
+    );
+  }
 
   const handleToggleNotifications = async (isEnabled: boolean) => {
     // Medium haptic for important toggle action

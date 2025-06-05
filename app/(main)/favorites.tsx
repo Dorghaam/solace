@@ -20,6 +20,8 @@ const { height: screenHeight, width: screenWidth } = Dimensions.get('window');
 export default function FavoritesScreen() {
   const theme = useTheme();
   const userName = useUserStore((state) => state.userName);
+  const supabaseUser = useUserStore((state) => state.supabaseUser);
+  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
   const addFavorite = useUserStore((state) => state.addFavoriteQuoteId);
   const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
@@ -30,6 +32,23 @@ export default function FavoritesScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [optimisticFavorites, setOptimisticFavorites] = useState<Set<string>>(new Set());
   const flatListRef = useRef<FlatList>(null);
+
+  // Authentication guard: redirect to onboarding if not authenticated
+  useEffect(() => {
+    if (!supabaseUser || !hasCompletedOnboarding) {
+      console.log('FavoritesScreen: User not authenticated or onboarding not completed, redirecting...');
+      router.replace('/(onboarding)');
+    }
+  }, [supabaseUser, hasCompletedOnboarding]);
+
+  // Don't render main content if not authenticated
+  if (!supabaseUser || !hasCompletedOnboarding) {
+    return (
+      <Box flex={1} bg="miracleBackground" justifyContent="center" alignItems="center">
+        <Spinner color="primary.500" size="lg" />
+      </Box>
+    );
+  }
 
   // Create infinite scroll data by repeating quotes multiple times
   // Use more repetitions if we have fewer quotes to ensure smooth infinite scrolling

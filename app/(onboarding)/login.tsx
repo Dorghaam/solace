@@ -1,7 +1,8 @@
 import { OnboardingStepLayout } from '@/components/onboarding';
 import { loginWithGoogle } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
-// Note: We don't directly setSupabaseUser or setHasCompletedOnboarding here.
+import { useUserStore } from '@/store/userStore';
+// Note: We don't directly setSupabaseUser here.
 // That logic is centralized in app/_layout.tsx's onAuthStateChange listener.
 import { Ionicons } from '@expo/vector-icons';
 import { Button, Icon, Text, useToast, VStack } from 'native-base';
@@ -11,6 +12,7 @@ import { Alert, Platform } from 'react-native';
 export default function LoginScreen() {
   const [isLoading, setIsLoading] = useState(false);
   const toast = useToast();
+  const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleGoogleSignIn = async () => {
     setIsLoading(true);
@@ -18,15 +20,11 @@ export default function LoginScreen() {
     try {
       console.log('LoginScreen: Initiating Google Sign-In...');
       await loginWithGoogle();
-      // On successful loginWithGoogle, Supabase will trigger the onAuthStateChange
-      // listener in app/_layout.tsx. That listener will then:
-      // 1. Set the supabaseUser in Zustand.
-      // 2. Check if all other onboarding data is present.
-      // 3. If yes, set hasCompletedOnboarding = true.
-      // 4. The main conditional rendering in _layout.tsx will then route to /(main).
-      // No need to setIsLoading(false) here if navigation occurs on success.
-      // If loginWithGoogle throws, the catch block will handle setIsLoading.
-      console.log('LoginScreen: loginWithGoogle service call completed (or threw an error).');
+      // After successful login, onAuthStateChange in _layout.tsx updates supabaseUser.
+      // Now, mark onboarding as complete.
+      setHasCompletedOnboarding(true);
+      // _layout.tsx will then automatically navigate to the (main) stack.
+      console.log('LoginScreen: loginWithGoogle service call completed. Onboarding marked as complete.');
     } catch (err: any) {
       console.error("LoginScreen: Google Sign-In Error caught:", err.message);
       Alert.alert(

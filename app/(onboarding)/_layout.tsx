@@ -3,8 +3,11 @@ import React from 'react';
 
 export default function OnboardingLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      {/* The initial route is (onboarding)/index.tsx (WelcomeScreen) by convention */}
+    <Stack
+      screenOptions={{ headerShown: false }}
+      initialRouteName="welcome"
+    >
+      {/* The index route redirects to welcome */}
       <Stack.Screen name="index" />
       <Stack.Screen name="welcome" />
       <Stack.Screen name="name" />

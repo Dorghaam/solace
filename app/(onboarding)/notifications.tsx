@@ -1,6 +1,7 @@
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, getReminderTimesForFrequency, scheduleDailyAffirmationReminders, setupNotificationChannelsAsync } from '@/services/notificationService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Box, Button, HStack, Icon, Radio, Switch, Text, VStack, useTheme } from 'native-base';
 import React, { useEffect, useState } from 'react';
 
@@ -62,13 +63,9 @@ export default function NotificationPreferencesScreen() {
       console.log('Notification preferences saved (disabled) and reminders cancelled.');
     }
 
-    // Navigate to login screen (will be created in step 4.5)
+    // Navigate to login screen
     console.log('Navigating from notifications to login screen.');
-    // TODO: This will be uncommented when login.tsx is created in step 4.5
-    // router.push('/(onboarding)/login');
-    
-    // For now, just log that we would navigate to login
-    console.log('Login screen navigation will be enabled in step 4.5');
+    router.push('/(onboarding)/login');
   };
 
   const formatTime = (hour: number, minute: number) => {
