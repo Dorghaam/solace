@@ -65,7 +65,7 @@ export default function NotificationPreferencesScreen() {
 
     // Navigate to login screen
     console.log('Navigating from notifications to login screen.');
-    router.push('/login');
+    router.push('/(onboarding)/login');
   };
 
   const formatTime = (hour: number, minute: number) => {
