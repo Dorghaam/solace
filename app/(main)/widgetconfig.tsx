@@ -181,7 +181,9 @@ export default function WidgetConfigScreen() {
                       <Text>All Breakup Quotes</Text>
                     </Radio>
                     <Radio value="favorites" size="sm" isDisabled={favoriteQuoteIds.length === 0}>
-                      <Text>My Favorites {favoriteQuoteIds.length === 0 ? "(No favorites yet)" : ""}</Text>
+                      <Text>
+                        My Favorites{favoriteQuoteIds.length === 0 ? " (No favorites yet)" : ""}
+                      </Text>
                     </Radio>
                     {breakupInterestCategories.map(cat => (
                       <Radio key={cat.id} value={cat.id} size="sm">
