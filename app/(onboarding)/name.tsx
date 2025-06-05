@@ -67,7 +67,8 @@ export default function NameInputScreen() {
       if (editing === 'true') {
         router.replace('/(main)/settings'); // Go back to settings if editing
       } else {
-        router.push('/(onboarding)/familiarity'); // Continue onboarding
+        // Use correct TypeScript route path
+        router.push('/familiarity'); // Continue onboarding
       }
     } else {
       console.log('❌ Name is empty');

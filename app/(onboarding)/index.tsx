@@ -3,11 +3,11 @@ import { useEffect } from 'react';
 
 export default function OnboardingIndex() {
   // Immediately redirect to welcome screen
-  router.replace('/(onboarding)/welcome');
+  router.replace('/welcome');
   
   // Fallback useEffect in case immediate redirect doesn't work
   useEffect(() => {
-    router.replace('/(onboarding)/welcome');
+    router.replace('/welcome');
   }, []);
 
   return null; // This component doesn't render anything since it immediately redirects
