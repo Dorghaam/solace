@@ -65,7 +65,10 @@ export default function NotificationPreferencesScreen() {
 
     // Navigate to login screen
     console.log('Navigating from notifications to login screen.');
-    router.push('/(onboarding)/login');
+    // Use requestAnimationFrame to ensure navigation happens after render cycle
+    requestAnimationFrame(() => {
+      router.push('/(onboarding)/login');
+    });
   };
 
   const formatTime = (hour: number, minute: number) => {

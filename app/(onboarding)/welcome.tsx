@@ -11,7 +11,10 @@ export default function WelcomeScreen() {
   const handleGetStarted = () => {
     // Medium haptic for important action like starting onboarding
     hapticService.medium();
-    router.push('/(onboarding)/name');
+    // Use requestAnimationFrame to ensure navigation happens after render cycle
+    requestAnimationFrame(() => {
+      router.push('/(onboarding)/name');
+    });
   };
 
   return (

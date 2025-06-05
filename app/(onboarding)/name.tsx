@@ -67,9 +67,12 @@ export default function NameInputScreen() {
       if (editing === 'true') {
         router.replace('/(main)/settings'); // Go back to settings if editing
       } else {
-        // BULLETPROOF WORKAROUND: Skip familiarity and go directly to categories
-        // We can add familiarity selection later or integrate it into categories
-        router.push('/(onboarding)/categories');
+        // Use requestAnimationFrame to ensure navigation happens after render cycle
+        // This prevents navigation failures when the stack is being recreated
+        requestAnimationFrame(() => {
+          console.log('🚀 Navigating to categories...');
+          router.push('/(onboarding)/categories');
+        });
       }
     } else {
       console.log('❌ Name is empty');

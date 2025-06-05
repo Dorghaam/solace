@@ -27,7 +27,10 @@ export default function AffirmationFamiliarityScreen() {
       if (editing === 'true') {
         router.replace('/(main)/settings'); // Go back to settings if editing
       } else {
-        router.push('/(onboarding)/categories'); // Continue onboarding
+        // Use requestAnimationFrame to ensure navigation happens after render cycle
+        requestAnimationFrame(() => {
+          router.push('/(onboarding)/categories'); // Continue onboarding
+        });
       }
     }
   };

@@ -29,7 +29,10 @@ export default function InterestCategoriesScreen() {
     if (editing === 'true') {
       router.replace('/(main)/settings');
     } else {
-      router.push('/(onboarding)/notifications');
+      // Use requestAnimationFrame to ensure navigation happens after render cycle
+      requestAnimationFrame(() => {
+        router.push('/(onboarding)/notifications');
+      });
     }
   };
 
