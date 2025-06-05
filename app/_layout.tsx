@@ -59,6 +59,28 @@ export default function RootLayout() {
     configureGoogleSignIn();
   }, []); // Empty dependency array: runs once
 
+  // 🔴 TEMPORARY: Force fresh user experience (REMOVE BEFORE PRODUCTION)
+  useEffect(() => {
+    const forceResetForTesting = async () => {
+      console.log('🔴 TEMPORARY: Forcing complete reset for fresh user testing...');
+      
+      // Clear Zustand store
+      resetState();
+      
+      // Clear Supabase session
+      await supabase.auth.signOut();
+      
+      // Clear any other persisted data
+      await reviewService.resetMetrics();
+      
+      console.log('🔴 TEMPORARY: Reset complete - fresh user experience enabled');
+    };
+    
+    if (zustandReady) {
+      forceResetForTesting();
+    }
+  }, [zustandReady, resetState]);
+
   // 3. Supabase session on cold start (Engineer's Fix Point 4 - part of side-effects)
   useEffect(() => {
     if (!zustandReady || initialSessionCheckDone) { // Only run if zustand is ready and check not done
