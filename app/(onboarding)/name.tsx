@@ -67,7 +67,9 @@ export default function NameInputScreen() {
       if (editing === 'true') {
         router.replace('/(main)/settings'); // Go back to settings if editing
       } else {
-        router.push('/(onboarding)/familiarity'); // Continue onboarding
+        // BULLETPROOF WORKAROUND: Skip familiarity and go directly to categories
+        // We can add familiarity selection later or integrate it into categories
+        router.push('/(onboarding)/categories');
       }
     } else {
       console.log('❌ Name is empty');
