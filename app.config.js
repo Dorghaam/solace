@@ -77,7 +77,7 @@ export default ({ config }) => {
         googleWebClientId: GOOGLE_WEB_CLIENT_ID,
         eas: {
           ...(config?.expo?.extra?.eas || {}),
-          projectId: "e4df03cb-901d-4754-bb0e-e21f845c013b"
+          projectId: "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"
         }
       }
     }
