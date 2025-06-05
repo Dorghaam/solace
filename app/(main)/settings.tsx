@@ -1,11 +1,13 @@
+import { signOut } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
 import { reviewService } from '@/services/reviewService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, VStack } from 'native-base';
+import { Box, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, useToast, VStack } from 'native-base';
 import React from 'react';
+import { Alert } from 'react-native';
 
 // Reusable Setting Item Component
 const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void, rightContent?: React.ReactNode }> = 
@@ -45,6 +47,8 @@ export default function SettingsScreen() {
     setHasCompletedOnboarding
   } = useUserStore();
 
+  const toast = useToast();
+
   const handleToggleNotifications = async (isEnabled: boolean) => {
     // Medium haptic for important toggle action
     hapticService.medium();
@@ -53,7 +57,7 @@ export default function SettingsScreen() {
     console.log('🔔 Current notification settings:', notificationSettings);
     
     if (!isEnabled) {
-      setNotificationSettings({ ...notificationSettings, enabled: false });
+      setNotificationSettings({ ...(notificationSettings || {}), enabled: false });
       setPushToken(null); // Clear token if user disables
       await cancelAllScheduledAffirmationReminders();
       console.log('🔔 Push token cleared due to notifications being disabled');
@@ -62,12 +66,12 @@ export default function SettingsScreen() {
       const token = await getPushTokenAndPermissionsAsync(); // Request permission & get token
       if (token) {
         setPushToken(token);
-        setNotificationSettings({ ...notificationSettings, enabled: true, frequency: notificationSettings.frequency || '3x' });
-        await scheduleDailyAffirmationReminders(notificationSettings.frequency || '3x', undefined, interestCategories);
+        setNotificationSettings({ ...(notificationSettings || {}), enabled: true, frequency: (notificationSettings?.frequency) || '3x' });
+        await scheduleDailyAffirmationReminders((notificationSettings?.frequency) || '3x', undefined, interestCategories);
         console.log('🔔 Notifications enabled and scheduled.');
       } else {
         // Permission denied or failed to get token, revert switch in UI
-        setNotificationSettings({ ...notificationSettings, enabled: false });
+        setNotificationSettings({ ...(notificationSettings || {}), enabled: false });
         // The getPushTokenAndPermissionsAsync function should alert the user.
         console.log('🔔 Failed to enable notifications (no token or permission).');
       }
@@ -78,6 +82,26 @@ export default function SettingsScreen() {
     resetState();
     setHasCompletedOnboarding(false); 
     router.replace('/(onboarding)');
+  };
+
+  const handleSignOut = async () => {
+    hapticService.medium();
+    console.log('SettingsScreen: Initiating sign out...');
+    try {
+      await signOut();
+      // Successful signOut will trigger onAuthStateChange in _layout.tsx,
+      // which will call resetState() and navigate to '/(onboarding)'.
+      console.log('SettingsScreen: signOut service call completed.');
+      // Optionally, show a success toast, though navigation will be quick.
+      // toast.show({ title: "Signed Out", description: "You have been signed out." });
+    } catch (error: any) {
+      console.error("SettingsScreen: Error during sign out:", error.message);
+      toast.show({
+        title: "Sign Out Failed",
+        description: error.message || "Could not sign out. Please try again.",
+        duration: 3000,
+      });
+    }
   };
 
   return (
@@ -129,7 +153,7 @@ export default function SettingsScreen() {
                 label="Daily Reminders"
                 rightContent={
                   <Switch
-                    isChecked={notificationSettings.enabled}
+                    isChecked={notificationSettings?.enabled || false}
                     onToggle={handleToggleNotifications}
                     colorScheme="primary"
                     size="md"
@@ -139,7 +163,7 @@ export default function SettingsScreen() {
               <Divider />
               <SettingItem 
                 label="Reminder Frequency" 
-                value={notificationSettings.frequency} 
+                value={notificationSettings?.frequency || 'Not set'} 
                 onPress={() => router.push('/(onboarding)/notifications')} 
               />
             </Box>
@@ -154,6 +178,29 @@ export default function SettingsScreen() {
                 label="Rate Solace" 
                 value="Help us improve"
                 onPress={() => reviewService.requestReview()} 
+              />
+            </Box>
+          </Box>
+
+          {/* Sign Out Section */}
+          <Box>
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+              MANAGE ACCOUNT
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem
+                label="Sign Out"
+                onPress={() => {
+                  // Optional: Add a confirmation dialog
+                  Alert.alert(
+                    "Sign Out",
+                    "Are you sure you want to sign out?",
+                    [
+                      { text: "Cancel", style: "cancel" },
+                      { text: "Sign Out", style: "destructive", onPress: handleSignOut }
+                    ]
+                  );
+                }}
               />
             </Box>
           </Box>

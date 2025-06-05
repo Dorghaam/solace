@@ -16,6 +16,7 @@ export default ({ config }) => {
       userInterfaceStyle: "light",
       newArchEnabled: true,
       ios: {
+        ...config?.expo?.ios,
         supportsTablet: false,
         isTabletOnly: false,
         requireFullScreen: true,
@@ -23,11 +24,14 @@ export default ({ config }) => {
         buildNumber: "5",
         googleServicesFile: "./GoogleService-Info.plist",
         infoPlist: {
-          UIDeviceFamily: [1], // ✅ iPhone-only
+          ...(config?.expo?.ios?.infoPlist || {}),
+          UIDeviceFamily: [1],
           CFBundleURLTypes: [
-            ...(config?.expo?.ios?.infoPlist?.CFBundleURLTypes || []), 
+            ...(config?.expo?.ios?.infoPlist?.CFBundleURLTypes || []).filter(urlType => {
+              return !(urlType.CFBundleURLSchemes || []).includes(GOOGLE_IOS_REVERSED_CLIENT_ID);
+            }),
             {
-              CFBundleURLSchemes: [GOOGLE_IOS_REVERSED_CLIENT_ID] 
+              CFBundleURLSchemes: [GOOGLE_IOS_REVERSED_CLIENT_ID]
             }
           ],
         }
@@ -67,11 +71,13 @@ export default ({ config }) => {
         typedRoutes: true
       },
       extra: {
+        ...config?.expo?.extra,
         supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
         supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
         googleWebClientId: GOOGLE_WEB_CLIENT_ID,
         eas: {
-          projectId: "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"
+          ...(config?.expo?.extra?.eas || {}),
+          projectId: "e4df03cb-901d-4754-bb0e-e21f845c013b"
         }
       }
     }
