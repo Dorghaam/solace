@@ -1,7 +1,6 @@
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, getReminderTimesForFrequency, scheduleDailyAffirmationReminders, setupNotificationChannelsAsync } from '@/services/notificationService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
 import { Box, Button, HStack, Icon, Radio, Switch, Text, VStack, useTheme } from 'native-base';
 import React, { useEffect, useState } from 'react';
 
@@ -11,9 +10,9 @@ export default function NotificationPreferencesScreen() {
   const setPushToken = useUserStore((state) => state.setPushToken);
   const interestCategories = useUserStore((state) => state.interestCategories);
   
-  const [notificationsEnabled, setNotificationsEnabled] = useState(storeNotificationSettings.enabled);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(storeNotificationSettings?.enabled ?? false);
   const [selectedFrequency, setSelectedFrequency] = useState<'1x' | '3x' | '5x' | '10x'>(
-    (storeNotificationSettings.frequency as '1x' | '3x' | '5x' | '10x') || '3x'
+    (storeNotificationSettings?.frequency as '1x' | '3x' | '5x' | '10x') || '3x'
   );
 
   const theme = useTheme();
@@ -51,10 +50,25 @@ export default function NotificationPreferencesScreen() {
     }
   };
 
-  const handleContinue = () => {
-    const setHasCompletedOnboarding = useUserStore.getState().setHasCompletedOnboarding;
-    setHasCompletedOnboarding(true);
-    router.replace('/(main)');
+  const handleContinue = async () => {
+    // Save notification preferences
+    if (notificationsEnabled) {
+      setStoreNotificationSettings({ enabled: true, frequency: selectedFrequency });
+      await scheduleDailyAffirmationReminders(selectedFrequency, undefined, interestCategories);
+      console.log('Notification preferences saved and reminders scheduled.');
+    } else {
+      setStoreNotificationSettings({ enabled: false, frequency: selectedFrequency });
+      await cancelAllScheduledAffirmationReminders();
+      console.log('Notification preferences saved (disabled) and reminders cancelled.');
+    }
+
+    // Navigate to login screen (will be created in step 4.5)
+    console.log('Navigating from notifications to login screen.');
+    // TODO: This will be uncommented when login.tsx is created in step 4.5
+    // router.push('/(onboarding)/login');
+    
+    // For now, just log that we would navigate to login
+    console.log('Login screen navigation will be enabled in step 4.5');
   };
 
   const formatTime = (hour: number, minute: number) => {

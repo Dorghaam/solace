@@ -48,12 +48,13 @@ interface UserState {
   userName: string | null;
   affirmationFamiliarity: 'new' | 'occasional' | 'regular' | null;
   interestCategories: BreakupCategory[];
-  notificationSettings: NotificationSettings;
+  notificationSettings: NotificationSettings | null;
   pushToken: string | null;
   favoriteQuoteIds: string[];
-  widgetSettings: WidgetSettings;
+  widgetSettings: WidgetSettings | {};
   targetQuote: TargetQuote | null; // For navigation from notifications
   dailyMood: DailyMood | null; // ADDED
+  supabaseUser: any | null; // Added for supabaseUser field
 
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
@@ -68,23 +69,22 @@ interface UserState {
   setTargetQuote: (quote: TargetQuote | null) => void;
   clearTargetQuote: () => void;
   setDailyMood: (moodData: DailyMood | null) => void; // ADDED
+  setSupabaseUser: (user: any | null) => void; // ADDED
   resetState: () => void;
 }
 
-const initialState: Omit<UserState, 'setHasCompletedOnboarding' | 'setUserName' | 'setAffirmationFamiliarity' | 'setInterestCategories' | 'toggleInterestCategory' | 'setNotificationSettings' | 'setPushToken' | 'addFavoriteQuoteId' | 'removeFavoriteQuoteId' | 'setWidgetSettings' | 'setTargetQuote' | 'clearTargetQuote' | 'setDailyMood' | 'resetState'> = {
-  hasCompletedOnboarding: false,
+const initialState = {
   userName: null,
-  affirmationFamiliarity: null,
   interestCategories: [],
-  notificationSettings: { frequency: '3x', enabled: false },
-  pushToken: null,
+  affirmationFamiliarity: null,
+  notificationSettings: null, // We will refine this default in a later step if needed, but null is fine for the initial reset definition
   favoriteQuoteIds: [],
-  widgetSettings: { // Default widget settings
-    category: 'all',
-    theme: 'light',
-  },
-  targetQuote: null,
-  dailyMood: null, // ADDED
+  widgetSettings: {}, // Or a more defined default like { category: 'all', theme: 'light' } if preferred for initial state, though an empty object is fine for reset purposes if the main store definition handles defaults
+  dailyMood: null,
+  supabaseUser: null,
+  hasCompletedOnboarding: false,
+  pushToken: null, // Keep existing field
+  targetQuote: null, // Keep existing field
 };
 
 export const useUserStore = create<UserState>()(
@@ -102,7 +102,9 @@ export const useUserStore = create<UserState>()(
         return { interestCategories: newCategories };
       }),
       setNotificationSettings: (settings) => set((state) => ({
-        notificationSettings: { ...state.notificationSettings, ...settings }
+        notificationSettings: state.notificationSettings 
+          ? { ...state.notificationSettings, ...settings }
+          : { frequency: '3x', enabled: false, ...settings } as NotificationSettings
       })),
       setPushToken: (token) => set({ pushToken: token }),
       addFavoriteQuoteId: (quoteId) =>
@@ -118,7 +120,11 @@ export const useUserStore = create<UserState>()(
       setTargetQuote: (quote) => set({ targetQuote: quote }),
       clearTargetQuote: () => set({ targetQuote: null }),
       setDailyMood: (moodData) => set({ dailyMood: moodData }), // ADDED
-      resetState: () => set(initialState), // This will now also reset dailyMood to null
+      setSupabaseUser: (user) => set({ supabaseUser: user }),
+      resetState: () => {
+        console.log('Store: Resetting state to initial values (Checklist Pattern).');
+        set(initialState); // Reset all data fields to initial values
+      },
     }),
     {
       name: 'solace-user-store-v1', // Unique name for storage, version if schema changes

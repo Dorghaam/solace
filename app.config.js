@@ -1,5 +1,9 @@
 import 'dotenv/config';
 
+// Ensure these are in your .env and EAS Secrets
+const GOOGLE_IOS_REVERSED_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_IOS_REVERSED_CLIENT_ID; 
+const GOOGLE_WEB_CLIENT_ID = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID; // Used for web/server-side flow with Supabase
+
 export default ({ config }) => {
   return {
     expo: {
@@ -17,8 +21,15 @@ export default ({ config }) => {
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
         buildNumber: "5",
+        googleServicesFile: "./ios/GoogleService-Info.plist",
         infoPlist: {
           UIDeviceFamily: [1], // ✅ iPhone-only
+          CFBundleURLTypes: [
+            ...(config?.expo?.ios?.infoPlist?.CFBundleURLTypes || []), 
+            {
+              CFBundleURLSchemes: [GOOGLE_IOS_REVERSED_CLIENT_ID] 
+            }
+          ],
         }
       },
       android: {
@@ -49,7 +60,8 @@ export default ({ config }) => {
             icon: "./assets/images/notification-icon.png",
             color: "#6096FD"
           }
-        ]
+        ],
+        "@react-native-google-signin/google-signin",
       ],
       experiments: {
         typedRoutes: true
@@ -57,8 +69,9 @@ export default ({ config }) => {
       extra: {
         supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
         supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
+        googleWebClientId: GOOGLE_WEB_CLIENT_ID,
         eas: {
-          projectId: "e4df03cb-901d-4754-bb0e-e21f845c013b"
+          projectId: "3492a16b-5ccf-47a1-bbb5-e1ed0d2d1181"
         }
       }
     }

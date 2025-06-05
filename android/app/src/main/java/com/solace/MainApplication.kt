@@ -1,4 +1,4 @@
-package com.dorghaamhaidar.solace
+package com.solace
 
 import android.app.Application
 import android.content.res.Configuration
