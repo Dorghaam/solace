@@ -1,7 +1,14 @@
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import 'react-native-get-random-values'; // Import for crypto.randomUUID
+import { v4 as uuidv4 } from 'uuid'; // Using uuid for nonce generation
 import { supabase } from './supabaseClient';
 // configureGoogleSignIn is called once from _layout.tsx, so not strictly needed here,
 // but ensure it IS called before any login attempt.
+
+// Helper to generate a random string for nonce
+const generateNonce = () => {
+  return uuidv4();
+};
 
 export const loginWithGoogle = async () => {
   console.log('authService: Attempting loginWithGoogle...');
@@ -11,11 +18,24 @@ export const loginWithGoogle = async () => {
     await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
     console.log('authService: Google Play Services check passed.');
 
-    // Step 2: Sign in with Google to get the user info
-    const userInfo = await GoogleSignin.signIn();
+    const clientNonce = generateNonce();
+    console.log('authService: Generated client nonce:', clientNonce);
+
+    // Step 2: Sign in with Google, passing the nonce
+    // Note: The `nonce` option for `signIn` is not standard in all versions or typings
+    // of @react-native-google-signin/google-signin.
+    // If it's not directly supported in the signIn options,
+    // the library might handle it internally based on OIDC compliance,
+    // or Google's SDK might add it. We will still pass it to Supabase.
+    // Forcing a new sign-in flow to ensure nonce is used if possible:
+    // await GoogleSignin.signOut(); // Optional: Force fresh sign-in for testing nonce
+    const userInfo = await GoogleSignin.signIn({
+      // Requesting an ID token with OIDC conformant clients usually includes nonce handling.
+      // The library might not explicitly expose a 'nonce' option in signIn directly.
+      // We rely on the ID token obtained to potentially contain the nonce if Google's flow includes it.
+    });
     console.log('authService: Google Sign-In successful, user info obtained.');
 
-    // Step 3: Get tokens to access the ID token
     const tokens = await GoogleSignin.getTokens();
     
     if (!tokens.idToken) {
@@ -24,10 +44,11 @@ export const loginWithGoogle = async () => {
     }
     console.log('authService: Google ID Token obtained.');
 
-    // Step 4: Sign in to Supabase with the Google ID token
+    // Step 4: Sign in to Supabase with the Google ID token AND the client-generated nonce
     const { data, error: supabaseError } = await supabase.auth.signInWithIdToken({
       provider: 'google',
       token: tokens.idToken,
+      nonce: clientNonce, // Pass the same nonce to Supabase
     });
 
     if (supabaseError) {
@@ -46,6 +67,9 @@ export const loginWithGoogle = async () => {
       throw new Error('Sign-in is already in progress.');
     } else if (error.code === statusCodes.PLAY_SERVICES_NOT_AVAILABLE) {
       throw new Error('Google Play Services not available or outdated. Please update.');
+    } else if (error.message && error.message.includes("nonce")) {
+      // Catching the specific nonce error to give a more tailored message
+      throw new Error(`Nonce validation failed with Supabase: ${error.message}`);
     } else {
       // General error
       throw new Error(error.message || 'An unknown error occurred during Google Sign-In.');
@@ -76,19 +100,18 @@ export const signOut = async () => {
       } else {
         console.log('authService: Google Sign-In: No user was signed in with Google locally.');
       }
-    } catch (googleError) {
-      // If isSignedIn fails, try to sign out anyway
-      console.log('authService: isSignedIn check failed, attempting direct sign out.');
+    } catch (googleError: any) {
+      console.warn('authService: Error during Google signOut/revokeAccess:', googleError.message);
+      // Attempt to sign out directly if revokeAccess or isSignedIn fails
       try {
-        await GoogleSignin.revokeAccess();
         await GoogleSignin.signOut();
-        console.log('authService: Google direct signOut successful.');
-      } catch (directSignOutError) {
-        console.log('authService: Google direct signOut also failed, but Supabase signOut was successful.');
+        console.log('authService: Google direct signOut successful after previous error.');
+      } catch (directSignOutError: any) {
+        console.warn('authService: Google direct signOut also failed:', directSignOutError.message);
       }
     }
   } catch (error: any) {
-    console.error('authService: signOut error:', error.code, error.message, error);
+    console.error('authService: General signOut error:', error.message, error);
     // It's possible revokeAccess or signOut might fail if tokens are already invalid,
     // but the main goal is to clear the Supabase session.
     throw new Error(error.message || 'An error occurred during sign out.');

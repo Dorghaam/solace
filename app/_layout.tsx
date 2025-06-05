@@ -2,6 +2,7 @@ import { useFonts } from 'expo-font';
 import { Stack, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { NativeBaseProvider } from 'native-base';
+import 'react-native-get-random-values'; // MUST BE AT THE TOP
 import 'react-native-reanimated';
 
 import { solaceTheme } from '@/constants/theme';
