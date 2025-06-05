@@ -21,7 +21,7 @@ export default ({ config }) => {
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
         buildNumber: "5",
-        googleServicesFile: "./ios/GoogleService-Info.plist",
+        googleServicesFile: "./GoogleService-Info.plist",
         infoPlist: {
           UIDeviceFamily: [1], // ✅ iPhone-only
           CFBundleURLTypes: [
