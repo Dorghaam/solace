@@ -1,5 +1,5 @@
 import { useFonts } from 'expo-font';
-import { Stack, router } from 'expo-router';
+import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { NativeBaseProvider } from 'native-base';
 import 'react-native-get-random-values'; // MUST BE AT THE TOP
@@ -89,9 +89,9 @@ export default function RootLayout() {
         setSupabaseUser(session?.user ?? null); // Update Zustand store
 
         if (!session?.user && _event === 'SIGNED_OUT') {
-           console.log('_layout.tsx: onAuthStateChange - SIGNED_OUT. Resetting state and routing to onboarding.');
+           console.log('_layout.tsx: onAuthStateChange - SIGNED_OUT. Resetting state.');
            resetState();
-           router.replace('/(onboarding)');
+           // The layout will automatically re-render and show OnboardingStack when user state changes
         }
         // Other navigation logic is handled by the main conditional render
       }
