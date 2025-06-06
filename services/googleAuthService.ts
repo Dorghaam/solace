@@ -4,23 +4,23 @@ import Constants from 'expo-constants';
 export const configureGoogleSignIn = () => {
   try {
     const webClientId = Constants.expoConfig?.extra?.googleWebClientId as string | undefined;
+    // This is your iOS Client ID from the GoogleService-Info.plist
+    const iosClientId = "791966352436-ds9guvagr07rk1fhr5dua5feob3i16vc.apps.googleusercontent.com"; 
 
-    if (!webClientId) {
+    if (!webClientId || !iosClientId) {
       console.error(
-        "Google Sign-In configure ERROR: webClientId is missing from app.config.js extras. " +
-        "Ensure EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is in your .env file and included in app.config.js's 'extra' object."
+        "Google Sign-In configure ERROR: webClientId or iosClientId is missing. " +
+        "Ensure EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID is in your .env and the correct iOS Client ID is in this file."
       );
       return;
     }
 
     GoogleSignin.configure({
-      webClientId: webClientId, // This is crucial for Supabase signInWithIdToken
-      offlineAccess: true,      // Required to get an idToken for Supabase
-      // iosClientId: 'YOUR_IOS_SPECIFIC_OAUTH_CLIENT_ID', // Only needed if you are NOT using the webClientId for idToken flow on iOS,
-                                                            // or if you need separate iOS OAuth flows. For Supabase ID token, webClientId is usually sufficient.
-                                                            // The REVERSED_CLIENT_ID is handled by Info.plist for URL schemes.
+      webClientId: webClientId, // For Supabase token verification
+      iosClientId: iosClientId, // For the native iOS module
+      offlineAccess: true,      // Required to get an idToken
     });
-    console.log("services/googleAuthService.ts: Google Sign-In configured successfully with Web Client ID:", webClientId);
+    console.log("services/googleAuthService.ts: Google Sign-In configured successfully with Web and iOS Client IDs.");
   } catch (error) {
     console.error("services/googleAuthService.ts: Error configuring Google Sign-In:", error);
   }

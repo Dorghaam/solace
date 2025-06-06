@@ -5,6 +5,7 @@ import { useUserStore } from '@/store/userStore';
 // Note: We don't directly setSupabaseUser here.
 // That logic is centralized in app/_layout.tsx's onAuthStateChange listener.
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Button, Icon, Text, useToast, VStack } from 'native-base';
 import React, { useState } from 'react';
 import { Alert, Platform } from 'react-native';
@@ -19,12 +20,32 @@ export default function LoginScreen() {
     hapticService.medium();
     try {
       console.log('LoginScreen: Initiating Google Sign-In...');
-      await loginWithGoogle();
+      const authData = await loginWithGoogle();
+      
+      // Extract user information from the auth response
+      const user = authData?.user;
+      if (user) {
+        // Set user name from Google profile if available
+        const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
+        const setUserName = useUserStore.getState().setUserName;
+        setUserName(displayName);
+        console.log('LoginScreen: Set user name to:', displayName);
+      }
+      
       // After successful login, onAuthStateChange in _layout.tsx updates supabaseUser.
       // Now, mark onboarding as complete.
       setHasCompletedOnboarding(true);
-      // _layout.tsx will then automatically navigate to the (main) stack.
+    
       console.log('LoginScreen: loginWithGoogle service call completed. Onboarding marked as complete.');
+      
+      // Explicitly navigate to main app after successful authentication
+      // Use requestAnimationFrame to ensure navigation happens after state updates
+      requestAnimationFrame(() => {
+        router.replace('/(main)');
+      });
+      
+      // Reset loading state after successful authentication
+      setIsLoading(false);
     } catch (err: any) {
       console.error("LoginScreen: Google Sign-In Error caught:", err.message);
       Alert.alert(
@@ -32,7 +53,7 @@ export default function LoginScreen() {
         err.message || 'Could not sign in with Google. Please try again.',
         [{ text: "OK" }]
       );
-      setIsLoading(false); // Set loading to false only on error
+      setIsLoading(false); // Set loading to false on error
     }
   };
 
