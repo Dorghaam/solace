@@ -8,6 +8,7 @@ import 'react-native-reanimated';
 import { solaceTheme } from '@/constants/theme';
 import { configureGoogleSignIn } from '@/services/googleAuthService';
 import { setupNotificationResponseListener } from '@/services/notificationService';
+import { fetchAndSetUserProfile } from '@/services/profileService';
 import { reviewService } from '@/services/reviewService';
 import { supabase } from '@/services/supabaseClient';
 import { useUserStore } from '@/store/userStore';
@@ -69,6 +70,9 @@ export default function RootLayout() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('_layout.tsx: Supabase getSession - Fetched. Session User ID:', session?.user?.id || 'null');
       setSupabaseUser(session?.user ?? null);
+      if (session?.user) {
+        fetchAndSetUserProfile(session.user.id);
+      }
       setInitialSessionCheckDone(true);
     }).catch(error => {
       console.error('_layout.tsx: Supabase getSession - Error:', error);
@@ -87,6 +91,10 @@ export default function RootLayout() {
       (_event, session) => {
         console.log('_layout.tsx: Supabase onAuthStateChange - Event:', _event, 'Session User ID:', session?.user?.id || 'null');
         setSupabaseUser(session?.user ?? null); // Update Zustand store
+
+        if (_event === 'SIGNED_IN' && session?.user) {
+          fetchAndSetUserProfile(session.user.id);
+        }
 
         if (!session?.user && _event === 'SIGNED_OUT') {
            console.log('_layout.tsx: onAuthStateChange - SIGNED_OUT. Resetting state.');

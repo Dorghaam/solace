@@ -1,25 +1,35 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-// Breakup-specific categories (example)
-export const breakupInterestCategories = [
-  { id: 'healing_heartbreak', label: 'Healing a Broken Heart' }, // General heartbreak
-  { id: 'self_love', label: 'Reclaiming Self Love' }, // Post-breakup/loss
-  { id: 'letting_go', label: 'Letting Go & Moving On' },
-  { id: 'rebuilding_confidence', label: 'Rebuilding My Life' }, // Good for after divorce or significant life change
-  { id: 'overcoming_loneliness', label: 'Finding Strength in Solitude' }, // Addresses loneliness
-  { id: 'finding_peace', label: 'Discovering Peace After Pain' },
-  { id: 'hope_future', label: 'Hope for New Beginnings' },
-  { id: 'moving_forward', label: 'Coping with Grief & Loss' }, // Specifically for loss of a partner
-] as const;
+// Define BreakupCategory and other existing types...
+export type BreakupCategory = 'healing_heartbreak' | 'self_love' | 'letting_go' | 'rebuilding_confidence' | 'overcoming_loneliness' | 'finding_peace' | 'hope_future' | 'moving_forward';
+export type FamiliarityOption = 'new' | 'occasional' | 'regular';
+export type NotificationFrequency = '1x' | '3x' | '5x' | '10x' | 'custom';
+export type WidgetTheme = 'light' | 'dark_text_on_pink' | 'pink_text_on_white';
 
-export type BreakupCategory = typeof breakupInterestCategories[number]['id'];
+// NEW TYPE FOR SUBSCRIPTION
+export type SubscriptionTier = 'free' | 'premium';
+
+// NEW TYPE FOR USER AFFIRMATIONS
+export interface UserAffirmation {
+  id: string;
+  user_id: string;
+  text: string;
+  is_favorite: boolean;
+  created_at: string;
+}
+
+export interface BreakupInterestCategory {
+  id: BreakupCategory;
+  label: string;
+}
 
 export interface NotificationSettings {
-  frequency: '1x' | '3x' | '5x' | '10x' | 'custom';
   enabled: boolean;
-  // customTimes?: string[]; // For later if 'custom' frequency is used
+  frequency?: NotificationFrequency;
+  customTimes?: { hour: number; minute: number }[];
 }
 
 export interface TargetQuote {
@@ -28,132 +38,149 @@ export interface TargetQuote {
   category?: string;
 }
 
-// Widget Settings
-export type WidgetTheme = 'light' | 'dark_text_on_pink' | 'pink_text_on_white'; // From widgetconfig.tsx
+export interface DailyMood {
+  emoji: string;
+  mood: string;
+  date: string; // YYYY-MM-DD
+}
 
 export interface WidgetSettings {
   category: BreakupCategory | 'favorites' | 'all';
   theme: WidgetTheme;
 }
 
-// ADDED: Interface for DailyMood
-export interface DailyMood {
-  mood: string;
-  emoji: string;
-  date: string; // Store date as YYYY-MM-DD string
-}
-
 interface UserState {
+  supabaseUser: User | null;
   hasCompletedOnboarding: boolean;
   userName: string | null;
-  affirmationFamiliarity: 'new' | 'occasional' | 'regular' | null;
   interestCategories: BreakupCategory[];
+  affirmationFamiliarity: FamiliarityOption | null;
+  favoriteQuoteIds: string[];
   notificationSettings: NotificationSettings | null;
   pushToken: string | null;
-  favoriteQuoteIds: string[];
-  widgetSettings: WidgetSettings | {};
-  targetQuote: TargetQuote | null; // For navigation from notifications
-  dailyMood: DailyMood | null; // ADDED
-  supabaseUser: any | null; // Added for supabaseUser field
+  targetQuote: TargetQuote | null;
+  dailyMood: DailyMood | null;
+  widgetSettings: WidgetSettings | null;
+  
+  // NEW STATE
+  subscriptionTier: SubscriptionTier;
 
+  setSupabaseUser: (user: User | null) => void;
   setHasCompletedOnboarding: (status: boolean) => void;
   setUserName: (name: string) => void;
-  setAffirmationFamiliarity: (familiarity: UserState['affirmationFamiliarity']) => void;
-  setInterestCategories: (categories: BreakupCategory[]) => void;
   toggleInterestCategory: (category: BreakupCategory) => void;
-  setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
-  setPushToken: (token: string | null) => void;
+  setAffirmationFamiliarity: (familiarity: FamiliarityOption) => void;
   addFavoriteQuoteId: (quoteId: string) => void;
   removeFavoriteQuoteId: (quoteId: string) => void;
-  setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
-  setTargetQuote: (quote: TargetQuote | null) => void;
+  setNotificationSettings: (settings: NotificationSettings) => void;
+  setPushToken: (token: string | null) => void;
+  setTargetQuote: (quote: TargetQuote) => void;
   clearTargetQuote: () => void;
-  setDailyMood: (moodData: DailyMood | null) => void; // ADDED
-  setSupabaseUser: (user: any | null) => void; // ADDED
+  setDailyMood: (mood: DailyMood) => void;
+  setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
+  
+  // NEW ACTION
+  setSubscriptionTier: (tier: SubscriptionTier) => void;
+
   resetState: () => void;
 }
 
-const initialState = {
-  userName: null,
-  interestCategories: [],
-  affirmationFamiliarity: null,
-  notificationSettings: null, // We will refine this default in a later step if needed, but null is fine for the initial reset definition
-  favoriteQuoteIds: [],
-  widgetSettings: {}, // Or a more defined default like { category: 'all', theme: 'light' } if preferred for initial state, though an empty object is fine for reset purposes if the main store definition handles defaults
-  dailyMood: null,
-  supabaseUser: null,
-  hasCompletedOnboarding: false,
-  pushToken: null, // Keep existing field
-  targetQuote: null, // Keep existing field
-};
+export const breakupInterestCategories: BreakupInterestCategory[] = [
+    { id: 'healing_heartbreak', label: 'Healing a Broken Heart' },
+    { id: 'self_love', label: 'Reclaiming Self Love' },
+    { id: 'letting_go', label: 'Letting Go & Moving On' },
+    { id: 'rebuilding_confidence', label: 'Rebuilding My Life' },
+    { id: 'overcoming_loneliness', label: 'Finding Strength in Solitude' },
+    { id: 'finding_peace', label: 'Discovering Peace After Pain' },
+    { id: 'hope_future', label: 'Hope for New Beginnings' },
+    { id: 'moving_forward', label: 'Coping with Grief & Loss' },
+];
 
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
-      ...initialState,
+      supabaseUser: null,
+      hasCompletedOnboarding: false,
+      userName: null,
+      interestCategories: [],
+      affirmationFamiliarity: null,
+      favoriteQuoteIds: [],
+      notificationSettings: null,
+      pushToken: null,
+      targetQuote: null,
+      dailyMood: null,
+      widgetSettings: { category: 'all', theme: 'light' },
+      
+      // NEW STATE DEFAULT
+      subscriptionTier: 'free',
+
+      setSupabaseUser: (user) => set({ supabaseUser: user }),
       setHasCompletedOnboarding: (status) => set({ hasCompletedOnboarding: status }),
       setUserName: (name) => set({ userName: name }),
-      setAffirmationFamiliarity: (familiarity) => set({ affirmationFamiliarity: familiarity }),
-      setInterestCategories: (categories) => set({ interestCategories: categories }),
-      toggleInterestCategory: (category) => set((state) => {
-        const newCategories = state.interestCategories.includes(category)
-          ? state.interestCategories.filter(c => c !== category)
-          : [...state.interestCategories, category];
-        return { interestCategories: newCategories };
-      }),
-      setNotificationSettings: (settings) => set((state) => ({
-        notificationSettings: state.notificationSettings 
-          ? { ...state.notificationSettings, ...settings }
-          : { frequency: '3x', enabled: false, ...settings } as NotificationSettings
-      })),
-      setPushToken: (token) => set({ pushToken: token }),
-      addFavoriteQuoteId: (quoteId) =>
+      toggleInterestCategory: (category) =>
         set((state) => ({
-          favoriteQuoteIds: state.favoriteQuoteIds.includes(quoteId)
-            ? state.favoriteQuoteIds
-            : [...state.favoriteQuoteIds, quoteId],
+          interestCategories: state.interestCategories.includes(category)
+            ? state.interestCategories.filter((c) => c !== category)
+            : [...state.interestCategories, category],
         })),
+      setAffirmationFamiliarity: (familiarity) => set({ affirmationFamiliarity: familiarity }),
+      addFavoriteQuoteId: (quoteId) =>
+        set((state) => {
+          if (!state.favoriteQuoteIds.includes(quoteId)) {
+            return { favoriteQuoteIds: [...state.favoriteQuoteIds, quoteId] };
+          }
+          return state;
+        }),
       removeFavoriteQuoteId: (quoteId) =>
-        set((state) => ({ favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId) })),
-      setWidgetSettings: (settings) =>
-        set((state) => ({ widgetSettings: { ...state.widgetSettings, ...settings } })),
+        set((state) => ({
+          favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId),
+        })),
+      setNotificationSettings: (settings) => set({ notificationSettings: settings }),
+      setPushToken: (token) => set({ pushToken: token }),
       setTargetQuote: (quote) => set({ targetQuote: quote }),
       clearTargetQuote: () => set({ targetQuote: null }),
-      setDailyMood: (moodData) => set({ dailyMood: moodData }), // ADDED
-      setSupabaseUser: (user) => set({ supabaseUser: user }),
+      setDailyMood: (mood) => set({ dailyMood: mood }),
+      setWidgetSettings: (settings) => set((state) => ({
+        widgetSettings: { ...state.widgetSettings, ...settings } as WidgetSettings,
+      })),
+
+      // NEW ACTION IMPLEMENTATION
+      setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
+
       resetState: () => {
-        console.log('Store: Resetting state to initial values (Checklist Pattern).');
-        set(initialState); // Reset all data fields to initial values
+        set({
+          supabaseUser: null,
+          hasCompletedOnboarding: false,
+          userName: null,
+          interestCategories: [],
+          affirmationFamiliarity: null,
+          favoriteQuoteIds: [],
+          notificationSettings: null,
+          pushToken: null,
+          targetQuote: null,
+          dailyMood: null,
+          widgetSettings: { category: 'all', theme: 'light' },
+          subscriptionTier: 'free', // RESET TIER
+        });
+        console.log('Zustand state reset');
       },
     }),
     {
-      name: 'solace-user-store-v1', // Unique name for storage, version if schema changes
+      name: 'solace-user-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      onRehydrateStorage: () => (state) => {
-        console.log('Store rehydrated:', state);
-        // Validate the rehydrated state and fix any inconsistencies
-        if (state) {
-          // If hasCompletedOnboarding is true but userName is missing, reset onboarding
-          if (state.hasCompletedOnboarding && !state.userName) {
-            console.log('Inconsistent state detected: onboarding completed but no userName. Resetting onboarding state.');
-            state.hasCompletedOnboarding = false;
-          }
-          
-          // Ensure all required fields have default values
-          if (!state.notificationSettings) {
-            state.notificationSettings = { frequency: '3x', enabled: false };
-          }
-          if (!state.widgetSettings) {
-            state.widgetSettings = { category: 'all', theme: 'light' };
-          }
-          if (!Array.isArray(state.favoriteQuoteIds)) {
-            state.favoriteQuoteIds = [];
-          }
-          if (!Array.isArray(state.interestCategories)) {
-            state.interestCategories = [];
-          }
-        }
-      },
+      // IMPORTANT: DO NOT PERSIST subscriptionTier.
+      // It should be fetched fresh on each app start.
+      partialize: (state) => ({
+        hasCompletedOnboarding: state.hasCompletedOnboarding,
+        userName: state.userName,
+        interestCategories: state.interestCategories,
+        affirmationFamiliarity: state.affirmationFamiliarity,
+        favoriteQuoteIds: state.favoriteQuoteIds,
+        notificationSettings: state.notificationSettings,
+        pushToken: state.pushToken,
+        dailyMood: state.dailyMood,
+        widgetSettings: state.widgetSettings
+      }),
     }
   )
-); 
+);
