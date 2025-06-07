@@ -1,51 +1,34 @@
-import { OnboardingStepLayout } from '@/components/onboarding';
+import { SocialSignInButton } from '@/components/onboarding';
 import { loginWithGoogle } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
 import { useUserStore } from '@/store/userStore';
-// Note: We don't directly setSupabaseUser here.
-// That logic is centralized in app/_layout.tsx's onAuthStateChange listener.
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Button, Icon, Text, useToast, VStack } from 'native-base';
+import { Box, Icon, IconButton, Text, useToast, VStack } from 'native-base';
 import React, { useState } from 'react';
-import { Alert, Platform } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 
 export default function LoginScreen() {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isAppleLoading, setIsAppleLoading] = useState(false);
   const toast = useToast();
   const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleGoogleSignIn = async () => {
-    setIsLoading(true);
+    setIsGoogleLoading(true);
     hapticService.medium();
     try {
       console.log('LoginScreen: Initiating Google Sign-In...');
-      const authData = await loginWithGoogle();
+      await loginWithGoogle();
       
-      // Extract user information from the auth response
-      const user = authData?.user;
-      if (user) {
-        // Set user name from Google profile if available
-        const displayName = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User';
-        const setUserName = useUserStore.getState().setUserName;
-        setUserName(displayName);
-        console.log('LoginScreen: Set user name to:', displayName);
-      }
-      
-      // After successful login, onAuthStateChange in _layout.tsx updates supabaseUser.
-      // Now, mark onboarding as complete.
+      // onAuthStateChange in _layout should handle user state.
+      // We can now mark onboarding as complete and navigate.
       setHasCompletedOnboarding(true);
-    
-      console.log('LoginScreen: loginWithGoogle service call completed. Onboarding marked as complete.');
+      console.log('LoginScreen: loginWithGoogle successful. Onboarding marked as complete.');
       
-      // Explicitly navigate to main app after successful authentication
-      // Use requestAnimationFrame to ensure navigation happens after state updates
-      requestAnimationFrame(() => {
-        router.replace('/(main)');
-      });
-      
-      // Reset loading state after successful authentication
-      setIsLoading(false);
+      // Use replace to prevent going back to the login screen
+      requestAnimationFrame(() => router.replace('/(main)'));
+
     } catch (err: any) {
       console.error("LoginScreen: Google Sign-In Error caught:", err.message);
       Alert.alert(
@@ -53,42 +36,99 @@ export default function LoginScreen() {
         err.message || 'Could not sign in with Google. Please try again.',
         [{ text: "OK" }]
       );
-      setIsLoading(false); // Set loading to false on error
+      setIsGoogleLoading(false);
     }
   };
 
+  const handleAppleSignIn = async () => {
+    // TODO: Implement Apple Sign-In logic here
+    setIsAppleLoading(true);
+    hapticService.medium();
+    Alert.alert("Coming Soon", "Sign in with Apple will be available in a future update.");
+    setIsAppleLoading(false);
+  };
+  
   return (
-    <OnboardingStepLayout
-      title="Create Your Account"
-      subtitle="Sign in to save your preferences and journey with Solace."
-      onNext={() => {}} // Default "Next" button is not used for primary action
-      showBackButton={true} // Allow going back to previous onboarding step (e.g., notifications)
-      nextButtonText="Sign In with Google" // Text for default button (but it's disabled)
-      isNextDisabled={true} // Disable the default OnboardingStepLayout's next button
-    >
-      <VStack space={5} flex={1} justifyContent="center" alignItems="center" mt={Platform.OS === 'ios' ? 4 : 8}>
-        <Button
-          w="90%" // Make button wider
-          py={3.5}
-          bg="white" // Google's recommended style often involves a white background
-          _pressed={{ bg: 'coolGray.100' }}
-          _text={{ color: 'coolGray.700', fontWeight: 'medium', fontSize: 'md' }}
-          leftIcon={<Icon as={Ionicons} name="logo-google" color="red.500" size="md" />}
-          isLoading={isLoading}
-          isLoadingText="Signing in..."
-          onPress={handleGoogleSignIn}
-          shadow="1" // Subtle shadow
-          rounded="full"
-          variant="outline" // Could also be outline or solid with custom styling
-          borderColor="coolGray.300" // If using outline
-        >
-          Continue with Google
-        </Button>
+    <Box flex={1} bg="miracleBackground" safeArea>
+      {/* Back Button */}
+      {router.canGoBack() && (
+        <IconButton
+          icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
+          position="absolute"
+          top={{ base: 10, md: 12 }}
+          left={{ base: 3, md: 4 }}
+          zIndex={10}
+          variant="ghost"
+          size="lg"
+          onPress={() => router.back()}
+          accessibilityLabel="Go back"
+        />
+      )}
 
-        <Text fontSize="xs" color="textSecondary" textAlign="center" mt={6} px={4}>
-          By signing in, you agree to our (yet to be linked) Terms of Service and Privacy Policy.
+      <VStack flex={1} p={6} justifyContent="space-between">
+        {/* Main Content Area */}
+        <Box>
+          {/* Headlines */}
+          <VStack space={2} alignItems="center" mt={16} mb={8}>
+            <Text
+              fontSize="3xl"
+              fontWeight="bold"
+              color="textPrimary"
+              textAlign="center"
+            >
+              Sign in to Solace
+            </Text>
+            <Text
+              fontSize="md"
+              color="textSecondary"
+              textAlign="center"
+              px={4}
+              lineHeight="lg"
+            >
+              Keep your content and settings secure, even if you switch to a new device.
+            </Text>
+          </VStack>
+
+          {/* Auth Buttons */}
+          <VStack space={4} mt={12}>
+            {Platform.OS === 'ios' && (
+              <SocialSignInButton
+                label="Sign in with Apple"
+                iconName="logo-apple"
+                iconColor="black"
+                onPress={handleAppleSignIn}
+                isLoading={isAppleLoading}
+              />
+            )}
+            <SocialSignInButton
+              label="Sign in with Google"
+              iconName="logo-google"
+              iconColor="red.500"
+              onPress={handleGoogleSignIn}
+              isLoading={isGoogleLoading}
+            />
+          </VStack>
+        </Box>
+
+        {/* Footer */}
+        <Text fontSize="xs" color="textSecondary" textAlign="center" mb={2}>
+          By signing in, you agree to our{' '}
+          <Text
+            underline
+            onPress={() => Linking.openURL('https://your-website.com/terms')}
+          >
+            Terms & Conditions
+          </Text>
+          {' and '}
+          <Text
+            underline
+            onPress={() => Linking.openURL('https://your-website.com/privacy')}
+          >
+            Privacy Policy
+          </Text>
+          .
         </Text>
       </VStack>
-    </OnboardingStepLayout>
+    </Box>
   );
 } 
