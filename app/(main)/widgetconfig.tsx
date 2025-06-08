@@ -81,50 +81,43 @@ export default function WidgetConfigScreen() {
     hapticService.success();
 
     try {
-      // Define the query variable and execute it based on category
-      let data, error;
+      let query;
 
       if (storeWidgetSettings.category === 'favorites') {
         if (favoriteQuoteIds.length > 0) {
           const randomIndex = Math.floor(Math.random() * favoriteQuoteIds.length);
           const randomFavoriteId = favoriteQuoteIds[randomIndex];
-          const result = await supabase.from('quotes').select('id, text').eq('id', randomFavoriteId).single();
-          data = result.data;
-          error = result.error;
+          query = supabase.from('quotes').select('id, text').eq('id', randomFavoriteId).single();
         } else {
           Alert.alert("No Favorites", "You don't have any saved favorites to display on the widget.");
           return;
         }
       } else if (storeWidgetSettings.category !== 'all') {
-        // Fetch a random quote from a specific category
-        const result = await supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
-        data = result.data;
-        error = result.error;
+        query = supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
       } else {
-        // Fetch any random quote
-        const result = await supabase.rpc('get_random_quote');
-        data = result.data;
-        error = result.error;
+        query = supabase.rpc('get_random_quote');
       }
+
+      const { data, error } = await query;
 
       if (error || !data) {
         console.error("Failed to fetch quote for widget:", error?.message || 'No data returned');
-        Alert.alert("Error", "Could not fetch a quote for the widget. Please try again.");
+        Alert.alert("Error", "Could not fetch a quote. Please try again.");
         return;
       }
       
       const quoteText = data.text;
 
-      // Call our native module to update the widget
-      const { SolaceWidgetBridge } = NativeModules;
-      if (SolaceWidgetBridge) {
-        SolaceWidgetBridge.update({
-          quoteText: quoteText,
-          theme: storeWidgetSettings.theme,
+      // This is where we call our new native module
+      const { WidgetModule } = NativeModules;
+      if (WidgetModule) {
+        WidgetModule.updateWidget({
+          quoteText: quoteText
+          // We removed the theme from the bridge to simplify, but you can add it back later
         });
-        Alert.alert("Widget Updated!", "Your widget will update shortly with the new quote and theme.");
+        Alert.alert("Widget Updated!", "Your widget will update shortly.");
       } else {
-        Alert.alert("Error", "Widget bridge is not available.");
+        Alert.alert("Error", "Widget bridge is not available on this platform.");
       }
 
     } catch (e: any) {

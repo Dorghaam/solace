@@ -12,7 +12,5 @@ import SwiftUI
 struct SolaceWidgetBundle: WidgetBundle {
     var body: some Widget {
         SolaceWidget()
-        SolaceWidgetControl()
-        SolaceWidgetLiveActivity()
     }
 }
