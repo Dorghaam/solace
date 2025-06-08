@@ -23,7 +23,6 @@ export default ({ config }) => {
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
         buildNumber: "5",
         googleServicesFile: "./GoogleService-Info.plist",
-        appleTeamId: "G9JD362QTT",
         entitlements: {
           "com.apple.security.application-groups": [
             "group.com.dorghaamhaidar.solace.iphone.widget"
