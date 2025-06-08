@@ -12,6 +12,8 @@
 		847798DB2DF6460900B9CD7F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 847798DA2DF6460900B9CD7F /* WidgetKit.framework */; };
 		847798DD2DF6460900B9CD7F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 847798DC2DF6460900B9CD7F /* SwiftUI.framework */; };
 		847798EC2DF6460C00B9CD7F /* SolaceWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 847798D92DF6460900B9CD7F /* SolaceWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		847798F42DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */; };
+		847798F52DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */; };
 		8F5FF95F41E840A39A5D6E49 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FAED82EEC4714B21A50CD93E /* GoogleService-Info.plist */; };
 		90988B428C7F71B9CFF5E259 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4371C17A0E67E2784993A181 /* ExpoModulesProvider.swift */; };
 		A856D22305F00FF3C16A3A5F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4656C136DF126A5C465DBB5B /* PrivacyInfo.xcprivacy */; };
@@ -55,6 +57,7 @@
 		847798DA2DF6460900B9CD7F /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		847798DC2DF6460900B9CD7F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		847798F22DF6465A00B9CD7F /* SolaceWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SolaceWidgetExtension.entitlements; sourceTree = "<group>"; };
+		847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		98AE78DA7AB247250561E16A /* Pods_Solace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Solace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Solace/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -119,6 +122,7 @@
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
 				FAED82EEC4714B21A50CD93E /* GoogleService-Info.plist */,
 				4656C136DF126A5C465DBB5B /* PrivacyInfo.xcprivacy */,
+				847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */,
 			);
 			name = Solace;
 			sourceTree = "<group>";
@@ -439,6 +443,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
+				847798F42DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */,
 				90988B428C7F71B9CFF5E259 /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -447,6 +452,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				847798F52DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
