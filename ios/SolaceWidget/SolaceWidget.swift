@@ -32,21 +32,15 @@ struct SolaceWidgetEntryView : View {
 
     var body: some View {
         ZStack {
-            Color(red: 255/255, green: 247/255, blue: 245/255)
-            VStack {
-                Text(entry.quote)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
-                    .foregroundColor(Color(white: 0.2))
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .minimumScaleFactor(0.5)
-            }
-            .padding()
+            // ... your Color and Text views
         }
-        .edgesIgnoringSafeArea(.all)
+        // ADD THIS MODIFIER:
+        .containerBackground(for: .widget) {
+            // Put the background color you want here
+            Color(red: 255/255, green: 247/255, blue: 245/255)
+        }
     }
 }
-
 struct SolaceWidget: Widget {
     let kind: String = "SolaceWidget"
     var body: some WidgetConfiguration {
