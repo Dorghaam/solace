@@ -56,22 +56,6 @@ export default ({ config }) => {
         favicon: "./assets/images/favicon.png"
       },
       plugins: [
-        [
-          "@bacons/apple-targets",
-          {
-            targets: [
-              {
-                name: "widgets",
-                type: "widget",
-                entitlements: {
-                  "com.apple.security.application-groups": [
-                    "group.com.dorghaamhaidar.solace.iphone.widget"
-                  ],
-                },
-              },
-            ],
-          },
-        ],
         "expo-router",
         [
           "expo-splash-screen",
