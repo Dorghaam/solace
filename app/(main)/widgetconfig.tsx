@@ -1,10 +1,11 @@
 import { hapticService } from '@/services/hapticService';
+import { supabase } from '@/services/supabaseClient';
 import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetSettings, WidgetTheme } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Box, Button, Divider, HStack, Icon, IconButton, Radio, ScrollView, Switch, Text, VStack } from 'native-base';
 import React, { useEffect, useState } from 'react';
-import { Alert } from 'react-native';
+import { Alert, NativeModules } from 'react-native';
 
 // Import Supabase client if you plan to fetch quotes here for the widget
 // import { supabase } from '@/services/supabaseClient';
@@ -70,14 +71,66 @@ export default function WidgetConfigScreen() {
     Alert.alert("Theme Saved", `Widget theme set to ${value} (once native widget is built).`);
   };
 
-  // This function would eventually write data to App Group storage
-  const updateWidgetData = () => {
-    console.log("Updating widget data with settings from store:", storeWidgetSettings);
-    Alert.alert("Widget Data Updated", "Native widget would now refresh with new data (placeholder).");
-    // 1. Fetch relevant quotes based on widgetSettings.category (from Supabase)
-    // 2. Select a few (e.g., 5-10) or one primary quote.
-    // 3. Write these quotes + theme preference to App Group storage.
-    // 4. Trigger widget timeline reload (WidgetCenter.reloadTimelines).
+  // This function will fetch a quote and send it to the widget
+  const updateWidgetData = async () => {
+    if (!storeWidgetSettings) {
+      Alert.alert("Error", "Widget settings not found.");
+      return;
+    }
+    console.log("Updating widget data with settings:", storeWidgetSettings);
+    hapticService.success();
+
+    try {
+      // Define the query variable and execute it based on category
+      let data, error;
+
+      if (storeWidgetSettings.category === 'favorites') {
+        if (favoriteQuoteIds.length > 0) {
+          const randomIndex = Math.floor(Math.random() * favoriteQuoteIds.length);
+          const randomFavoriteId = favoriteQuoteIds[randomIndex];
+          const result = await supabase.from('quotes').select('id, text').eq('id', randomFavoriteId).single();
+          data = result.data;
+          error = result.error;
+        } else {
+          Alert.alert("No Favorites", "You don't have any saved favorites to display on the widget.");
+          return;
+        }
+      } else if (storeWidgetSettings.category !== 'all') {
+        // Fetch a random quote from a specific category
+        const result = await supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
+        data = result.data;
+        error = result.error;
+      } else {
+        // Fetch any random quote
+        const result = await supabase.rpc('get_random_quote');
+        data = result.data;
+        error = result.error;
+      }
+
+      if (error || !data) {
+        console.error("Failed to fetch quote for widget:", error?.message || 'No data returned');
+        Alert.alert("Error", "Could not fetch a quote for the widget. Please try again.");
+        return;
+      }
+      
+      const quoteText = data.text;
+
+      // Call our native module to update the widget
+      const { SolaceWidgetBridge } = NativeModules;
+      if (SolaceWidgetBridge) {
+        SolaceWidgetBridge.update({
+          quoteText: quoteText,
+          theme: storeWidgetSettings.theme,
+        });
+        Alert.alert("Widget Updated!", "Your widget will update shortly with the new quote and theme.");
+      } else {
+        Alert.alert("Error", "Widget bridge is not available.");
+      }
+
+    } catch (e: any) {
+      console.error("Error in updateWidgetData:", e);
+      Alert.alert("An Unexpected Error Occurred", "Could not update the widget: " + e.message);
+    }
   };
 
   return (

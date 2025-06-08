@@ -1,0 +1,10 @@
+{
+  "name": "solace-widget-bridge",
+  "version": "1.0.0",
+  "main": "index.js",
+  "expo": {
+    "ios": {
+      "sourceFiles": ["SolaceWidgetBridge.swift"]
+    }
+  }
+} 
