@@ -23,6 +23,11 @@ export default ({ config }) => {
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
         buildNumber: "5",
         googleServicesFile: "./GoogleService-Info.plist",
+        entitlements: {
+          "com.apple.security.application-groups": [
+            "group.com.dorghaamhaidar.solace.iphone.widget"
+          ]
+        },
         infoPlist: {
           ...(config?.expo?.ios?.infoPlist || {}),
           UIDeviceFamily: [1],
@@ -50,6 +55,22 @@ export default ({ config }) => {
         favicon: "./assets/images/favicon.png"
       },
       plugins: [
+        [
+          "@bacons/apple-targets",
+          {
+            targets: [
+              {
+                name: "widgets",
+                type: "widget",
+                entitlements: {
+                  "com.apple.security.application-groups": [
+                    "group.com.dorghaamhaidar.solace.iphone.widget"
+                  ],
+                },
+              },
+            ],
+          },
+        ],
         "expo-router",
         [
           "expo-splash-screen",
