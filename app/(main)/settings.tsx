@@ -162,7 +162,7 @@ export default function SettingsScreen() {
               <Divider />
               <SettingItem 
                 label="Home Screen Widget" 
-                value="Coming Soon"
+                onPress={() => router.push('/(main)/widgetconfig')}
               />
             </Box>
           </Box>

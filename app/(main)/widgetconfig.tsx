@@ -116,7 +116,9 @@ export default function WidgetConfigScreen() {
       const quoteText = data.text;
 
       // Call our native module to update the widget
+      console.log("Available NativeModules:", Object.keys(NativeModules));
       const { SolaceWidgetBridge } = NativeModules;
+      console.log("SolaceWidgetBridge:", SolaceWidgetBridge);
       if (SolaceWidgetBridge) {
         SolaceWidgetBridge.update({
           quoteText: quoteText,
