@@ -593,7 +593,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../node_modules/react-native/ReactCommon/**",
+					"\"$(SRCROOT)/../../node_modules/react-native/ReactCommon\"/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -654,7 +654,7 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					"$(SRCROOT)/../../node_modules/react-native/ReactCommon/**",
+					"\"$(SRCROOT)/../../node_modules/react-native/ReactCommon\"/**",
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -673,6 +673,7 @@
 		};
 		847798AF2DF6311000B9CD7F /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 36A74548B9DAED1463230E27 /* Pods-Solace.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
@@ -718,6 +719,7 @@
 		};
 		847798B02DF6311000B9CD7F /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = F9760EFE47EFD3F52D403128 /* Pods-Solace.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
