@@ -7,31 +7,31 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0E88B19CBB110D8F9B604B72 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = F03C330A1CCDC3995E24709D /* ExpoModulesProvider.swift */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */; };
-		5E8E5A1144AB45D4A0EBBCA4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1F69E48A3DF64D2FBFFB7D26 /* GoogleService-Info.plist */; };
-		7C0103ADADC4D81897A9899E /* libPods-Solace.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 002F84150CACCD7C1B657E2B /* libPods-Solace.a */; };
+		6AB5F7AD233542CEB48E46FE /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = F9AAF201E02049F28FA3959E /* GoogleService-Info.plist */; };
+		75398852E909D6248305B209 /* libPods-Solace.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D7BE2EDAFF037E535C2C30B3 /* libPods-Solace.a */; };
+		7F71EBBE464634E2000BBE71 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = D9775D193091018F411DF642 /* PrivacyInfo.xcprivacy */; };
 		BB2F792D24A3F905000567C9 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = BB2F792C24A3F905000567C9 /* Expo.plist */; };
-		BF6E1F5435652AE407CAA759 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = F42BA4B27F35AAD9B8582BD4 /* PrivacyInfo.xcprivacy */; };
+		D9CE58C5A579F9D5CE7AA9AA /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 38ABF2677C19C1509D14DA24 /* ExpoModulesProvider.swift */; };
 		F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = F11748412D0307B40044C1D9 /* AppDelegate.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		002F84150CACCD7C1B657E2B /* libPods-Solace.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Solace.a"; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07F961A680F5B00A75B9A /* Solace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Solace.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Solace/Images.xcassets; sourceTree = "<group>"; };
-		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = Solace/Info.plist; sourceTree = "<group>"; };
-		1F69E48A3DF64D2FBFFB7D26 /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Solace/GoogleService-Info.plist"; sourceTree = "<group>"; };
-		34DF28C22C29E4FA71B4A5DD /* Pods-Solace.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.debug.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.debug.xcconfig"; sourceTree = "<group>"; };
-		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Solace/SplashScreen.storyboard; sourceTree = "<group>"; };
-		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
-		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
-		F03C330A1CCDC3995E24709D /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Solace/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
-		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Solace/AppDelegate.swift; sourceTree = "<group>"; };
-		F11748442D0722820044C1D9 /* Solace-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "Solace-Bridging-Header.h"; path = "Solace/Solace-Bridging-Header.h"; sourceTree = "<group>"; };
-		F42BA4B27F35AAD9B8582BD4 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Solace/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		F8357C91916DE037B129EC34 /* Pods-Solace.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.release.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.release.xcconfig"; sourceTree = "<group>"; };
+		13B07F961A680F5B00A75B9A /* Solace.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; fileEncoding = 4; includeInIndex = 0; path = Solace.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = Solace/Images.xcassets; sourceTree = "<group>"; };
+		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = Info.plist; path = Solace/Info.plist; sourceTree = "<group>"; };
+		38ABF2677C19C1509D14DA24 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-Solace/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
+		568C001C04DD9750C6190C34 /* Pods-Solace.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.debug.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.debug.xcconfig"; sourceTree = "<group>"; };
+		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Solace/SplashScreen.storyboard; sourceTree = "<group>"; };
+		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
+		D7BE2EDAFF037E535C2C30B3 /* libPods-Solace.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Solace.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		D9775D193091018F411DF642 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; includeInIndex = 1; name = PrivacyInfo.xcprivacy; path = Solace/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = undefined; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
+		F11748412D0307B40044C1D9 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.swift; name = AppDelegate.swift; path = Solace/AppDelegate.swift; sourceTree = "<group>"; };
+		F11748442D0722820044C1D9 /* Solace-Bridging-Header.h */ = {isa = PBXFileReference; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = sourcecode.c.h; name = "Solace-Bridging-Header.h"; path = "Solace/Solace-Bridging-Header.h"; sourceTree = "<group>"; };
+		F9AAF201E02049F28FA3959E /* GoogleService-Info.plist */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 4; includeInIndex = 0; lastKnownFileType = text.plist.xml; name = "GoogleService-Info.plist"; path = "Solace/GoogleService-Info.plist"; sourceTree = "<group>"; };
+		FBFF8C717D23F37622A8F99C /* Pods-Solace.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Solace.release.xcconfig"; path = "Target Support Files/Pods-Solace/Pods-Solace.release.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -39,7 +39,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				7C0103ADADC4D81897A9899E /* libPods-Solace.a in Frameworks */,
+				75398852E909D6248305B209 /* libPods-Solace.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -55,35 +55,35 @@
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
 				AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */,
-				1F69E48A3DF64D2FBFFB7D26 /* GoogleService-Info.plist */,
-				F42BA4B27F35AAD9B8582BD4 /* PrivacyInfo.xcprivacy */,
+				F9AAF201E02049F28FA3959E /* GoogleService-Info.plist */,
+				D9775D193091018F411DF642 /* PrivacyInfo.xcprivacy */,
 			);
 			name = Solace;
+			sourceTree = "<group>";
+		};
+		1CE483A6EE3B27A0367C34F8 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				568C001C04DD9750C6190C34 /* Pods-Solace.debug.xcconfig */,
+				FBFF8C717D23F37622A8F99C /* Pods-Solace.release.xcconfig */,
+			);
+			name = Pods;
+			path = Pods;
 			sourceTree = "<group>";
 		};
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				002F84150CACCD7C1B657E2B /* libPods-Solace.a */,
+				D7BE2EDAFF037E535C2C30B3 /* libPods-Solace.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		3E0783D89250BFA44E944136 /* Pods */ = {
+		80E47B1D69D2991B3467FC3D /* ExpoModulesProviders */ = {
 			isa = PBXGroup;
 			children = (
-				34DF28C22C29E4FA71B4A5DD /* Pods-Solace.debug.xcconfig */,
-				F8357C91916DE037B129EC34 /* Pods-Solace.release.xcconfig */,
-			);
-			name = Pods;
-			path = Pods;
-			sourceTree = "<group>";
-		};
-		7017C50C400CB704EA3083F5 /* ExpoModulesProviders */ = {
-			isa = PBXGroup;
-			children = (
-				95AE58BFC30D2F111A1CC192 /* Solace */,
+				E14838BABD1AFB697BB6C2CC /* Solace */,
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
@@ -102,8 +102,8 @@
 				832341AE1AAA6A7D00B99B32 /* Libraries */,
 				83CBBA001A601CBA00E9B192 /* Products */,
 				2D16E6871FA4F8E400B85C8A /* Frameworks */,
-				3E0783D89250BFA44E944136 /* Pods */,
-				7017C50C400CB704EA3083F5 /* ExpoModulesProviders */,
+				1CE483A6EE3B27A0367C34F8 /* Pods */,
+				80E47B1D69D2991B3467FC3D /* ExpoModulesProviders */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -118,14 +118,6 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		95AE58BFC30D2F111A1CC192 /* Solace */ = {
-			isa = PBXGroup;
-			children = (
-				F03C330A1CCDC3995E24709D /* ExpoModulesProvider.swift */,
-			);
-			name = Solace;
-			sourceTree = "<group>";
-		};
 		BB2F792B24A3F905000567C9 /* Supporting */ = {
 			isa = PBXGroup;
 			children = (
@@ -133,6 +125,14 @@
 			);
 			name = Supporting;
 			path = Solace/Supporting;
+			sourceTree = "<group>";
+		};
+		E14838BABD1AFB697BB6C2CC /* Solace */ = {
+			isa = PBXGroup;
+			children = (
+				38ABF2677C19C1509D14DA24 /* ExpoModulesProvider.swift */,
+			);
+			name = Solace;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -143,13 +143,13 @@
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Solace" */;
 			buildPhases = (
 				08A4A3CD28434E44B6B9DE2E /* [CP] Check Pods Manifest.lock */,
-				C0C2DC5E59ACEDF56BCB087C /* [Expo] Configure project */,
+				FE26ABC6637A4513CFE86023 /* [Expo] Configure project */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				00DD1BFF1BD5951E006B06BC /* Bundle React Native code and images */,
 				800E24972A6A228C8D4807E9 /* [CP] Copy Pods Resources */,
-				2D8EC5805A16319DFCC24763 /* [CP] Embed Pods Frameworks */,
+				183BBF17901F1B725FE33AD8 /* [CP] Embed Pods Frameworks */,
 			);
 			buildRules = (
 			);
@@ -199,8 +199,8 @@
 				BB2F792D24A3F905000567C9 /* Expo.plist in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				3E461D99554A48A4959DE609 /* SplashScreen.storyboard in Resources */,
-				5E8E5A1144AB45D4A0EBBCA4 /* GoogleService-Info.plist in Resources */,
-				BF6E1F5435652AE407CAA759 /* PrivacyInfo.xcprivacy in Resources */,
+				6AB5F7AD233542CEB48E46FE /* GoogleService-Info.plist in Resources */,
+				7F71EBBE464634E2000BBE71 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -213,9 +213,13 @@
 			buildActionMask = 2147483647;
 			files = (
 			);
+			inputFileListPaths = (
+			);
 			inputPaths = (
 			);
 			name = "Bundle React Native code and images";
+			outputFileListPaths = (
+			);
 			outputPaths = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -244,7 +248,7 @@
 			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
 			showEnvVarsInLog = 0;
 		};
-		2D8EC5805A16319DFCC24763 /* [CP] Embed Pods Frameworks */ = {
+		183BBF17901F1B725FE33AD8 /* [CP] Embed Pods Frameworks */ = {
 			isa = PBXShellScriptBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -318,7 +322,7 @@
 			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-Solace/Pods-Solace-resources.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
-		C0C2DC5E59ACEDF56BCB087C /* [Expo] Configure project */ = {
+		FE26ABC6637A4513CFE86023 /* [Expo] Configure project */ = {
 			isa = PBXShellScriptBuildPhase;
 			alwaysOutOfDate = 1;
 			buildActionMask = 2147483647;
@@ -345,7 +349,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
-				0E88B19CBB110D8F9B604B72 /* ExpoModulesProvider.swift in Sources */,
+				D9CE58C5A579F9D5CE7AA9AA /* ExpoModulesProvider.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -354,7 +358,7 @@
 /* Begin XCBuildConfiguration section */
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = 34DF28C22C29E4FA71B4A5DD /* Pods-Solace.debug.xcconfig */;
+			baseConfigurationReference = 568C001C04DD9750C6190C34 /* Pods-Solace.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
@@ -390,7 +394,7 @@
 		};
 		13B07F951A680F5B00A75B9A /* Release */ = {
 			isa = XCBuildConfiguration;
-			baseConfigurationReference = F8357C91916DE037B129EC34 /* Pods-Solace.release.xcconfig */;
+			baseConfigurationReference = FBFF8C717D23F37622A8F99C /* Pods-Solace.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
