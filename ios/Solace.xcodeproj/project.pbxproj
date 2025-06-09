@@ -14,6 +14,9 @@
 		847798EC2DF6460C00B9CD7F /* SolaceWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 847798D92DF6460900B9CD7F /* SolaceWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		847798F42DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */; };
 		847798F52DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */; };
+		847798F72DF6527900B9CD7F /* WidgetModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F62DF6527900B9CD7F /* WidgetModule.swift */; };
+		847798F82DF6527900B9CD7F /* WidgetModule.swift in Sources */ = {isa = PBXBuildFile; fileRef = 847798F62DF6527900B9CD7F /* WidgetModule.swift */; };
+		847798FA2DF652B700B9CD7F /* WidgetModule.m in Sources */ = {isa = PBXBuildFile; fileRef = 847798F92DF652B700B9CD7F /* WidgetModule.m */; };
 		8F5FF95F41E840A39A5D6E49 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = FAED82EEC4714B21A50CD93E /* GoogleService-Info.plist */; };
 		90988B428C7F71B9CFF5E259 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4371C17A0E67E2784993A181 /* ExpoModulesProvider.swift */; };
 		A856D22305F00FF3C16A3A5F /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 4656C136DF126A5C465DBB5B /* PrivacyInfo.xcprivacy */; };
@@ -58,6 +61,8 @@
 		847798DC2DF6460900B9CD7F /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		847798F22DF6465A00B9CD7F /* SolaceWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SolaceWidgetExtension.entitlements; sourceTree = "<group>"; };
 		847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
+		847798F62DF6527900B9CD7F /* WidgetModule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetModule.swift; sourceTree = "<group>"; };
+		847798F92DF652B700B9CD7F /* WidgetModule.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WidgetModule.m; sourceTree = "<group>"; };
 		98AE78DA7AB247250561E16A /* Pods_Solace.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Solace.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		AA286B85B6C04FC6940260E9 /* SplashScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = Solace/SplashScreen.storyboard; sourceTree = "<group>"; };
 		BB2F792C24A3F905000567C9 /* Expo.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
@@ -123,6 +128,8 @@
 				FAED82EEC4714B21A50CD93E /* GoogleService-Info.plist */,
 				4656C136DF126A5C465DBB5B /* PrivacyInfo.xcprivacy */,
 				847798F32DF64D4A00B9CD7F /* SharedDataManager.swift */,
+				847798F62DF6527900B9CD7F /* WidgetModule.swift */,
+				847798F92DF652B700B9CD7F /* WidgetModule.m */,
 			);
 			name = Solace;
 			sourceTree = "<group>";
@@ -445,6 +452,8 @@
 				F11748422D0307B40044C1D9 /* AppDelegate.swift in Sources */,
 				847798F42DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */,
 				90988B428C7F71B9CFF5E259 /* ExpoModulesProvider.swift in Sources */,
+				847798F82DF6527900B9CD7F /* WidgetModule.swift in Sources */,
+				847798FA2DF652B700B9CD7F /* WidgetModule.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -452,6 +461,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				847798F72DF6527900B9CD7F /* WidgetModule.swift in Sources */,
 				847798F52DF64D4A00B9CD7F /* SharedDataManager.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
