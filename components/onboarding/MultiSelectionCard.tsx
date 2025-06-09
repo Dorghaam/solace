@@ -1,25 +1,22 @@
-import { hapticService } from '@/services/hapticService';
 import { Ionicons } from '@expo/vector-icons';
-import { Box, Icon, Pressable, Text, useTheme } from 'native-base';
+import { Box, HStack, Icon, Pressable, Text, useTheme } from 'native-base';
 import React from 'react';
 
 export const MultiSelectionCard: React.FC<{
   label: string;
   isSelected: boolean;
   onPress: () => void;
-}> = ({ label, isSelected, onPress }) => {
+  isPremium?: boolean;
+  isLocked?: boolean;
+}> = ({ label, isSelected, onPress, isPremium, isLocked }) => {
   const theme = useTheme();
 
-  const handlePress = () => {
-    hapticService.selection();
-    onPress();
-  };
-
   return (
-    <Pressable 
-      onPress={handlePress} 
-      accessibilityRole="checkbox" 
-      accessibilityState={{ checked: isSelected }}
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="checkbox"
+      accessibilityState={{ checked: isSelected, disabled: isLocked }}
+      disabled={isLocked && !isSelected}
     >
       <Box
         bg={theme.colors.miracleCardBackground}
@@ -32,19 +29,31 @@ export const MultiSelectionCard: React.FC<{
         alignItems="center"
         justifyContent="space-between"
         mb={2}
+        opacity={isLocked ? 0.7 : 1}
       >
-        <Text 
-          fontSize="md"
-          fontWeight="medium"
-          color={theme.colors.textPrimary}
-          flex={1}
-        >
-          {label}
-        </Text>
+        <HStack alignItems="center" space={2} flex={1}>
+          <Text
+            fontSize="md"
+            fontWeight="medium"
+            color={isLocked ? theme.colors.textTertiary : theme.colors.textPrimary}
+            flex={1}
+            mr={1}
+          >
+            {label}
+          </Text>
+          {isLocked && (
+            <Icon
+              as={Ionicons}
+              name="lock-closed-outline"
+              color={theme.colors.textTertiary}
+              size="sm"
+            />
+          )}
+        </HStack>
         <Icon
           as={Ionicons}
           name={isSelected ? "checkmark-circle" : "ellipse-outline"}
-          color={isSelected ? theme.colors.primary[500] : theme.colors.textTertiary}
+          color={isSelected ? (isLocked ? theme.colors.textTertiary : theme.colors.primary[500]) : theme.colors.textTertiary}
           size="lg"
           ml={3}
         />

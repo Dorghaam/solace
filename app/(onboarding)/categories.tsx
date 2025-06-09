@@ -1,15 +1,17 @@
 import { MultiSelectionCard } from '@/components/onboarding';
 import { hapticService } from '@/services/hapticService';
-import { breakupInterestCategories, useUserStore } from '@/store/userStore';
+import { BreakupCategory, breakupInterestCategories, useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Box, Button, HStack, Icon, IconButton, ScrollView, Text, VStack, useTheme } from 'native-base';
 import React, { useEffect, useRef, useState } from 'react';
-import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
+import { Alert, Keyboard, StyleSheet, TextInput, View } from 'react-native';
 
 export default function InterestCategoriesScreen() {
   const selectedCategories = useUserStore((state) => state.interestCategories);
   const toggleInterestCategory = useUserStore((state) => state.toggleInterestCategory);
+  const setInterestCategories = useUserStore((state) => state.setInterestCategories);
+  const subscriptionTier = useUserStore((state) => state.subscriptionTier);
   const { editing } = useLocalSearchParams<{ editing?: string }>();
   const [searchText, setSearchText] = useState('');
   
@@ -25,13 +27,47 @@ export default function InterestCategoriesScreen() {
     };
   }, []);
 
+  const handleCategoryPress = (category: BreakupCategory) => {
+    hapticService.selection();
+    if (category.premium && subscriptionTier === 'free') {
+      Alert.alert(
+        "Premium Feature",
+        `"${category.label}" is a premium category. Unlock all categories with Solace Premium!`,
+        [{ text: "OK" }]
+      );
+      console.log(`Paywall: User tried to access premium category: ${category.label}`);
+    } else {
+      toggleInterestCategory(category.id);
+    }
+  };
+
   const handleNext = () => {
     hapticService.medium();
     Keyboard.dismiss();
+
+    const freeSelectedCategories = selectedCategories.filter(id => {
+        const cat = breakupInterestCategories.find(c => c.id === id);
+        return cat && !cat.premium;
+    });
+
+    if (subscriptionTier === 'free' && freeSelectedCategories.length === 0 && selectedCategories.length > 0) {
+        Alert.alert(
+            "Select a Category",
+            "Please select at least one free category to continue, or upgrade to Premium to access all categories."
+        );
+        return;
+    }
+     if (selectedCategories.length === 0) {
+       Alert.alert(
+            "Select a Category",
+            "Please select at least one category to continue."
+        );
+        return;
+    }
+
     if (editing === 'true') {
       router.replace('/(main)/settings');
     } else {
-      // Use requestAnimationFrame to ensure navigation happens after render cycle
       requestAnimationFrame(() => {
         router.push('/(onboarding)/notifications');
       });
@@ -39,21 +75,46 @@ export default function InterestCategoriesScreen() {
   };
 
   const handleSelectAll = () => {
-    const allCategoryIds = breakupInterestCategories.map(cat => cat.id);
-    const allSelected = allCategoryIds.every(id => selectedCategories.includes(id));
+    hapticService.light();
+    const allFreeCategoryIds = breakupInterestCategories
+      .filter(cat => !cat.premium)
+      .map(cat => cat.id);
 
-    if (allSelected) {
-      allCategoryIds.forEach(id => {
-        if (selectedCategories.includes(id)) {
-          toggleInterestCategory(id);
-        }
-      });
+    const allPremiumCategoryIds = breakupInterestCategories
+      .filter(cat => cat.premium)
+      .map(cat => cat.id);
+
+    const currentlySelectedFree = selectedCategories.filter(id => allFreeCategoryIds.includes(id));
+    const currentlySelectedPremium = selectedCategories.filter(id => allPremiumCategoryIds.includes(id));
+
+    if (subscriptionTier === 'free') {
+      if (currentlySelectedFree.length === allFreeCategoryIds.length) {
+        setInterestCategories(selectedCategories.filter(id => !allFreeCategoryIds.includes(id)));
+      } else {
+        setInterestCategories([...new Set([...selectedCategories, ...allFreeCategoryIds])]);
+      }
     } else {
-      allCategoryIds.forEach(id => {
-        if (!selectedCategories.includes(id)) {
-          toggleInterestCategory(id);
-        }
-      });
+      const allCategoryIds = breakupInterestCategories.map(cat => cat.id);
+      if (selectedCategories.length === allCategoryIds.length) {
+        setInterestCategories([]);
+      } else {
+        setInterestCategories(allCategoryIds);
+      }
+    }
+  };
+
+  const getSelectAllText = () => {
+    if (subscriptionTier === 'free') {
+      const allFreeCategoryIds = breakupInterestCategories.filter(cat => !cat.premium).map(cat => cat.id);
+      const currentlySelectedFree = selectedCategories.filter(id => allFreeCategoryIds.includes(id));
+      return currentlySelectedFree.length === allFreeCategoryIds.length && allFreeCategoryIds.length > 0
+        ? "Deselect All Free"
+        : "Select All Free";
+    } else {
+      const allCategoryIds = breakupInterestCategories.map(cat => cat.id);
+      return selectedCategories.length === allCategoryIds.length && allCategoryIds.length > 0
+        ? "Deselect All"
+        : "Select All";
     }
   };
 
@@ -126,7 +187,7 @@ export default function InterestCategoriesScreen() {
           color="textPrimary"
           mb={1}
         >
-          Affirmation Categories
+          Affirmation Topics
         </Text>
         <Text 
           variant="subtitle"
@@ -136,7 +197,9 @@ export default function InterestCategoriesScreen() {
           lineHeight="sm"
           mb={4}
         >
-          Select the types of affirmations you'd like to see.
+          {subscriptionTier === 'free'
+            ? "Select the free topics you'd like to see, or upgrade to unlock all."
+            : "Select the types of affirmations you'd like to see."}
         </Text>
 
         {/* Search Input */}
@@ -171,7 +234,7 @@ export default function InterestCategoriesScreen() {
             rounded="full"
             onPress={handleSelectAll}
           >
-            {breakupInterestCategories.every(cat => selectedCategories.includes(cat.id)) && breakupInterestCategories.length > 0 ? "Deselect All" : "Select All"}
+            {getSelectAllText()}
           </Button>
         </HStack>
       </Box>
@@ -189,7 +252,9 @@ export default function InterestCategoriesScreen() {
               key={category.id}
               label={category.label}
               isSelected={selectedCategories.includes(category.id)}
-              onPress={() => toggleInterestCategory(category.id)}
+              onPress={() => handleCategoryPress(category)}
+              isPremium={category.premium}
+              isLocked={category.premium && subscriptionTier === 'free'}
             />
           ))}
         </VStack>
@@ -205,11 +270,10 @@ export default function InterestCategoriesScreen() {
       >
         <Button 
           onPress={handleNext} 
-          isDisabled={selectedCategories.length === 0}
           w="100%"
         >
           <Text color="primaryButtonText" fontWeight="semibold" fontSize="md">
-            Continue →
+            {editing === 'true' ? 'Save Changes' : 'Continue →'}
           </Text>
         </Button>
       </Box>
