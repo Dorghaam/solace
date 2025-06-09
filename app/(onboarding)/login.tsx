@@ -1,8 +1,9 @@
 import { SocialSignInButton } from '@/components/onboarding';
-import { loginWithGoogle } from '@/services/authService';
+import { loginWithApple, loginWithGoogle } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
 import { Box, Icon, IconButton, Text, useToast, VStack } from 'native-base';
 import React, { useState } from 'react';
@@ -41,11 +42,31 @@ export default function LoginScreen() {
   };
 
   const handleAppleSignIn = async () => {
-    // TODO: Implement Apple Sign-In logic here
     setIsAppleLoading(true);
     hapticService.medium();
-    Alert.alert("Coming Soon", "Sign in with Apple will be available in a future update.");
-    setIsAppleLoading(false);
+    try {
+      console.log('LoginScreen: Initiating Apple Sign-In...');
+      await loginWithApple();
+      
+      // As with Google, onAuthStateChange in _layout should handle the rest.
+      setHasCompletedOnboarding(true);
+      console.log('LoginScreen: loginWithApple successful. Onboarding marked complete.');
+      
+      requestAnimationFrame(() => router.replace('/(main)'));
+
+    } catch (err: any) {
+      // Don't show an alert if the user just cancelled
+      if (err.code !== 'ERR_REQUEST_CANCELED') {
+         console.error("LoginScreen: Apple Sign-In Error caught:", err.message);
+         Alert.alert(
+          "Sign-In Failed",
+          err.message || 'Could not sign in with Apple. Please try again.',
+          [{ text: "OK" }]
+        );
+      }
+    } finally {
+      setIsAppleLoading(false);
+    }
   };
   
   return (
@@ -92,12 +113,12 @@ export default function LoginScreen() {
           {/* Auth Buttons */}
           <VStack space={4} mt={12}>
             {Platform.OS === 'ios' && (
-              <SocialSignInButton
-                label="Sign in with Apple"
-                iconName="logo-apple"
-                iconColor="black"
+              <AppleAuthentication.AppleAuthenticationButton
+                buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                cornerRadius={12}
+                style={{ width: '100%', height: 52 }}
                 onPress={handleAppleSignIn}
-                isLoading={isAppleLoading}
               />
             )}
             <SocialSignInButton

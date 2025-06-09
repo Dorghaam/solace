@@ -26,7 +26,8 @@ export default ({ config }) => {
         entitlements: {
           "com.apple.security.application-groups": [
             "group.com.dorghaamhaidar.solace.iphone.widget"
-          ]
+          ],
+          "com.apple.developer.applesignin": ["Default"]
         },
         infoPlist: {
           ...(config?.expo?.ios?.infoPlist || {}),
@@ -79,6 +80,7 @@ export default ({ config }) => {
           }
         ],
         "@react-native-google-signin/google-signin",
+        "expo-apple-authentication"
       ],
       experiments: {
         typedRoutes: true

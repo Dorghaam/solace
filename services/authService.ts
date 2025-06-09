@@ -1,4 +1,5 @@
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import 'react-native-get-random-values'; // Polyfill for crypto
 import { supabase } from './supabaseClient';
@@ -88,5 +89,46 @@ export const signOut = async () => {
   } catch (error: any) {
     console.error('authService: General signOut error:', error.message, error);
     throw new Error(error.message || 'An error occurred during sign out.');
+  }
+};
+
+export const loginWithApple = async () => {
+  try {
+    const credential = await AppleAuthentication.signInAsync({
+      requestedScopes: [
+        AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
+        AppleAuthentication.AppleAuthenticationScope.EMAIL,
+      ],
+    });
+
+    console.log('authService: Apple credential received.');
+
+    if (credential.identityToken) {
+      const { data, error } = await supabase.auth.signInWithIdToken({
+        provider: 'apple',
+        token: credential.identityToken,
+      });
+
+      if (error) {
+        console.error('authService: Supabase signInWithIdToken (Apple) error:', error);
+        throw new Error(error.message);
+      }
+      
+      console.log('authService: Supabase sign-in with Apple successful.');
+      return data;
+
+    } else {
+      throw new Error('Apple Sign-In Error: No identity token received.');
+    }
+
+  } catch (e: any) {
+    if (e.code === 'ERR_REQUEST_CANCELED') {
+      // This is fine, the user just cancelled the sign-in prompt.
+      console.log('authService: Apple Sign-In cancelled by user.');
+      return null; // Don't treat cancellation as an error
+    } else {
+      console.error('authService: loginWithApple error:', e);
+      throw new Error(e.message || 'An unknown error occurred during Apple Sign-In.');
+    }
   }
 }; 
