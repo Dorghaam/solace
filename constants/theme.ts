@@ -1,59 +1,58 @@
 import { extendTheme } from 'native-base';
 
-// Define our new core colors based on the "Miracle" app style
-const miracleBlue = '#5850EC'; // A vibrant, modern blue/purple
-const miracleBackground = '#FFF7F5'; // Very light, warm, creamy beige/pinkish
-const miracleCardBackground = '#FFFFFF'; // Soft off-white for cards
-const miracleOnboardingButtonText = '#FFFFFF'; // White text for primary buttons
+// Define our new core pink color
+const solacePink = '#F06B93'; // A pleasant, noticeable pink
+const solaceBackground = '#FFF7F5'; // Very light, warm, creamy beige/pinkish (kept from miracle)
+const solaceCardBackground = '#FFFFFF'; // Soft off-white for cards (kept from miracle)
+const solacePrimaryButtonText = '#FFFFFF'; // White text for primary buttons
 
 export const solaceTheme = extendTheme({
   colors: {
-    primary: { // Shades of miracleBlue
-      50: '#EAE9FD',
-      100: '#D0CFFB',
-      200: '#B6B5F9',
-      300: '#9C9AF7',
-      400: '#827FF5',
-      500: miracleBlue, // Main primary color
-      600: '#4E47D4',
-      700: '#443EB9',
-      800: '#3A359F',
-      900: '#302C85',
+    primary: { // Shades of solacePink
+      50: '#FFE3EC',  // Lighter
+      100: '#FFC1D7',
+      200: '#FFA0C2',
+      300: '#FF7EAD',
+      400: '#FA5C98',
+      500: solacePink,   // Main primary pink
+      600: '#D95A80', // Darker
+      700: '#C24F70',
+      800: '#AA4460',
+      900: '#933950',
     },
-    miracleBlue: miracleBlue, // Direct access if needed
-    miracleBackground: miracleBackground,
-    miracleCardBackground: miracleCardBackground,
-    onboardingButtonText: miracleOnboardingButtonText,
+    solacePink: solacePink, // Direct access
+    solaceBackground: solaceBackground,
+    solaceCardBackground: solaceCardBackground,
+    primaryButtonText: solacePrimaryButtonText, // Renamed for clarity
 
-    // Overriding existing theme colors
-    backgroundLight: miracleBackground, // Main app background
-    backgroundFocused: '#FEFBF9', // Slightly different for focused elements if needed, or use miracleCardBackground
+    // Keeping existing semantic names, but they'll use the new background
+    backgroundLight: solaceBackground,
+    backgroundFocused: '#FEFBF9', // Slightly different for focused elements
     
-    textPrimary: '#333333',    // Dark grey for primary text
-    textSecondary: '#757575',  // Medium grey for secondary text
-    textTertiary: '#AEAEAE',   // Light grey for tertiary text / borders
+    textPrimary: '#333333',
+    textSecondary: '#757575',
+    textTertiary: '#AEAEAE',
 
-    accentWarm: '#FFDAB9', // Keep or update if image suggests otherwise
-    accentCool: '#B2EBF2', // Keep or update
-    greyButton: '#F0F0F0', // Keep or update
+    accentWarm: '#FFDAB9', // Peach - should still complement pink
+    accentCool: '#B2EBF2', // Light Blue - can work with pink
+    greyButton: '#F0F0F0',
 
     success: '#4CAF50',
     error: '#F44336',
     warning: '#FF9800',
 
-    quoteBackground: miracleCardBackground, // Background for affirmation cards
-    quoteText: '#333333',                   // Text color for affirmations
+    quoteBackground: solaceCardBackground,
+    quoteText: '#333333',
 
-    // Legacy colors - review if they are still needed or can be mapped to new system
-    titleGrey: '#6C7A89', // Could be mapped to textSecondary or a shade of miracleBlue
+    // Deprecated old names, but map to new ones just in case
+    miracleBlue: solacePink, // Mapped to new pink
+    miracleBackground: solaceBackground,
+    miracleCardBackground: solaceCardBackground,
+    onboardingButtonText: solacePrimaryButtonText,
+    titleGrey: '#757575', // Mapped to textSecondary
   },
   fontConfig: {
-    // Using system fonts primarily for broader compatibility and modern feel
-    // SpaceMono is kept for specific 'mono' usage if any.
-    System: {
-      // React Native will attempt to use system defaults
-      // For specific weights, you'd typically load font files.
-    },
+    System: {},
     SpaceMono: {
       400: {
         normal: 'SpaceMono-Regular',
@@ -61,14 +60,14 @@ export const solaceTheme = extendTheme({
     },
   },
   fonts: {
-    heading: 'System', // Using system default sans-serif
-    body: 'System',    // Using system default sans-serif
+    heading: 'System',
+    body: 'System',
     mono: 'SpaceMono',
   },
   components: {
     Button: {
       baseStyle: {
-        rounded: 'full', // Pill-shaped buttons
+        rounded: 'full',
         _text: {
           fontWeight: 'semibold',
           fontFamily: 'body',
@@ -85,7 +84,7 @@ export const solaceTheme = extendTheme({
         solid: ({ colorScheme, theme }: any) => ({
           bg: colorScheme === 'primary' ? theme.colors.primary[500] : `${colorScheme}.500`,
           _pressed: { bg: colorScheme === 'primary' ? theme.colors.primary[600] : `${colorScheme}.600` },
-          _text: { color: theme.colors.onboardingButtonText } // White text on primary buttons
+          _text: { color: theme.colors.primaryButtonText } // Uses the new white text variable
         }),
         subtle: ({ colorScheme, theme }: any) => ({
           bg: colorScheme === 'primary' ? theme.colors.primary[100] : `${colorScheme}.100`,
@@ -104,7 +103,7 @@ export const solaceTheme = extendTheme({
         }),
       },
       defaultProps: {
-        colorScheme: 'primary',
+        colorScheme: 'primary', // All default buttons will now use the pink scheme
         size: 'lg',
       }
     },
@@ -115,52 +114,52 @@ export const solaceTheme = extendTheme({
       },
       variants: {
         title: {
-          fontSize: '3xl', // e.g., 30-36px
+          fontSize: '3xl',
           fontWeight: 'bold',
           fontFamily: 'heading',
-          color: 'textPrimary', // Or primary.500 if titles are blue
+          color: 'textPrimary', // Primary titles can be dark
           textAlign: 'center',
-          lineHeight: '2xl', // Adjust as needed e.g. 36 or 40
+          lineHeight: '2xl',
         },
         subtitle: {
-          fontSize: 'lg', // e.g. 18-20px
+          fontSize: 'lg',
           color: 'textSecondary',
           textAlign: 'center',
-          lineHeight: 'md', // Adjust as needed e.g. 28
+          lineHeight: 'md',
           fontFamily: 'body',
         },
         body: {
-          fontSize: 'md', // e.g. 16px
-          lineHeight: 'lg', // Adjust as needed e.g. 24
+          fontSize: 'md',
+          lineHeight: 'lg',
           color: 'textPrimary',
         },
         quote: {
-          fontSize: '2xl', // Changed from '4xl' to make quotes smaller and more readable
-          fontWeight: 'semibold', // or 'medium' depending on font
+          fontSize: '2xl',
+          fontWeight: 'semibold',
           textAlign: 'center',
           color: 'quoteText',
-          fontFamily: 'heading', // Or a specific display font if available
-          lineHeight: 'xl', // Adjust e.g. 32 or 36
+          fontFamily: 'heading',
+          lineHeight: 'xl',
         },
         small: {
-          fontSize: 'sm', // e.g. 14px
+          fontSize: 'sm',
           color: 'textSecondary',
         }
       }
     },
     Input: {
       baseStyle: {
-        rounded: 'lg', // Rounded corners
-        borderColor: 'textTertiary', // Subtle border
-        backgroundColor: 'miracleCardBackground', // Light background for input
+        rounded: 'lg',
+        borderColor: 'textTertiary',
+        backgroundColor: 'solaceCardBackground', // Use new variable
         paddingY: 3,
         paddingX: 4,
         fontFamily: 'body',
         fontSize: 'md',
         _focus: {
-          borderColor: 'primary.500', // miracleBlue border on focus
-          backgroundColor: 'miracleCardBackground', // Can add a subtle change like primary.50
-          _hover: { // For web
+          borderColor: 'primary.500', // Pink border on focus
+          backgroundColor: 'solaceCardBackground',
+          _hover: { 
             borderColor: 'primary.500',
           }
         },
@@ -176,24 +175,24 @@ export const solaceTheme = extendTheme({
       },
       defaultProps: {
         variant: 'ghost',
-        colorScheme: 'primary', // So icons use miracleBlue by default
+        colorScheme: 'primary', // Icons will use pink by default
       }
     },
     Switch: {
       defaultProps: {
-        colorScheme: 'primary', // Will use miracleBlue
+        colorScheme: 'primary', // Will use pink
       },
     },
     Radio: {
       defaultProps: {
-        colorScheme: 'primary', // Will use miracleBlue
+        colorScheme: 'primary', // Will use pink
       },
-      baseStyle: {
-        _icon: { // Color of the inner circle of the radio
-          color: 'onboardingButtonText', // White inner circle when selected
+      baseStyle: ({ colorScheme, theme }: any) => ({ // Added function to access theme
+        _icon: { 
+          color: colorScheme === 'primary' ? theme.colors.primaryButtonText : undefined, // White inner circle for pink radio
         },
-        borderColor: 'primary.500', // Border of the radio button itself
-      },
+        borderColor: 'primary.500', // Pink border
+      }),
     },
   },
   config: {
@@ -201,6 +200,7 @@ export const solaceTheme = extendTheme({
   },
 });
 
+// This is necessary for TypeScript to recognize your custom theme.
 type CustomThemeType = typeof solaceTheme;
 declare module 'native-base' {
   interface ICustomTheme extends CustomThemeType {}

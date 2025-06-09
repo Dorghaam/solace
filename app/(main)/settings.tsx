@@ -101,12 +101,6 @@ export default function SettingsScreen() {
     }
   };
 
-  const handleResetAndRestartOnboarding = () => {
-    resetState();
-    setHasCompletedOnboarding(false); 
-    router.replace('/(onboarding)');
-  };
-
   const handleSignOut = async () => {
     hapticService.medium();
     console.log('SettingsScreen: Initiating sign out...');
@@ -227,22 +221,6 @@ export default function SettingsScreen() {
               />
             </Box>
           </Box>
-
-          {/* Development-only section */}
-          {__DEV__ && (
-            <Box>
-              <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
-                DEVELOPMENT
-              </Text>
-              <Box bg="white" rounded="lg" mx={4} shadow="1">
-                <SettingItem 
-                  label="Reset & View Onboarding" 
-                  value="Dev only"
-                  onPress={handleResetAndRestartOnboarding} 
-                />
-              </Box>
-            </Box>
-          )}
         </VStack>
       </ScrollView>
     </Box>
