@@ -302,45 +302,8 @@ export default function WidgetConfigScreen() {
                   </VStack>
                 </Radio.Group>
               </Box>
-              <Box>
-                <Text mb={1} color="textSecondary" fontWeight="medium">Widget Theme</Text>
-                 <Radio.Group 
-                    name="widgetTheme" 
-                    value={storeWidgetSettings.theme} 
-                    onChange={(value: string) => handleThemeChange(value as WidgetTheme)}
-                  >
-                    <HStack space={4} alignItems="center">
-                        <Radio value="light" size="sm">
-                          <Text>Light</Text>
-                        </Radio>
-                        <Radio value="dark_text_on_pink" size="sm">
-                          <Text>Pink Bg</Text>
-                        </Radio>
-                        <Radio value="pink_text_on_white" size="sm">
-                          <Text>Pink Text</Text>
-                        </Radio>
-                    </HStack>
-                </Radio.Group>
-              </Box>
               <Button onPress={updateWidgetData} mt={4}>
                 Apply Changes to Widget
-              </Button>
-              
-              {/* Debug button to force widget reload */}
-              <Button variant="outline" onPress={async () => {
-                try {
-                  const { WidgetUpdateModule } = NativeModules;
-                  if (WidgetUpdateModule?.updateQuotes) {
-                    WidgetUpdateModule.updateQuotes(["Test quote from debug button - " + new Date().toLocaleTimeString()]);
-                    Alert.alert("Debug", "Test quote sent to widget!");
-                  } else {
-                    Alert.alert("Debug", "WidgetUpdateModule not available");
-                  }
-                } catch (error: any) {
-                  Alert.alert("Debug Error", error.message);
-                }
-              }} mt={2}>
-                🐛 Debug: Send Test Quote
               </Button>
             </VStack>
           )}

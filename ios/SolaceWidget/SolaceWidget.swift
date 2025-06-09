@@ -183,7 +183,7 @@ struct SolaceLockScreenWidgetView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(entry.quote)
-                .font(.system(size: 12, weight: .medium, design: .default))
+                .font(.system(size: 16, weight: .medium, design: .default))
                 .multilineTextAlignment(.leading)
                 .lineLimit(nil)
                 .minimumScaleFactor(0.8)
