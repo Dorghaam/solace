@@ -1,6 +1,20 @@
 import WidgetKit
 import SwiftUI
 
+// MARK: - iOS 17 Compatibility Extension
+extension View {
+    /// Works on every supported OS: calls the new API on iOS 17+, falls back on the classic
+    /// `.background` for earlier versions.
+    @ViewBuilder
+    func solaceWidgetBackground<V: View>(_ backgroundView: V) -> some View {
+        if #available(iOSApplicationExtension 17.0, *) {
+            self.containerBackground(for: .widget) { backgroundView }
+        } else {
+            self.background(backgroundView)
+        }
+    }
+}
+
 struct Provider: TimelineProvider {
     // This is the view shown in the widget gallery
     func placeholder(in context: Context) -> SimpleEntry {
@@ -158,10 +172,7 @@ struct SolaceWidgetEntryView : View {
                     )
             }
         }
-        .containerBackground(for: .widget) {
-            // Transparent background to work with system
-            Color.clear
-        }
+        .solaceWidgetBackground(Color.clear)
     }
 }
 
@@ -170,11 +181,20 @@ struct SolaceLockScreenWidgetView: View {
     var entry: Provider.Entry
     
     var body: some View {
-        Text(entry.quote)
-            .font(.system(size: 13, weight: .medium, design: .default))
-            .multilineTextAlignment(.leading)
-            .lineLimit(3)
-            .foregroundColor(.primary)
+        VStack(alignment: .leading, spacing: 0) {
+            Text(entry.quote)
+                .font(.system(size: 12, weight: .medium, design: .default))
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil)
+                .minimumScaleFactor(0.8)
+                .foregroundColor(.primary)
+                .lineSpacing(1)
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .padding(.horizontal, 2)
+                .padding(.vertical, 1)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+        .solaceWidgetBackground(Color.clear)
     }
 }
 
@@ -189,6 +209,7 @@ struct SolaceWidget: Widget {
         .configurationDisplayName("Daily Affirmation")
         .description("Display a daily affirmation from your Solace app.")
         .supportedFamilies([.systemSmall, .systemMedium])
+        .contentMarginsDisabled()
     }
 }
 
@@ -203,6 +224,7 @@ struct SolaceLockScreenWidget: Widget {
         .configurationDisplayName("Solace Lock Screen")
         .description("Display affirmations on your lock screen.")
         .supportedFamilies([.accessoryRectangular])
+        .contentMarginsDisabled()
     }
 }
 
