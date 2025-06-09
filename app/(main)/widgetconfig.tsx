@@ -12,7 +12,8 @@ import { Alert, NativeModules } from 'react-native';
 
 export default function WidgetConfigScreen() {
   // Local state to control the "Customize" toggle, distinct from persisted settings
-  const [isCustomizing, setIsCustomizing] = useState(false);
+  const isCustomizing = useUserStore((state) => state.isWidgetCustomizing);
+  const setIsCustomizing = useUserStore((state) => state.setIsWidgetCustomizing);
   const [favoriteQuoteIds, setFavoriteQuoteIds] = useState<string[]>([]);
   const [storeWidgetSettings, setStoreWidgetSettings] = useState<WidgetSettings | null>(null);
   const [isLoading, setIsLoading] = useState(true);

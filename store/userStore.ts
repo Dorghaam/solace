@@ -61,6 +61,7 @@ interface UserState {
   targetQuote: TargetQuote | null;
   dailyMood: DailyMood | null;
   widgetSettings: WidgetSettings | null;
+  isWidgetCustomizing: boolean;
   
   // NEW STATE
   subscriptionTier: SubscriptionTier;
@@ -78,6 +79,7 @@ interface UserState {
   clearTargetQuote: () => void;
   setDailyMood: (mood: DailyMood) => void;
   setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
+  setIsWidgetCustomizing: (isCustomizing: boolean) => void;
   
   // NEW ACTION
   setSubscriptionTier: (tier: SubscriptionTier) => void;
@@ -110,6 +112,7 @@ export const useUserStore = create<UserState>()(
       targetQuote: null,
       dailyMood: null,
       widgetSettings: { category: 'all', theme: 'light' },
+      isWidgetCustomizing: false,
       
       // NEW STATE DEFAULT
       subscriptionTier: 'free',
@@ -143,6 +146,7 @@ export const useUserStore = create<UserState>()(
       setWidgetSettings: (settings) => set((state) => ({
         widgetSettings: { ...state.widgetSettings, ...settings } as WidgetSettings,
       })),
+      setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing: isCustomizing }),
 
       // NEW ACTION IMPLEMENTATION
       setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
@@ -160,6 +164,7 @@ export const useUserStore = create<UserState>()(
           targetQuote: null,
           dailyMood: null,
           widgetSettings: { category: 'all', theme: 'light' },
+          isWidgetCustomizing: false,
           subscriptionTier: 'free', // RESET TIER
         });
         console.log('Zustand state reset');
