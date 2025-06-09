@@ -11,9 +11,16 @@ public class SolaceWidgetBridge: Module {
     // It takes one argument, a dictionary of [String: String].
     Function("update") { (data: [String: String]) in
       if let userDefaults = UserDefaults(suiteName: "group.com.dorghaamhaidar.solace.iphone.widget") {
-        userDefaults.set(data["quoteText"], forKey: "widgetQuoteText")
-        WidgetCenter.shared.reloadAllTimelines()
-        print("✅ Widget data saved via bridge.")
+        // Save the quote as an array to match what the widget expects
+        if let quoteText = data["quoteText"] {
+          userDefaults.set([quoteText], forKey: "widgetQuotesArray")
+          WidgetCenter.shared.reloadTimelines(ofKind: "SolaceWidget")
+          print("✅ Widget data saved via bridge: \(quoteText)")
+        } else {
+          print("❌ No quoteText provided to widget bridge")
+        }
+      } else {
+        print("❌ Failed to initialize UserDefaults for widget bridge")
       }
     }
   }

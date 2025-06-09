@@ -11,17 +11,27 @@ class SharedDataManager {
             return nil
         }
         self.userDefaults = defaults
+        print("✅ SharedDataManager initialized with suite: group.com.dorghaamhaidar.solace.iphone.widget")
     }
 
     // Saves an array of quote strings
     func saveQuotes(_ quotes: [String]) {
+        print("📝 SharedDataManager: Saving quotes: \(quotes)")
         userDefaults.set(quotes, forKey: "widgetQuotesArray")
+        userDefaults.synchronize() // Force synchronization
+        
+        // Verify the save worked
+        let savedQuotes = userDefaults.stringArray(forKey: "widgetQuotesArray") ?? []
+        print("✅ SharedDataManager: Verified saved quotes: \(savedQuotes)")
+        
         WidgetCenter.shared.reloadTimelines(ofKind: "SolaceWidget")
-        print("✅ Quotes array saved and widget timeline reloaded.")
+        print("🔄 SharedDataManager: Widget timeline reload triggered for SolaceWidget")
     }
 
     // Loads the array of quote strings
     func loadQuotes() -> [String] {
-        return userDefaults.stringArray(forKey: "widgetQuotesArray") ?? []
+        let quotes = userDefaults.stringArray(forKey: "widgetQuotesArray") ?? []
+        print("📖 SharedDataManager: Loading quotes: \(quotes)")
+        return quotes
     }
 }

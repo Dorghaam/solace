@@ -15,16 +15,26 @@ struct Provider: TimelineProvider {
 
     // This function builds the update schedule for the widget
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        print("🎯 SolaceWidget: getTimeline called at \(Date())")
         var entries: [SimpleEntry] = []
         let currentDate = Date()
         
         // Load the quotes from our shared data manager
+        print("🔄 SolaceWidget: Initializing SharedDataManager...")
         let dataManager = SharedDataManager()
+        if dataManager == nil {
+            print("❌ SolaceWidget: Failed to initialize SharedDataManager")
+        }
+        
         var affirmations = dataManager?.loadQuotes() ?? []
+        print("📱 SolaceWidget: Loaded \(affirmations.count) quotes from SharedDataManager")
 
         // If no quotes were loaded from the app yet, show a placeholder
         if affirmations.isEmpty {
+            print("⚠️ SolaceWidget: No quotes found, using placeholder message")
             affirmations.append("Open Solace to update your widget with new affirmations.")
+        } else {
+            print("✅ SolaceWidget: Using real quotes: \(affirmations)")
         }
 
         // Create a timeline of entries from the loaded quotes
@@ -33,10 +43,12 @@ struct Provider: TimelineProvider {
             let entryDate = Calendar.current.date(byAdding: .hour, value: index * 2, to: currentDate)!
             let entry = SimpleEntry(date: entryDate, quote: affirmations[index])
             entries.append(entry)
+            print("📝 SolaceWidget: Created entry \(index): '\(affirmations[index])' for \(entryDate)")
         }
 
         // After the last quote, the timeline ends and iOS will request a new one later.
         let timeline = Timeline(entries: entries, policy: .atEnd)
+        print("🏁 SolaceWidget: Timeline created with \(entries.count) entries, policy: .atEnd")
         completion(timeline)
     }
 }

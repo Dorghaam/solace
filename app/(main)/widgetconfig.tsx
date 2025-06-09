@@ -5,7 +5,10 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { Box, Button, Divider, HStack, Icon, IconButton, Radio, ScrollView, Switch, Text, VStack } from 'native-base';
 import React, { useEffect, useState } from 'react';
-import { Alert, NativeModules } from 'react-native';
+import { Alert, NativeModules, Platform } from 'react-native';
+
+// For now, let's directly use NativeModules approach which should work
+// We'll access the SolaceWidgetBridge module via NativeModules
 
 // Import Supabase client if you plan to fetch quotes here for the widget
 // import { supabase } from '@/services/supabaseClient';
@@ -78,51 +81,110 @@ export default function WidgetConfigScreen() {
       Alert.alert("Error", "Widget settings not found.");
       return;
     }
-    console.log("Updating widget data with settings:", storeWidgetSettings);
+    console.log("🎯 Widget Update: Starting with settings:", storeWidgetSettings);
     hapticService.success();
 
     try {
+      // Only proceed on iOS
+      if (Platform.OS !== 'ios') {
+        Alert.alert("Error", "Widgets are only available on iOS.");
+        return;
+      }
+
       let query;
+      console.log("📊 Widget Update: Building query for category:", storeWidgetSettings.category);
 
       if (storeWidgetSettings.category === 'favorites') {
+        console.log("❤️ Widget Update: Using favorites, count:", favoriteQuoteIds.length);
         if (favoriteQuoteIds.length > 0) {
           const randomIndex = Math.floor(Math.random() * favoriteQuoteIds.length);
           const randomFavoriteId = favoriteQuoteIds[randomIndex];
+          console.log("🎲 Widget Update: Selected favorite ID:", randomFavoriteId);
           query = supabase.from('quotes').select('id, text').eq('id', randomFavoriteId).single();
         } else {
           Alert.alert("No Favorites", "You don't have any saved favorites to display on the widget.");
           return;
         }
       } else if (storeWidgetSettings.category !== 'all') {
+        console.log("🏷️ Widget Update: Using category RPC:", storeWidgetSettings.category);
         query = supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
       } else {
+        console.log("🌍 Widget Update: Using random quote RPC");
         query = supabase.rpc('get_random_quote');
       }
 
+      console.log("🔄 Widget Update: Executing Supabase query...");
       const { data, error } = await query;
 
+      console.log("📝 Widget Update: Query result - Data:", data, "Error:", error);
+
       if (error || !data) {
-        console.error("Failed to fetch quote for widget:", error?.message || 'No data returned');
+        console.error("❌ Widget Update: Failed to fetch quote:", error?.message || 'No data returned');
         Alert.alert("Error", "Could not fetch a quote. Please try again.");
         return;
       }
       
-      const quoteText = data.text;
+      // Handle both single objects (from .single()) and arrays (from RPC functions)
+      let quoteText;
+      if (Array.isArray(data)) {
+        // RPC functions return arrays
+        quoteText = data[0]?.text;
+        console.log("📊 Widget Update: Extracted from array - Quote text:", quoteText);
+      } else {
+        // .single() returns objects directly
+        quoteText = data.text;
+        console.log("📊 Widget Update: Extracted from object - Quote text:", quoteText);
+      }
+      
+      if (!quoteText) {
+        console.error("❌ Widget Update: No quote text found in response");
+        Alert.alert("Error", "Quote text not found in response.");
+        return;
+      }
+      
+      console.log("✅ Widget Update: Final quote text:", quoteText);
 
-      // This is where we call our new native module
-      const { WidgetModule } = NativeModules;
-      if (WidgetModule) {
-        WidgetModule.updateWidget({
-          quoteText: quoteText
-          // We removed the theme from the bridge to simplify, but you can add it back later
-        });
+      // Try both bridge methods to ensure compatibility
+      const { SolaceWidgetBridge, WidgetUpdateModule } = NativeModules;
+      
+      let bridgeSuccessful = false;
+      
+      // Try the Expo module bridge first
+      if (SolaceWidgetBridge?.update) {
+        try {
+          console.log("🌉 Widget Update: Trying SolaceWidgetBridge...");
+          SolaceWidgetBridge.update({
+            quoteText: quoteText
+          });
+          bridgeSuccessful = true;
+          console.log("✅ Widget updated successfully via SolaceWidgetBridge");
+        } catch (bridgeError: any) {
+          console.error("❌ Widget Update: Error calling SolaceWidgetBridge:", bridgeError);
+        }
+      }
+      
+      // Try the React Native bridge as fallback
+      if (!bridgeSuccessful && WidgetUpdateModule?.updateQuotes) {
+        try {
+          console.log("🌉 Widget Update: Trying WidgetUpdateModule...");
+          WidgetUpdateModule.updateQuotes([quoteText]);
+          bridgeSuccessful = true;
+          console.log("✅ Widget updated successfully via WidgetUpdateModule");
+        } catch (bridgeError: any) {
+          console.error("❌ Widget Update: Error calling WidgetUpdateModule:", bridgeError);
+        }
+      }
+      
+      if (bridgeSuccessful) {
         Alert.alert("Widget Updated!", "Your widget will update shortly.");
+        console.log("🎉 Widget Update: Complete success!");
       } else {
         Alert.alert("Error", "Widget bridge is not available on this platform.");
+        console.error("❌ Widget Update: No widget bridge methods were available");
       }
 
     } catch (e: any) {
-      console.error("Error in updateWidgetData:", e);
+      console.error("💥 Widget Update: Unexpected error:", e);
       Alert.alert("An Unexpected Error Occurred", "Could not update the widget: " + e.message);
     }
   };
@@ -262,6 +324,23 @@ export default function WidgetConfigScreen() {
               </Box>
               <Button onPress={updateWidgetData} mt={4}>
                 Apply Changes to Widget
+              </Button>
+              
+              {/* Debug button to force widget reload */}
+              <Button variant="outline" onPress={async () => {
+                try {
+                  const { WidgetUpdateModule } = NativeModules;
+                  if (WidgetUpdateModule?.updateQuotes) {
+                    WidgetUpdateModule.updateQuotes(["Test quote from debug button - " + new Date().toLocaleTimeString()]);
+                    Alert.alert("Debug", "Test quote sent to widget!");
+                  } else {
+                    Alert.alert("Debug", "WidgetUpdateModule not available");
+                  }
+                } catch (error: any) {
+                  Alert.alert("Debug Error", error.message);
+                }
+              }} mt={2}>
+                🐛 Debug: Send Test Quote
               </Button>
             </VStack>
           )}
