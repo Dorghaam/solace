@@ -98,8 +98,8 @@ export default function NotificationPreferencesScreen() {
 
   return (
     <Box flex={1} bg="miracleBackground" safeArea px={6}>
-      <VStack flex={1} justifyContent="space-between">
-        <VStack space={6} mt={{base: 8, md: 12}}>
+      <VStack flex={1}>
+        <VStack space={6} mt={{base: 8, md: 12}} flex={1}>
           <VStack space={3} alignItems="center">
             <Text 
               fontSize={{ base: "2xl", md: "3xl" }} 
@@ -120,7 +120,7 @@ export default function NotificationPreferencesScreen() {
             </Text>
           </VStack>
 
-          <VStack space={5} mt={6}>
+          <VStack space={5} mt={6} flex={1}>
             <Box 
               p={5}
               bg="miracleCardBackground" 
@@ -181,6 +181,7 @@ export default function NotificationPreferencesScreen() {
                   bg="primary.100"
                   rounded="xl"
                   shadow="1"
+                  mb={8}
                 >
                   <Text fontSize="sm" fontWeight="semibold" color="primary.700" mb={1.5}>
                     ✨ Your reminder times:
@@ -196,7 +197,7 @@ export default function NotificationPreferencesScreen() {
           </VStack>
         </VStack>
 
-        <VStack space={3} mb={{base: 6, md: 8}}>
+        <VStack space={3} pt={6} pb={{base: 6, md: 8}}>
           <Button 
             onPress={handleContinue} 
             size="lg"
