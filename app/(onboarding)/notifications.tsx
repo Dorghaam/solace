@@ -1,3 +1,4 @@
+import { hapticService } from '@/services/hapticService';
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, getReminderTimesForFrequency, scheduleDailyAffirmationReminders, setupNotificationChannelsAsync } from '@/services/notificationService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
@@ -45,6 +46,9 @@ export default function NotificationPreferencesScreen() {
   };
 
   const handleFrequencyChange = async (value: string) => {
+    // Add haptic feedback for selection
+    hapticService.selection();
+    
     const frequency = value as '1x' | '3x' | '5x' | '10x';
     setSelectedFrequency(frequency);
     if (notificationsEnabled) {
