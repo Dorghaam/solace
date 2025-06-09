@@ -38,9 +38,9 @@ struct Provider: TimelineProvider {
         }
 
         // Create a timeline of entries from the loaded quotes
-        // Each quote will be displayed for 2 hours
+        // Each quote will be displayed for 1 hour (changed from 2 hours for more frequent updates)
         for index in 0..<affirmations.count {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: index * 2, to: currentDate)!
+            let entryDate = Calendar.current.date(byAdding: .hour, value: index * 1, to: currentDate)!
             let entry = SimpleEntry(date: entryDate, quote: affirmations[index])
             entries.append(entry)
             print("📝 SolaceWidget: Created entry \(index): '\(affirmations[index])' for \(entryDate)")
@@ -62,18 +62,105 @@ struct SimpleEntry: TimelineEntry {
 // This is the SwiftUI view that displays the widget
 struct SolaceWidgetEntryView : View {
     var entry: Provider.Entry
-
+    @Environment(\.widgetFamily) var family
+    
     var body: some View {
-        ZStack {
-            Text(entry.quote)
-                .font(.system(size: 15, weight: .semibold, design: .rounded))
-                .foregroundColor(Color(white: 0.2))
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .padding()
+        GeometryReader { geometry in
+            ZStack {
+                // Background with subtle gradient
+                LinearGradient(
+                    colors: [
+                        Color(red: 1.0, green: 0.98, blue: 0.96), // Very light peachy
+                        Color(red: 0.99, green: 0.94, blue: 0.91)  // Slightly deeper
+                    ],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+                .opacity(0.8)
+                
+                // Subtle pattern overlay
+                RoundedRectangle(cornerRadius: 0)
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.clear
+                            ],
+                            center: .topLeading,
+                            startRadius: 0,
+                            endRadius: geometry.size.width * 0.8
+                        )
+                    )
+                
+                // Content
+                VStack(spacing: family == .systemSmall ? 8 : 12) {
+                    // Small decorative element
+                    HStack {
+                        Circle()
+                            .fill(Color(red: 0.96, green: 0.45, blue: 0.68).opacity(0.6))
+                            .frame(width: family == .systemSmall ? 4 : 6, height: family == .systemSmall ? 4 : 6)
+                        
+                        Spacer()
+                        
+                        // Small "Solace" branding
+                        Text("SOLACE")
+                            .font(.system(size: family == .systemSmall ? 8 : 10, weight: .medium, design: .rounded))
+                            .foregroundColor(Color(red: 0.5, green: 0.4, blue: 0.4))
+                            .opacity(0.7)
+                    }
+                    .padding(.horizontal, family == .systemSmall ? 16 : 20)
+                    .padding(.top, family == .systemSmall ? 12 : 16)
+                    
+                    Spacer()
+                    
+                    // Main quote text
+                    Text(entry.quote)
+                        .font(.system(
+                            size: family == .systemSmall ? 14 : (family == .systemMedium ? 16 : 18), 
+                            weight: .medium, 
+                            design: .rounded
+                        ))
+                        .foregroundColor(Color(red: 0.25, green: 0.2, blue: 0.2))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(family == .systemSmall ? 3 : 4)
+                        .lineLimit(nil)
+                        .padding(.horizontal, family == .systemSmall ? 16 : 24)
+                    
+                    Spacer()
+                    
+                    // Bottom accent
+                    HStack {
+                        Spacer()
+                        
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(Color(red: 0.96, green: 0.45, blue: 0.68).opacity(0.4))
+                            .frame(
+                                width: family == .systemSmall ? 20 : 30, 
+                                height: family == .systemSmall ? 2 : 3
+                            )
+                    }
+                    .padding(.horizontal, family == .systemSmall ? 16 : 20)
+                    .padding(.bottom, family == .systemSmall ? 12 : 16)
+                }
+                
+                // Subtle border effect
+                RoundedRectangle(cornerRadius: 0)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.8),
+                                Color(red: 0.96, green: 0.45, blue: 0.68).opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 0.5
+                    )
+            }
         }
         .containerBackground(for: .widget) {
-            Color(red: 255/255, green: 247/255, blue: 245/255)
+            // Transparent background to work with system
+            Color.clear
         }
     }
 }
@@ -88,7 +175,7 @@ struct SolaceWidget: Widget {
         }
         .configurationDisplayName("Daily Affirmation")
         .description("Display a daily affirmation from your Solace app.")
-        .supportedFamilies([.systemSmall])
+        .supportedFamilies([.systemSmall, .systemMedium])
     }
 }
 
