@@ -1,41 +1,16 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { User } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
-// Define BreakupCategory and other existing types...
-export type BreakupCategory = 'healing_heartbreak' | 'self_love' | 'letting_go' | 'rebuilding_confidence' | 'overcoming_loneliness' | 'finding_peace' | 'hope_future' | 'moving_forward';
-export type FamiliarityOption = 'new' | 'occasional' | 'regular';
-export type NotificationFrequency = '1x' | '3x' | '5x' | '10x' | 'custom';
-export type WidgetTheme = 'light' | 'dark_text_on_pink' | 'pink_text_on_white';
-
-// NEW TYPE FOR SUBSCRIPTION
-export type SubscriptionTier = 'free' | 'premium';
-
-// NEW TYPE FOR USER AFFIRMATIONS
-export interface UserAffirmation {
-  id: string;
-  user_id: string;
-  text: string;
-  is_favorite: boolean;
-  created_at: string;
-}
-
-export interface BreakupInterestCategory {
-  id: BreakupCategory;
-  label: string;
-}
+// --- Types ---
+export type FamiliarityAffirmations = 'new' | 'occasional' | 'regular' | null;
+export type NotificationFrequency = '1x' | '3x' | '5x' | '10x' | null;
+export type SubscriptionTier = 'free' | 'premium'; // Added subscription tier
 
 export interface NotificationSettings {
   enabled: boolean;
-  frequency?: NotificationFrequency;
-  customTimes?: { hour: number; minute: number }[];
-}
-
-export interface TargetQuote {
-  id: string;
-  text: string;
-  category?: string;
+  frequency: NotificationFrequency;
+  // time?: string; // Consider if specific time selection is needed later
 }
 
 export interface DailyMood {
@@ -44,148 +19,233 @@ export interface DailyMood {
   date: string; // YYYY-MM-DD
 }
 
+export interface TargetQuote {
+  id: string;
+  text: string;
+  category?: string;
+}
+
+// NEW: Breakup-specific categories with premium flag
+export interface BreakupCategory {
+  id: string;
+  label: string;
+  premium: boolean; // True if this category requires a premium subscription
+}
+
+export const breakupInterestCategories: BreakupCategory[] = [
+  { id: 'general_healing', label: 'General Healing', premium: false }, // Free
+  { id: 'moving_on', label: 'Moving On', premium: false }, // Free
+  { id: 'self_love_discovery', label: 'Self-Love & Discovery', premium: true },
+  { id: 'coping_loneliness', label: 'Coping with Loneliness', premium: true },
+  { id: 'rebuilding_confidence', label: 'Rebuilding Confidence', premium: true },
+  { id: 'managing_anger_resentment', label: 'Managing Anger/Resentment', premium: true },
+  { id: 'finding_closure', label: 'Finding Closure', premium: true },
+  { id: 'hope_for_future', label: 'Hope for the Future', premium: true },
+  { id: 'healing_from_betrayal', label: 'Healing from Betrayal (Cheating)', premium: true },
+  { id: 'loss_of_partner_widow', label: 'Loss of a Partner (Widow/Widower)', premium: true },
+  { id: 'navigating_divorce', label: 'Navigating Divorce', premium: true },
+  { id: 'heartbreak_recovery', label: 'Heartbreak Recovery', premium: true },
+  // Add more specific TikTok-friendly categories as needed
+  { id: 'letting_go_of_ex', label: 'Letting Go of an Ex', premium: true },
+  { id: 'embracing_single_life', label: 'Embracing Single Life', premium: true },
+  { id: 'overcoming_codependency', label: 'Overcoming Codependency', premium: true },
+];
+
+
 export interface WidgetSettings {
-  category: BreakupCategory | 'favorites' | 'all';
+  category: BreakupCategory['id'] | 'favorites' | 'all'; // Can be a specific category ID, 'favorites', or 'all'
   theme: WidgetTheme;
 }
 
+export type WidgetTheme = 'light' | 'dark' | 'pink_text_on_white' | 'dark_text_on_pink';
+
+// --- State ---
 interface UserState {
-  supabaseUser: User | null;
-  hasCompletedOnboarding: boolean;
+  // Onboarding & Profile
   userName: string | null;
-  interestCategories: BreakupCategory[];
-  affirmationFamiliarity: FamiliarityOption | null;
+  hasCompletedOnboarding: boolean;
+  affirmationFamiliarity: FamiliarityAffirmations;
+  interestCategories: string[]; // Stores IDs of selected BreakupCategory
+  activeQuoteCategory: string | null; // ID of the currently active category for the feed
+
+  // Authentication
+  supabaseUser: any | null; // Consider using Supabase User type if available
+
+  // App Features
   favoriteQuoteIds: string[];
   notificationSettings: NotificationSettings | null;
   pushToken: string | null;
-  targetQuote: TargetQuote | null;
   dailyMood: DailyMood | null;
-  widgetSettings: WidgetSettings | null;
-  isWidgetCustomizing: boolean;
-  
-  // NEW STATE
-  subscriptionTier: SubscriptionTier;
+  targetQuote: TargetQuote | null; // For handling notification navigations
 
-  setSupabaseUser: (user: User | null) => void;
-  setHasCompletedOnboarding: (status: boolean) => void;
+  // Widget Settings
+  widgetSettings: WidgetSettings;
+  isWidgetCustomizing: boolean; // To control UI on widget config screen
+
+  // Monetization
+  subscriptionTier: SubscriptionTier; // Added subscriptionTier
+
+  // Actions
   setUserName: (name: string) => void;
-  toggleInterestCategory: (category: BreakupCategory) => void;
-  setAffirmationFamiliarity: (familiarity: FamiliarityOption) => void;
+  setHasCompletedOnboarding: (status: boolean) => void;
+  setAffirmationFamiliarity: (familiarity: FamiliarityAffirmations) => void;
+  toggleInterestCategory: (categoryId: string) => void;
+  setInterestCategories: (categoryIds: string[]) => void; // For setting all at once if needed
+  setActiveQuoteCategory: (categoryId: string | null) => void;
+
+  setSupabaseUser: (user: any | null) => void;
+
   addFavoriteQuoteId: (quoteId: string) => void;
   removeFavoriteQuoteId: (quoteId: string) => void;
-  setNotificationSettings: (settings: NotificationSettings) => void;
+  setNotificationSettings: (settings: Partial<NotificationSettings>) => void;
   setPushToken: (token: string | null) => void;
-  setTargetQuote: (quote: TargetQuote) => void;
-  clearTargetQuote: () => void;
   setDailyMood: (mood: DailyMood) => void;
+  setTargetQuote: (quote: TargetQuote | null) => void;
+  clearTargetQuote: () => void;
+
   setWidgetSettings: (settings: Partial<WidgetSettings>) => void;
   setIsWidgetCustomizing: (isCustomizing: boolean) => void;
-  
-  // NEW ACTION
-  setSubscriptionTier: (tier: SubscriptionTier) => void;
+
+  setSubscriptionTier: (tier: SubscriptionTier) => void; // Added action for subscription tier
 
   resetState: () => void;
 }
 
-export const breakupInterestCategories: BreakupInterestCategory[] = [
-    { id: 'healing_heartbreak', label: 'Healing a Broken Heart' },
-    { id: 'self_love', label: 'Reclaiming Self Love' },
-    { id: 'letting_go', label: 'Letting Go & Moving On' },
-    { id: 'rebuilding_confidence', label: 'Rebuilding My Life' },
-    { id: 'overcoming_loneliness', label: 'Finding Strength in Solitude' },
-    { id: 'finding_peace', label: 'Discovering Peace After Pain' },
-    { id: 'hope_future', label: 'Hope for New Beginnings' },
-    { id: 'moving_forward', label: 'Coping with Grief & Loss' },
-];
+// --- Store ---
+const initialState = {
+  // Onboarding & Profile
+  userName: null,
+  hasCompletedOnboarding: false,
+  affirmationFamiliarity: null,
+  interestCategories: [breakupInterestCategories.find(cat => !cat.premium)?.id || 'general_healing'], // Default to the first free category
+  activeQuoteCategory: null, // No active category by default, shows all (or all from selected free)
+
+  // Auth
+  supabaseUser: null,
+
+  // App Features
+  favoriteQuoteIds: [],
+  notificationSettings: {
+    enabled: false,
+    frequency: '3x' as NotificationFrequency,
+  },
+  pushToken: null,
+  dailyMood: null,
+  targetQuote: null,
+
+  // Widget Settings
+  widgetSettings: {
+    category: 'all', // Default to 'all' breakup quotes for widget
+    theme: 'light' as WidgetTheme,
+  },
+  isWidgetCustomizing: false, // Default to not customizing
+
+  // Monetization
+  subscriptionTier: 'free' as SubscriptionTier, // Default to free tier
+};
 
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
-      supabaseUser: null,
-      hasCompletedOnboarding: false,
-      userName: null,
-      interestCategories: [],
-      affirmationFamiliarity: null,
-      favoriteQuoteIds: [],
-      notificationSettings: null,
-      pushToken: null,
-      targetQuote: null,
-      dailyMood: null,
-      widgetSettings: { category: 'all', theme: 'light' },
-      isWidgetCustomizing: false,
-      
-      // NEW STATE DEFAULT
-      subscriptionTier: 'free',
+      ...initialState,
+
+      // --- Actions ---
+      setUserName: (name) => set({ userName: name }),
+      setHasCompletedOnboarding: (status) => set({ hasCompletedOnboarding: status }),
+      setAffirmationFamiliarity: (familiarity) => set({ affirmationFamiliarity: familiarity }),
+      toggleInterestCategory: (categoryId) =>
+        set((state) => ({
+          interestCategories: state.interestCategories.includes(categoryId)
+            ? state.interestCategories.filter((id) => id !== categoryId)
+            : [...state.interestCategories, categoryId],
+        })),
+      setInterestCategories: (categoryIds) => set({ interestCategories: categoryIds }),
+      setActiveQuoteCategory: (categoryId) => set({ activeQuoteCategory: categoryId }),
 
       setSupabaseUser: (user) => set({ supabaseUser: user }),
-      setHasCompletedOnboarding: (status) => set({ hasCompletedOnboarding: status }),
-      setUserName: (name) => set({ userName: name }),
-      toggleInterestCategory: (category) =>
-        set((state) => ({
-          interestCategories: state.interestCategories.includes(category)
-            ? state.interestCategories.filter((c) => c !== category)
-            : [...state.interestCategories, category],
-        })),
-      setAffirmationFamiliarity: (familiarity) => set({ affirmationFamiliarity: familiarity }),
+
       addFavoriteQuoteId: (quoteId) =>
-        set((state) => {
-          if (!state.favoriteQuoteIds.includes(quoteId)) {
-            return { favoriteQuoteIds: [...state.favoriteQuoteIds, quoteId] };
-          }
-          return state;
-        }),
+        set((state) => ({
+          favoriteQuoteIds: state.favoriteQuoteIds.includes(quoteId)
+            ? state.favoriteQuoteIds
+            : [...state.favoriteQuoteIds, quoteId],
+        })),
       removeFavoriteQuoteId: (quoteId) =>
         set((state) => ({
           favoriteQuoteIds: state.favoriteQuoteIds.filter((id) => id !== quoteId),
         })),
-      setNotificationSettings: (settings) => set({ notificationSettings: settings }),
+
+      setNotificationSettings: (settingsUpdate) =>
+        set((state) => ({
+          notificationSettings: {
+            ...(state.notificationSettings || { enabled: false, frequency: '3x' }), // Ensure defaults
+            ...settingsUpdate,
+          } as NotificationSettings, // Type assertion
+        })),
       setPushToken: (token) => set({ pushToken: token }),
+      setDailyMood: (mood) => set({ dailyMood: mood }),
       setTargetQuote: (quote) => set({ targetQuote: quote }),
       clearTargetQuote: () => set({ targetQuote: null }),
-      setDailyMood: (mood) => set({ dailyMood: mood }),
-      setWidgetSettings: (settings) => set((state) => ({
-        widgetSettings: { ...state.widgetSettings, ...settings } as WidgetSettings,
-      })),
-      setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing: isCustomizing }),
 
-      // NEW ACTION IMPLEMENTATION
-      setSubscriptionTier: (tier) => set({ subscriptionTier: tier }),
+      setWidgetSettings: (settingsUpdate) =>
+        set((state) => ({
+          widgetSettings: {
+            ...state.widgetSettings,
+            ...settingsUpdate,
+          },
+        })),
+      setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing }),
+
+      setSubscriptionTier: (tier) => set({ subscriptionTier: tier }), // Action to set tier
 
       resetState: () => {
-        set({
-          supabaseUser: null,
-          hasCompletedOnboarding: false,
-          userName: null,
-          interestCategories: [],
-          affirmationFamiliarity: null,
-          favoriteQuoteIds: [],
-          notificationSettings: null,
-          pushToken: null,
-          targetQuote: null,
-          dailyMood: null,
-          widgetSettings: { category: 'all', theme: 'light' },
-          isWidgetCustomizing: false,
-          subscriptionTier: 'free', // RESET TIER
-        });
-        console.log('Zustand state reset');
+        console.log('UserStore: Resetting state to initial values.');
+        set(initialState);
       },
     }),
     {
       name: 'solace-user-storage',
       storage: createJSONStorage(() => AsyncStorage),
-      // IMPORTANT: DO NOT PERSIST subscriptionTier.
-      // It should be fetched fresh on each app start.
+      // Partialize to persist only specific parts of the state
       partialize: (state) => ({
-        hasCompletedOnboarding: state.hasCompletedOnboarding,
         userName: state.userName,
-        interestCategories: state.interestCategories,
+        hasCompletedOnboarding: state.hasCompletedOnboarding,
         affirmationFamiliarity: state.affirmationFamiliarity,
+        interestCategories: state.interestCategories,
+        // supabaseUser is handled by Supabase client persistence
         favoriteQuoteIds: state.favoriteQuoteIds,
         notificationSettings: state.notificationSettings,
-        pushToken: state.pushToken,
+        // pushToken is often re-fetched
         dailyMood: state.dailyMood,
-        widgetSettings: state.widgetSettings
+        widgetSettings: state.widgetSettings,
+        isWidgetCustomizing: state.isWidgetCustomizing,
+        subscriptionTier: state.subscriptionTier, // Persist subscriptionTier
+        // activeQuoteCategory and targetQuote are typically transient
       }),
+      // Custom hydration logic if needed
+      onRehydrateStorage: () => (state) => {
+        console.log('UserStore: Hydration starts.');
+        if (state) {
+          // Ensure critical defaults if hydration somehow misses them
+          state.widgetSettings = state.widgetSettings || initialState.widgetSettings;
+          state.notificationSettings = state.notificationSettings || initialState.notificationSettings;
+          state.interestCategories = state.interestCategories && state.interestCategories.length > 0 ? state.interestCategories : initialState.interestCategories;
+          state.subscriptionTier = state.subscriptionTier || initialState.subscriptionTier;
+          console.log('UserStore: Hydration complete, state:', {
+            userName: state.userName,
+            hasCompletedOnboarding: state.hasCompletedOnboarding,
+            subscriptionTier: state.subscriptionTier,
+            interestCategories: state.interestCategories,
+          });
+        } else {
+          console.log('UserStore: Hydration - no persisted state found, using initial state.');
+        }
+      },
     }
   )
 );
+
+// --- Hooks for easy access ---
+// export const useUserName = () => useUserStore((state) => state.userName);
+// export const useIsOnboardingComplete = () => useUserStore((state) => state.hasCompletedOnboarding);
+// ... add more specific hooks if needed for performance critical components
