@@ -10,6 +10,8 @@ export default function NotificationPreferencesScreen() {
   const setStoreNotificationSettings = useUserStore((state) => state.setNotificationSettings);
   const setPushToken = useUserStore((state) => state.setPushToken);
   const interestCategories = useUserStore((state) => state.interestCategories);
+  const supabaseUser = useUserStore((state) => state.supabaseUser);
+  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
   
   const [notificationsEnabled, setNotificationsEnabled] = useState(storeNotificationSettings?.enabled ?? false);
   const [selectedFrequency, setSelectedFrequency] = useState<'1x' | '3x' | '5x' | '10x'>(
@@ -63,12 +65,23 @@ export default function NotificationPreferencesScreen() {
       console.log('Notification preferences saved (disabled) and reminders cancelled.');
     }
 
-    // Navigate to login screen
-    console.log('Navigating from notifications to login screen.');
-    // Use requestAnimationFrame to ensure navigation happens after render cycle
-    requestAnimationFrame(() => {
-      router.push('/(onboarding)/login');
-    });
+    // Check if user is already logged in and completed onboarding
+    if (supabaseUser && hasCompletedOnboarding) {
+      // User came from settings, navigate back to settings
+      console.log('Navigating back to settings from notification preferences.');
+      if (router.canGoBack()) {
+        router.back();
+      } else {
+        router.replace('/(main)/settings');
+      }
+    } else {
+      // User is in onboarding flow, continue to login
+      console.log('Navigating from notifications to login screen.');
+      // Use requestAnimationFrame to ensure navigation happens after render cycle
+      requestAnimationFrame(() => {
+        router.push('/(onboarding)/login');
+      });
+    }
   };
 
   const formatTime = (hour: number, minute: number) => {
