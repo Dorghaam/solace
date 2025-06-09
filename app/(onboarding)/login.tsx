@@ -115,14 +115,14 @@ export default function LoginScreen() {
           By signing in, you agree to our{' '}
           <Text
             underline
-            onPress={() => Linking.openURL('https://your-website.com/terms')}
+            onPress={() => Linking.openURL('https://sites.google.com/view/solace-app/home?authuser=0')}
           >
             Terms & Conditions
           </Text>
           {' and '}
           <Text
             underline
-            onPress={() => Linking.openURL('https://your-website.com/privacy')}
+            onPress={() => Linking.openURL('https://sites.google.com/view/solace-app/privacy-policy?authuser=0')}
           >
             Privacy Policy
           </Text>
