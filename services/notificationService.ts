@@ -201,12 +201,12 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
     }
   });
 
-  // Schedule good morning notification (6:30 AM)
+  // Schedule good morning notification (9:30 AM)
   const goodMorningPromise = (async () => {
     try {
       const trigger: Notifications.DailyTriggerInput = {
         type: Notifications.SchedulableTriggerInputTypes.DAILY,
-        hour: 6,
+        hour: 9,
         minute: 30,
       };
 
@@ -225,7 +225,7 @@ export const scheduleDailyAffirmationReminders = async (frequency: '1x' | '3x' |
         },
         trigger,
       });
-      console.log(`Scheduled good morning notification for 6:30 AM: "${goodMorningMessage.substring(0, 50)}..."`);
+      console.log(`Scheduled good morning notification for 9:30 AM: "${goodMorningMessage.substring(0, 50)}..."`);
     } catch (e) {
       console.error('Failed to schedule good morning notification', e);
     }
