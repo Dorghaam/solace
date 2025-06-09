@@ -24,8 +24,10 @@ class SharedDataManager {
         let savedQuotes = userDefaults.stringArray(forKey: "widgetQuotesArray") ?? []
         print("✅ SharedDataManager: Verified saved quotes: \(savedQuotes)")
         
+        // Reload both home screen and lock screen widgets
         WidgetCenter.shared.reloadTimelines(ofKind: "SolaceWidget")
-        print("🔄 SharedDataManager: Widget timeline reload triggered for SolaceWidget")
+        WidgetCenter.shared.reloadTimelines(ofKind: "SolaceLockScreenWidget")
+        print("🔄 SharedDataManager: Both home and lock screen widget timelines reloaded")
     }
 
     // Loads the array of quote strings

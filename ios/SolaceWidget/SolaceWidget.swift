@@ -38,9 +38,9 @@ struct Provider: TimelineProvider {
         }
 
         // Create a timeline of entries from the loaded quotes
-        // Each quote will be displayed for 1 hour (changed from 2 hours for more frequent updates)
+        // Each quote will be displayed for 2 hours
         for index in 0..<affirmations.count {
-            let entryDate = Calendar.current.date(byAdding: .hour, value: index * 1, to: currentDate)!
+            let entryDate = Calendar.current.date(byAdding: .hour, value: index * 2, to: currentDate)!
             let entry = SimpleEntry(date: entryDate, quote: affirmations[index])
             entries.append(entry)
             print("📝 SolaceWidget: Created entry \(index): '\(affirmations[index])' for \(entryDate)")
@@ -165,6 +165,19 @@ struct SolaceWidgetEntryView : View {
     }
 }
 
+// Lock Screen Widget View - Simple text only
+struct SolaceLockScreenWidgetView: View {
+    var entry: Provider.Entry
+    
+    var body: some View {
+        Text(entry.quote)
+            .font(.system(size: 13, weight: .medium, design: .default))
+            .multilineTextAlignment(.leading)
+            .lineLimit(3)
+            .foregroundColor(.primary)
+    }
+}
+
 // This is the main widget configuration struct
 struct SolaceWidget: Widget {
     let kind: String = "SolaceWidget"
@@ -179,10 +192,25 @@ struct SolaceWidget: Widget {
     }
 }
 
-// This is the entry point that registers the widget
+// Lock Screen Widget
+struct SolaceLockScreenWidget: Widget {
+    let kind: String = "SolaceLockScreenWidget"
+    
+    var body: some WidgetConfiguration {
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
+            SolaceLockScreenWidgetView(entry: entry)
+        }
+        .configurationDisplayName("Solace Lock Screen")
+        .description("Display affirmations on your lock screen.")
+        .supportedFamilies([.accessoryRectangular])
+    }
+}
+
+// This is the entry point that registers the widgets
 @main
 struct SolaceWidgets: WidgetBundle {
     var body: some Widget {
         SolaceWidget()
+        SolaceLockScreenWidget()
     }
 }
