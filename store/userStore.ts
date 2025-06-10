@@ -194,7 +194,7 @@ export const useUserStore = create<UserState>()(
             ...settingsUpdate,
           },
         })),
-      setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing }),
+      setIsWidgetCustomizing: (isCustomizing) => set({ isWidgetCustomizing: isCustomizing }),
 
       setSubscriptionTier: (tier) => set({ subscriptionTier: tier }), // Action to set tier
 
@@ -231,11 +231,13 @@ export const useUserStore = create<UserState>()(
           state.notificationSettings = state.notificationSettings || initialState.notificationSettings;
           state.interestCategories = state.interestCategories && state.interestCategories.length > 0 ? state.interestCategories : initialState.interestCategories;
           state.subscriptionTier = state.subscriptionTier || initialState.subscriptionTier;
+          state.isWidgetCustomizing = state.isWidgetCustomizing !== undefined ? state.isWidgetCustomizing : initialState.isWidgetCustomizing;
           console.log('UserStore: Hydration complete, state:', {
             userName: state.userName,
             hasCompletedOnboarding: state.hasCompletedOnboarding,
             subscriptionTier: state.subscriptionTier,
             interestCategories: state.interestCategories,
+            isWidgetCustomizing: state.isWidgetCustomizing,
           });
         } else {
           console.log('UserStore: Hydration - no persisted state found, using initial state.');

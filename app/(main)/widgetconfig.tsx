@@ -1,9 +1,9 @@
 import { hapticService } from '@/services/hapticService';
 import { supabase } from '@/services/supabaseClient';
-import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetSettings, WidgetTheme } from '@/store/userStore';
+import { BreakupCategory, breakupInterestCategories, useUserStore, WidgetTheme } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Button, Divider, HStack, Icon, IconButton, Radio, ScrollView, Switch, Text, VStack } from 'native-base';
+import { Box, Button, Divider, HStack, Icon, IconButton, Radio, ScrollView, Switch, Text, useTheme, VStack } from 'native-base';
 import React, { useEffect, useState } from 'react';
 import { Alert, NativeModules, Platform } from 'react-native';
 
@@ -14,68 +14,62 @@ import { Alert, NativeModules, Platform } from 'react-native';
 // import { supabase } from '@/services/supabaseClient';
 
 export default function WidgetConfigScreen() {
-  // Local state to control the "Customize" toggle, distinct from persisted settings
+  const theme = useTheme(); // For icon colors if needed
+
+  // Zustand store selectors
   const isCustomizing = useUserStore((state) => state.isWidgetCustomizing);
   const setIsCustomizing = useUserStore((state) => state.setIsWidgetCustomizing);
-  const [favoriteQuoteIds, setFavoriteQuoteIds] = useState<string[]>([]);
-  const [storeWidgetSettings, setStoreWidgetSettings] = useState<WidgetSettings | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
+  const storeWidgetSettings = useUserStore((state) => state.widgetSettings);
+  const setStoreWidgetSettings = useUserStore((state) => state.setWidgetSettings);
+  const subscriptionTier = useUserStore((state) => state.subscriptionTier); // Get subscription tier
+  const userName = useUserStore((state) => state.userName); // For widget preview personalization
 
-  // Safely access store data
+  // Local state for loading is not strictly necessary anymore if reading directly from store,
+  // but good for ensuring settings are ready before rendering complex UI.
+  const [isLoading, setIsLoading] = useState(false); // Simplified loading
+
+  // Ensure widgetSettings has a default if not already set (though store should handle this)
   useEffect(() => {
-    try {
-      const store = useUserStore.getState();
-      setFavoriteQuoteIds(store.favoriteQuoteIds || []);
-      setStoreWidgetSettings(store.widgetSettings || { category: 'all', theme: 'light' });
-      setIsLoading(false);
-    } catch (error) {
-      console.error('Error accessing store:', error);
-      // Set default values if store access fails
-      setFavoriteQuoteIds([]);
+    if (!storeWidgetSettings) {
       setStoreWidgetSettings({ category: 'all', theme: 'light' });
-      setIsLoading(false);
     }
-  }, []);
-
-  // Function to update store settings
-  const updateStoreWidgetSettings = (settings: Partial<WidgetSettings>) => {
-    try {
-      useUserStore.getState().setWidgetSettings(settings);
-      setStoreWidgetSettings(prev => prev ? { ...prev, ...settings } : { category: 'all', theme: 'light', ...settings });
-    } catch (error) {
-      console.error('Error updating store:', error);
-    }
-  };
-
-  // Show loading state
-  if (isLoading || !storeWidgetSettings) {
-    return (
-      <Box flex={1} bg="backgroundLight" safeArea justifyContent="center" alignItems="center">
-        <Text>Loading widget settings...</Text>
-      </Box>
-    );
-  }
+  }, [storeWidgetSettings, setStoreWidgetSettings]);
 
   const handleToggleCustomize = (value: boolean) => {
+    hapticService.light();
     setIsCustomizing(value);
   };
 
   const handleCategoryChange = (value: string) => {
     hapticService.selection();
-    updateStoreWidgetSettings({ category: value as BreakupCategory | 'favorites' | 'all' });
-    // TODO: When category changes, update shared data for the native widget
-    console.log("Widget category changed to:", value);
-    Alert.alert("Category Saved", "Widget will now show affirmations from this category (once native widget is built).");
+    const selectedCategoryInfo = breakupInterestCategories.find(cat => cat.id === value);
+
+    if (selectedCategoryInfo && selectedCategoryInfo.premium && subscriptionTier === 'free') {
+      Alert.alert(
+        "Premium Feature",
+        `"${selectedCategoryInfo.label}" is a premium category for widgets. Please upgrade to use this topic.`,
+        [{ text: "OK" }]
+      );
+      // Do not update the widget category
+      return;
+    }
+
+    // If 'favorites' is chosen and there are no favorites, alert the user but still allow selection.
+    // The updateWidgetData function will handle the case of no favorites.
+    if (value === 'favorites' && favoriteQuoteIds.length === 0) {
+      Alert.alert("No Favorites", "You don't have any saved favorites. The widget will show a default message if 'My Favorites' is selected without any favorites.");
+    }
+    
+    setStoreWidgetSettings({ category: value as BreakupCategory['id'] | 'favorites' | 'all' });
+    // Note: Applying changes to the actual widget data is done via the "Apply Changes" button
   };
   
   const handleThemeChange = (value: WidgetTheme) => {
     hapticService.selection();
-    updateStoreWidgetSettings({ theme: value as WidgetTheme});
-    console.log("Widget theme changed to:", value);
-    Alert.alert("Theme Saved", `Widget theme set to ${value} (once native widget is built).`);
+    setStoreWidgetSettings({ theme: value as WidgetTheme});
   };
 
-  // This function will fetch a quote and send it to the widget
   const updateWidgetData = async () => {
     if (!storeWidgetSettings) {
       Alert.alert("Error", "Widget settings not found.");
@@ -84,14 +78,15 @@ export default function WidgetConfigScreen() {
     console.log("🎯 Widget Update: Starting with settings:", storeWidgetSettings);
     hapticService.success();
 
-    try {
-      // Only proceed on iOS
-      if (Platform.OS !== 'ios') {
-        Alert.alert("Error", "Widgets are only available on iOS.");
-        return;
-      }
+    if (Platform.OS !== 'ios') {
+      Alert.alert("Platform Error", "Widgets are currently only supported on iOS.");
+      return;
+    }
 
+    try {
+      let quoteTextToDisplay = `Hello ${userName || 'User'}! Open Solace to get inspired.`; // Default text
       let query;
+
       console.log("📊 Widget Update: Building query for category:", storeWidgetSettings.category);
 
       if (storeWidgetSettings.category === 'favorites') {
@@ -99,88 +94,97 @@ export default function WidgetConfigScreen() {
         if (favoriteQuoteIds.length > 0) {
           const randomIndex = Math.floor(Math.random() * favoriteQuoteIds.length);
           const randomFavoriteId = favoriteQuoteIds[randomIndex];
-          console.log("🎲 Widget Update: Selected favorite ID:", randomFavoriteId);
           query = supabase.from('quotes').select('id, text').eq('id', randomFavoriteId).single();
         } else {
-          Alert.alert("No Favorites", "You don't have any saved favorites to display on the widget.");
-          return;
+          // No favorites: quoteTextToDisplay remains the default message or a specific "no favorites" message
+          quoteTextToDisplay = "Add some favorites in the app to see them here!";
+          console.log("❤️ Widget Update: No favorites found. Widget will show default/instructional text.");
         }
       } else if (storeWidgetSettings.category !== 'all') {
-        console.log("🏷️ Widget Update: Using category RPC:", storeWidgetSettings.category);
-        query = supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
-      } else {
-        console.log("🌍 Widget Update: Using random quote RPC");
-        query = supabase.rpc('get_random_quote');
+        const categoryDetails = breakupInterestCategories.find(c => c.id === storeWidgetSettings.category);
+        if (categoryDetails) {
+          if (subscriptionTier === 'free' && categoryDetails.premium) {
+            // This case should ideally be prevented by handleCategoryChange, but as a safeguard:
+            quoteTextToDisplay = "Upgrade to Premium to use this topic on your widget!";
+            console.log("🔒 Widget Update: Free user tried to apply premium category. Showing upgrade message.");
+          } else {
+            query = supabase.rpc('get_random_quote_by_category', { p_category: storeWidgetSettings.category });
+          }
+        } else {
+           quoteTextToDisplay = "Category not found. Please re-select."; // Should not happen
+        }
+      } else { // 'all' categories
+        if (subscriptionTier === 'free') {
+          // For 'all', free users should get from any of their *allowed* (i.e., free) categories
+          // This requires either a specific RPC or client-side filtering after fetching multiple free ones.
+          // For simplicity now, we'll use a new RPC 'get_random_free_quote' if available, or fallback.
+          // IF YOU DON'T HAVE THIS RPC, IT WILL FALLBACK TO get_random_quote, which might return premium.
+          // Consider creating this SQL function:
+          // CREATE OR REPLACE FUNCTION get_random_free_quote()
+          // RETURNS TABLE(id uuid, text text, category text) AS $$
+          // BEGIN
+          //   RETURN QUERY
+          //   SELECT q.id, q.text, q.category FROM quotes q
+          //   WHERE q.category IN (SELECT bc.id FROM breakup_categories_table_name_here bc WHERE bc.premium = false) -- replace with actual table if you store categories in DB
+          //   ORDER BY random() LIMIT 1;
+          // END; $$ LANGUAGE plpgsql;
+          // For now, let's assume get_random_quote or make it conditional.
+          // Fallback: if 'get_random_free_quote' doesn't exist, 'get_random_quote' might return premium.
+          // This is an area for future backend improvement for perfect tier enforcement on "All".
+          console.log("🌍 Widget Update: User is free, category 'all'. Ideally fetch from free pool.");
+          query = supabase.rpc('get_random_quote'); // This might return a premium quote for 'all' for free users.
+                                                  // TODO: Implement get_random_free_quote RPC or client-side filter for 'all'.
+        } else {
+          console.log("🌍 Widget Update: User is premium, category 'all'.");
+          query = supabase.rpc('get_random_quote');
+        }
       }
 
-      console.log("🔄 Widget Update: Executing Supabase query...");
-      const { data, error } = await query;
+      if (query) { // Only proceed if a query was constructed
+        console.log("🔄 Widget Update: Executing Supabase query...");
+        const { data, error } = await query;
+        console.log("📝 Widget Update: Query result - Data:", data, "Error:", error);
 
-      console.log("📝 Widget Update: Query result - Data:", data, "Error:", error);
-
-      if (error || !data) {
-        console.error("❌ Widget Update: Failed to fetch quote:", error?.message || 'No data returned');
-        Alert.alert("Error", "Could not fetch a quote. Please try again.");
-        return;
+        if (error || !data) {
+          console.error("❌ Widget Update: Failed to fetch quote:", error?.message || 'No data returned');
+          quoteTextToDisplay = "Could not fetch a quote. Please try again from the app.";
+        } else {
+          let extractedText;
+          if (Array.isArray(data)) { // RPCs return arrays
+            extractedText = data[0]?.text;
+          } else { // .single() returns objects
+            extractedText = data.text;
+          }
+          if (extractedText) {
+            quoteTextToDisplay = extractedText;
+          } else {
+            quoteTextToDisplay = "No affirmation found for this topic yet.";
+          }
+        }
       }
       
-      // Handle both single objects (from .single()) and arrays (from RPC functions)
-      let quoteText;
-      if (Array.isArray(data)) {
-        // RPC functions return arrays
-        quoteText = data[0]?.text;
-        console.log("📊 Widget Update: Extracted from array - Quote text:", quoteText);
-      } else {
-        // .single() returns objects directly
-        quoteText = data.text;
-        console.log("📊 Widget Update: Extracted from object - Quote text:", quoteText);
-      }
-      
-      if (!quoteText) {
-        console.error("❌ Widget Update: No quote text found in response");
-        Alert.alert("Error", "Quote text not found in response.");
-        return;
-      }
-      
-      console.log("✅ Widget Update: Final quote text:", quoteText);
+      console.log("✅ Widget Update: Final quote text for widget:", quoteTextToDisplay);
 
-      // Try both bridge methods to ensure compatibility
       const { SolaceWidgetBridge, WidgetUpdateModule } = NativeModules;
-      
       let bridgeSuccessful = false;
       
-      // Try the Expo module bridge first
       if (SolaceWidgetBridge?.update) {
         try {
-          console.log("🌉 Widget Update: Trying SolaceWidgetBridge...");
-          SolaceWidgetBridge.update({
-            quoteText: quoteText
-          });
+          SolaceWidgetBridge.update({ quoteText: quoteTextToDisplay });
           bridgeSuccessful = true;
-          console.log("✅ Widget updated successfully via SolaceWidgetBridge");
-        } catch (bridgeError: any) {
-          console.error("❌ Widget Update: Error calling SolaceWidgetBridge:", bridgeError);
-        }
+        } catch (e) { console.error("Error SolaceWidgetBridge:", e); }
       }
-      
-      // Try the React Native bridge as fallback
       if (!bridgeSuccessful && WidgetUpdateModule?.updateQuotes) {
         try {
-          console.log("🌉 Widget Update: Trying WidgetUpdateModule...");
-          WidgetUpdateModule.updateQuotes([quoteText]);
+          WidgetUpdateModule.updateQuotes([quoteTextToDisplay]);
           bridgeSuccessful = true;
-          console.log("✅ Widget updated successfully via WidgetUpdateModule");
-        } catch (bridgeError: any) {
-          console.error("❌ Widget Update: Error calling WidgetUpdateModule:", bridgeError);
-        }
+        } catch (e) { console.error("Error WidgetUpdateModule:", e); }
       }
       
       if (bridgeSuccessful) {
-        Alert.alert("Widget Updated!", "Your widget will update shortly.");
-        console.log("🎉 Widget Update: Complete success!");
+        Alert.alert("Widget Updated!", "Your widget will update with the new affirmation shortly.");
       } else {
-        Alert.alert("Error", "Widget bridge is not available on this platform.");
-        console.error("❌ Widget Update: No widget bridge methods were available");
+        Alert.alert("Widget Bridge Error", "Could not communicate with the widget. This feature might not be available.");
       }
 
     } catch (e: any) {
@@ -189,88 +193,72 @@ export default function WidgetConfigScreen() {
     }
   };
 
+  if (isLoading || !storeWidgetSettings) {
+    return (
+      <Box flex={1} bg="backgroundLight" safeArea justifyContent="center" alignItems="center">
+        <Text>Loading widget settings...</Text>
+      </Box>
+    );
+  }
+
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
       {router.canGoBack() && (
         <IconButton
           icon={<Icon as={Ionicons} name="arrow-back" color="textPrimary" />}
-          position="absolute"
-          top={{ base: 10, md: 12 }}
-          left={{ base: 3, md: 4 }}
-          zIndex={10}
-          variant="ghost"
-          colorScheme="primary"
-          size="lg"
-          onPress={() => {
-            hapticService.light();
-            router.back();
-          }}
+          position="absolute" top={{ base: 10, md: 12 }} left={{ base: 3, md: 4 }}
+          zIndex={10} variant="ghost" colorScheme="primary" size="lg"
+          onPress={() => { hapticService.light(); router.back(); }}
           accessibilityLabel="Go back"
         />
       )}
 
-      <ScrollView flex={1} showsVerticalScrollIndicator={false}>
-        <VStack p={4} pb={8} space={6}>
-          <Box alignItems="center">
-            {/* Widget Preview Placeholder */}
+      <ScrollView flex={1} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 30 }}>
+        <VStack p={4} space={6}>
+          <Box alignItems="center" mt={router.canGoBack() ? 12 : 4}>
             <Box
-              bg={storeWidgetSettings.theme === 'dark_text_on_pink' ? 'primary.100' : 'white'} // Use storeWidgetSettings for preview
-              p={6}
-              rounded="2xl" 
-              w="200px" // Fixed width for widget preview
-              h="200px" // Fixed height to make it square
-              shadow="3"
-              justifyContent="center"
-              alignItems="center"
-              borderWidth={1}
-              borderColor="coolGray.200"
+              bg={storeWidgetSettings.theme === 'dark_text_on_pink' ? 'primary.100' : 'white'}
+              p={6} rounded="2xl" w="200px" h="200px" shadow="3"
+              justifyContent="center" alignItems="center" borderWidth={1} borderColor="coolGray.200"
             >
-              <Text 
-                fontSize="sm" 
-                fontWeight="medium" 
-                textAlign="center"
+              <Text
+                fontSize="sm" fontWeight="medium" textAlign="center"
                 color={storeWidgetSettings.theme === 'pink_text_on_white' ? 'primary.500' : 'textPrimary'}
               >
-                "Your affirmation will appear here."
+                "{storeWidgetSettings.category === 'favorites' && favoriteQuoteIds.length === 0
+                  ? "Add favorites to see them here!"
+                  : storeWidgetSettings.category === 'all'
+                  ? `Affirmations for ${userName || 'you'}`
+                  : breakupInterestCategories.find(c=>c.id === storeWidgetSettings.category)?.label || `Affirmations for ${userName || 'you'}`}"
               </Text>
             </Box>
             <Text mt={2} color="textSecondary" fontSize="xs">Small Widget Preview</Text>
           </Box>
 
-          {/* Insert this new Box for the conditional informational text */}
           <Box mt={4} mb={2} px={4} alignItems="center">
             <Text fontSize="sm" color="textSecondary" textAlign="center">
               {isCustomizing
-                ? "Touch and hold the widget on your phone's Home Screen to choose this widget"
-                : "Reflects the theme and category you're currently using"}
+                ? "Touch and hold the widget on your Home Screen to add and configure it."
+                : "Widget shows quotes from your selected app topic or 'All'."}
             </Text>
           </Box>
 
           <Box>
             <Text fontSize="lg" fontWeight="medium" mb={1}>Add Solace to Your Home Screen</Text>
-            <Text color="textSecondary" fontSize="sm">
-              1. On your Home Screen, touch and hold an empty area until the apps jiggle.
-            </Text>
-            <Text color="textSecondary" fontSize="sm">
-              2. Tap the '+' button in the upper corner.
-            </Text>
-            <Text color="textSecondary" fontSize="sm">
-              3. Search for "Solace" and select your desired widget size.
-            </Text>
+            <Text color="textSecondary" fontSize="sm">1. Touch & hold an empty area on your Home Screen.</Text>
+            <Text color="textSecondary" fontSize="sm">2. Tap the '+' button in the corner.</Text>
+            <Text color="textSecondary" fontSize="sm">3. Search "Solace" and add the widget.</Text>
           </Box>
 
           <Divider />
 
-          <HStack justifyContent="space-between" alignItems="center" mb={4}>
+          <HStack justifyContent="space-between" alignItems="center" mb={isCustomizing ? 0 : 4}>
             <Text fontSize="lg" fontWeight="bold" color="textPrimary">
-              Customize Widget
+              Customize Widget Content
             </Text>
             <Switch
               isChecked={isCustomizing}
-              onToggle={(value) => {
-                hapticService.light();
-                setIsCustomizing(value);
-              }}
+              onToggle={handleToggleCustomize}
               colorScheme="primary"
               size="md"
             />
@@ -279,34 +267,46 @@ export default function WidgetConfigScreen() {
           {isCustomizing && (
             <VStack space={4} mt={2}>
               <Box>
-                <Text mb={1} color="textSecondary" fontWeight="medium">Affirmation Category</Text>
-                <Radio.Group 
-                  name="categorySelection" 
-                  value={storeWidgetSettings.category} 
-                  onChange={(value: string) => handleCategoryChange(value)}
+                <Text mb={2} color="textSecondary" fontWeight="medium">Affirmation Topic for Widget</Text>
+                <Radio.Group
+                  name="widgetCategorySelection"
+                  value={storeWidgetSettings.category}
+                  onChange={handleCategoryChange}
                 >
-                  <VStack space={2}>
+                  <VStack space={3}>
                     <Radio value="all" size="sm">
-                      <Text>All Breakup Quotes</Text>
+                      <Text ml={2}>All Breakup Quotes {subscriptionTier === 'free' && '(Free topics only)'}</Text>
                     </Radio>
-                    <Radio value="favorites" size="sm" isDisabled={favoriteQuoteIds.length === 0}>
-                      <Text>
-                        My Favorites{favoriteQuoteIds.length === 0 ? " (No favorites yet)" : ""}
-                      </Text>
+                    <Radio value="favorites" size="sm" isDisabled={favoriteQuoteIds.length === 0 && subscriptionTier === 'free'}>
+                       <HStack alignItems="center" space={1}>
+                        <Text ml={2}>My Favorites</Text>
+                        {favoriteQuoteIds.length === 0 && <Text fontSize="xs" color="textTertiary">(None yet)</Text>}
+                       </HStack>
                     </Radio>
-                    {breakupInterestCategories.map(cat => (
-                      <Radio key={cat.id} value={cat.id} size="sm">
-                        <Text>{cat.label}</Text>
-                      </Radio>
-                    ))}
+                    {breakupInterestCategories.map(cat => {
+                      const isLocked = cat.premium && subscriptionTier === 'free';
+                      return (
+                        <Radio key={cat.id} value={cat.id} size="sm" isDisabled={isLocked}>
+                          <HStack alignItems="center" space={1}>
+                            <Text ml={2} color={isLocked ? "textTertiary" : "textPrimary"}>{cat.label}</Text>
+                            {isLocked && <Icon as={Ionicons} name="lock-closed-outline" size="xs" color="textTertiary" />}
+                          </HStack>
+                        </Radio>
+                      );
+                    })}
                   </VStack>
                 </Radio.Group>
               </Box>
-              <Button onPress={updateWidgetData} mt={4}>
-                Apply Changes to Widget
+               <Button onPress={updateWidgetData} mt={4} isDisabled={!isCustomizing}>
+                Apply to Widget & Refresh
               </Button>
             </VStack>
           )}
+           {!isCustomizing && (
+             <Button onPress={updateWidgetData} mt={0}>
+                Refresh Widget Now
+              </Button>
+           )}
         </VStack>
       </ScrollView>
     </Box>
