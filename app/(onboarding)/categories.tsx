@@ -12,7 +12,8 @@ export default function InterestCategoriesScreen() {
   const toggleInterestCategory = useUserStore((state) => state.toggleInterestCategory);
   const setInterestCategories = useUserStore((state) => state.setInterestCategories);
   const subscriptionTier = useUserStore((state) => state.subscriptionTier);
-  const { editing } = useLocalSearchParams<{ editing?: string }>();
+  const setActiveQuoteCategory = useUserStore((state) => state.setActiveQuoteCategory);
+  const { editing, comingFromFeed } = useLocalSearchParams<{ editing?: string, comingFromFeed?: string }>();
   const [searchText, setSearchText] = useState('');
   
   const theme = useTheme();
@@ -50,23 +51,39 @@ export default function InterestCategoriesScreen() {
         return cat && !cat.premium;
     });
 
-    if (subscriptionTier === 'free' && freeSelectedCategories.length === 0 && selectedCategories.length > 0) {
-        Alert.alert(
-            "Select a Category",
-            "Please select at least one free category to continue, or upgrade to Premium to access all categories."
+    if (selectedCategories.length === 0) {
+       Alert.alert(
+            "Select a Topic",
+            "Please select at least one topic to continue."
         );
         return;
     }
-     if (selectedCategories.length === 0) {
-       Alert.alert(
-            "Select a Category",
-            "Please select at least one category to continue."
+
+    if (subscriptionTier === 'free' && freeSelectedCategories.length === 0 && selectedCategories.length > 0) {
+         Alert.alert(
+            "Select a Free Topic",
+            "As a free user, please select at least one of the free topics (without a lock icon) to continue, or upgrade to Premium to access all topics."
         );
         return;
     }
 
     if (editing === 'true') {
-      router.replace('/(main)/settings');
+      if (comingFromFeed === 'true') {
+        if (selectedCategories.length === 1) {
+          const singleCategoryId = selectedCategories[0];
+          const categoryDetails = breakupInterestCategories.find(c => c.id === singleCategoryId);
+          if (categoryDetails && (subscriptionTier === 'premium' || !categoryDetails.premium)) {
+            setActiveQuoteCategory(singleCategoryId);
+          } else {
+             setActiveQuoteCategory(null);
+          }
+        } else {
+          setActiveQuoteCategory(null);
+        }
+        router.replace('/(main)');
+      } else {
+        router.replace('/(main)/settings');
+      }
     } else {
       requestAnimationFrame(() => {
         router.push('/(onboarding)/notifications');
@@ -273,7 +290,7 @@ export default function InterestCategoriesScreen() {
           w="100%"
         >
           <Text color="primaryButtonText" fontWeight="semibold" fontSize="md">
-            {editing === 'true' ? 'Save Changes' : 'Continue →'}
+            {editing === 'true' ? 'Save Topics' : 'Continue →'}
           </Text>
         </Button>
       </Box>

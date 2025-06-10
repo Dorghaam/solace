@@ -1,7 +1,7 @@
 import { hapticService } from '@/services/hapticService'; // Import haptic service
 import { reviewService } from '@/services/reviewService'; // Import reviewService
 import { supabase } from '@/services/supabaseClient'; // Ensure this path is correct
-import { useUserStore } from '@/store/userStore'; // ADDED DailyMood import
+import { breakupInterestCategories, useUserStore } from '@/store/userStore'; // Import breakupInterestCategories, BreakupCategory
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient'; // Import LinearGradient
 import { router } from 'expo-router'; // ADDED router import
@@ -22,7 +22,12 @@ export default function FeedScreen() {
   const userName = useUserStore((state) => state.userName);
   const supabaseUser = useUserStore((state) => state.supabaseUser);
   const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
+  
+  // Updated to use activeQuoteCategory and fall back to interestCategories
   const interestCategories = useUserStore((state) => state.interestCategories);
+  const activeQuoteCategory = useUserStore((state) => state.activeQuoteCategory); // NEW
+  const subscriptionTier = useUserStore((state) => state.subscriptionTier); // NEW
+
   const favoriteQuoteIds = useUserStore((state) => state.favoriteQuoteIds);
   const addFavorite = useUserStore((state) => state.addFavoriteQuoteId);
   const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
@@ -76,18 +81,78 @@ export default function FeedScreen() {
   const fetchQuotes = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    console.log('Fetching quotes with categories:', interestCategories);
+
+    let categoriesToFetchFrom: string[] = [];
+    let logMessage = "Fetching quotes based on: ";
+
+    if (activeQuoteCategory) {
+        const categoryDetails = breakupInterestCategories.find(c => c.id === activeQuoteCategory);
+        if (categoryDetails) {
+            if (subscriptionTier === 'free' && categoryDetails.premium) {
+                // Safeguard: Free user somehow has a premium active category. Fallback to general free.
+                const firstFreeCategory = breakupInterestCategories.find(c => !c.premium);
+                categoriesToFetchFrom = firstFreeCategory ? [firstFreeCategory.id] : [];
+                logMessage += `active premium category (${activeQuoteCategory}) but user is free. Fallback to ${categoriesToFetchFrom.join(', ') || 'none'}.`;
+            } else {
+                categoriesToFetchFrom = [activeQuoteCategory];
+                logMessage += `active category (${activeQuoteCategory}).`;
+            }
+        } else {
+            // Active category not found, fallback to general interest logic
+            logMessage += `active category (${activeQuoteCategory}) not found, falling back.`;
+        }
+    }
+    
+    if (categoriesToFetchFrom.length === 0 && interestCategories && interestCategories.length > 0) {
+        if (subscriptionTier === 'free') {
+            // Filter interestCategories to only include non-premium ones for free users
+            categoriesToFetchFrom = interestCategories.filter(id => {
+                const cat = breakupInterestCategories.find(c => c.id === id);
+                return cat && !cat.premium;
+            });
+            logMessage += `filtered free interest categories (${categoriesToFetchFrom.join(', ') || 'none'}).`;
+            // If after filtering, no free categories are left, fetch from the default first free one
+            if (categoriesToFetchFrom.length === 0) {
+                const firstFreeCategory = breakupInterestCategories.find(c => !c.premium);
+                categoriesToFetchFrom = firstFreeCategory ? [firstFreeCategory.id] : [];
+                 logMessage += ` No free selected, fallback to default free: ${categoriesToFetchFrom.join(', ') || 'none'}.`;
+            }
+        } else {
+            // Premium users use all their selected interest categories
+            categoriesToFetchFrom = [...interestCategories];
+            logMessage += `all selected interest categories (${categoriesToFetchFrom.join(', ') || 'none'}).`;
+        }
+    }
+    
+    // If still no categories (e.g., new user, no selections yet, or error in logic)
+    // default to the first available free category
+    if (categoriesToFetchFrom.length === 0) {
+        const firstFreeCategory = breakupInterestCategories.find(cat => !cat.premium);
+        categoriesToFetchFrom = firstFreeCategory ? [firstFreeCategory.id] : [];
+        logMessage += ` Defaulting to first free category: ${categoriesToFetchFrom.join(', ') || 'none'}.`;
+    }
+
+    console.log(logMessage);
+    console.log('Final categories to fetch from:', categoriesToFetchFrom);
 
     try {
       let query = supabase.from('quotes').select('id, text, category');
 
-      // Filter by selected interest categories if any are present
-      if (interestCategories && interestCategories.length > 0) {
-        query = query.in('category', interestCategories);
+      if (categoriesToFetchFrom.length > 0) {
+        query = query.in('category', categoriesToFetchFrom);
+      } else {
+        // If categoriesToFetchFrom is empty (should ideally not happen due to fallbacks),
+        // maybe fetch general non-premium quotes or handle as an error/empty state.
+        // For now, it will fetch all quotes if this list is empty.
+        // Let's ensure it fetches at least from a known free category if list is empty.
+        const defaultFree = breakupInterestCategories.find(cat => !cat.premium)?.id;
+        if (defaultFree) {
+            query = query.in('category', [defaultFree]);
+        }
+        console.log("No specific categories, fetching from default free or all if no default free found.");
       }
       
-      // Fetch quotes without specific ordering - we'll randomize client-side
-      query = query.limit(50); // Fetch more quotes for better variety in infinite scroll
+      query = query.limit(50);
 
       const { data, error: dbError } = await query;
 
@@ -104,8 +169,8 @@ export default function FeedScreen() {
         setQuotes([]);
         console.log('No quotes returned from database'); // Added debug log
         // Optionally set a specific message if no quotes match filters
-        if (interestCategories && interestCategories.length > 0) {
-          setError("No affirmations match your selected topics yet. Try adjusting categories in Settings or check back later!");
+        if (categoriesToFetchFrom.length > 0) {
+          setError("No affirmations match your selected topics yet. Try adjusting topics or check back later!");
         } else {
           setError("No affirmations available right now. Please check back later.");
         }
@@ -117,7 +182,7 @@ export default function FeedScreen() {
     } finally {
       setIsLoading(false);
     }
-  }, [interestCategories]); // Re-fetch if interestCategories change
+  }, [activeQuoteCategory, interestCategories, subscriptionTier]); // Added dependencies
 
   useEffect(() => {
     fetchQuotes();
@@ -276,7 +341,7 @@ export default function FeedScreen() {
       {!error && quotes.length === 0 && !isLoading && (
          <VStack flex={1} justifyContent="center" alignItems="center" p={6} space={3}>
           <Icon as={Ionicons} name="leaf-outline" size="6xl" color="textTertiary" />
-          <Text textAlign="center" color="textSecondary">No affirmations loaded. Pull to refresh or check settings.</Text>
+          <Text textAlign="center" color="textSecondary">No affirmations loaded. Check your selected topics or pull to refresh.</Text>
            <Button variant="outline" onPress={fetchQuotes} mt={4}>Refresh</Button>
         </VStack>
       )}
@@ -300,20 +365,25 @@ export default function FeedScreen() {
               zIndex={10}
               safeAreaTop
             >
-              {/* Daily Streak Button */}
-              <Box
-                bg="rgba(255,255,255,0.9)"
-                rounded="full"
-                p={3}
-                shadow="2"
-                alignItems="center"
-                justifyContent="center"
-                minW="70px"
-              >
-                <Icon as={Ionicons} name="flame" color="orange.500" size="sm" />
-                <Text fontSize="xs" fontWeight="bold" color="textPrimary">{dailyStreak}</Text>
-                <Text fontSize="2xs" color="textSecondary">day{dailyStreak !== 1 ? 's' : ''}</Text>
-              </Box>
+              {/* CATEGORIES BUTTON (Replaces Daily Streak) */}
+              <Pressable onPress={() => {
+                hapticService.medium();
+                router.push({ pathname: '/(onboarding)/categories', params: { editing: 'true', comingFromFeed: 'true' } });
+              }}>
+                <Box
+                  bg="rgba(255,255,255,0.9)"
+                  rounded="full"
+                  p={3}
+                  shadow="2"
+                  alignItems="center"
+                  justifyContent="center"
+                  minW="70px" // Ensure it has some width
+                >
+                  <Icon as={Ionicons} name="albums-outline" color="primary.600" size="sm" />
+                  <Text fontSize="xs" fontWeight="bold" color="textPrimary">Topics</Text>
+                  <Text fontSize="2xs" color="textSecondary">change</Text>
+                </Box>
+              </Pressable>
 
               {/* UPDATED: Mood Check-in Button */}
               <Pressable onPress={() => {
