@@ -246,12 +246,7 @@ export default function SettingsScreen() {
                   />
                 </>
               )}
-              <Divider />
-              <SettingItem
-                label="Restore Purchases"
-                value="Sync previous purchases"
-                onPress={handleRestorePurchases}
-              />
+
             </Box>
           </Box>
 
