@@ -31,6 +31,9 @@ export default ({ config }) => {
         },
         infoPlist: {
           ...(config?.expo?.ios?.infoPlist || {}),
+          SKAdNetworkItems: [
+            { SKAdNetworkIdentifier: 'su67r6k2v3.skadnetwork' }, // RevenueCat SDK requirement
+          ],
           UIDeviceFamily: [1],
           CFBundleURLTypes: [
             ...(config?.expo?.ios?.infoPlist?.CFBundleURLTypes || []).filter(urlType => {
@@ -87,6 +90,7 @@ export default ({ config }) => {
       },
       extra: {
         ...config?.expo?.extra,
+        RC_API_KEY: process.env.EXPO_PUBLIC_RC_API_KEY, // Add RevenueCat API Key
         supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL,
         supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
         googleWebClientId: GOOGLE_WEB_CLIENT_ID,

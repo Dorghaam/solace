@@ -6,7 +6,11 @@
       "@/*": [
         "./*"
       ]
-    }
+    },
+    "types": [
+      "react-native",
+      "react-native-purchases"
+    ]
   },
   "include": [
     "**/*.ts",

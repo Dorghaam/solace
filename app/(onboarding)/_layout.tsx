@@ -11,6 +11,7 @@ export default function OnboardingLayout() {
       <Stack.Screen name="categories" />
       <Stack.Screen name="notifications" />
       <Stack.Screen name="login" />
+      <Stack.Screen name="paywall" />
     </Stack>
   );
 } 

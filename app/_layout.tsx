@@ -9,6 +9,7 @@ import { solaceTheme } from '@/constants/theme';
 import { configureGoogleSignIn } from '@/services/googleAuthService';
 import { setupNotificationResponseListener } from '@/services/notificationService';
 import { fetchAndSetUserProfile } from '@/services/profileService';
+import { initRevenueCat, rcLogIn, rcLogOut } from '@/services/revenueCatService';
 import { reviewService } from '@/services/reviewService';
 import { supabase } from '@/services/supabaseClient';
 import { useUserStore } from '@/store/userStore';
@@ -61,6 +62,12 @@ export default function RootLayout() {
     configureGoogleSignIn();
   }, []); // Empty dependency array: runs once
 
+  // 2.5. Initialize RevenueCat SDK once on app mount
+  useEffect(() => {
+    console.log('_layout.tsx: Initializing RevenueCat SDK...');
+    initRevenueCat();
+  }, []); // Empty dependency array: runs once
+
   // 3. Supabase session on cold start (Engineer's Fix Point 4 - part of side-effects)
   useEffect(() => {
     if (!zustandReady || initialSessionCheckDone) { // Only run if zustand is ready and check not done
@@ -109,6 +116,17 @@ export default function RootLayout() {
       authListener?.subscription?.unsubscribe();
     };
   }, [zustandReady, setSupabaseUser, resetState]); // Dependencies are stable or controlled
+
+  // 4.5. Sync RevenueCat authentication with Supabase user state
+  useEffect(() => {
+    if (supabaseUser) {
+      console.log(`_layout.tsx: Supabase user detected (${supabaseUser.id}), logging into RevenueCat.`);
+      rcLogIn(supabaseUser.id);
+    } else {
+      console.log('_layout.tsx: No Supabase user, logging out of RevenueCat.');
+      rcLogOut();
+    }
+  }, [supabaseUser]); // Re-run whenever the supabaseUser object changes
 
   // --- Other Effects (Keep these as they were, ensuring stable dependencies) ---
   useEffect(() => { if (fontError) throw fontError; }, [fontError]);

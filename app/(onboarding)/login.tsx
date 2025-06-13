@@ -1,19 +1,17 @@
 import { SocialSignInButton } from '@/components/onboarding';
 import { loginWithApple, loginWithGoogle } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
-import { useUserStore } from '@/store/userStore';
+// Removed unused import since we're no longer setting onboarding completion here
 import { Ionicons } from '@expo/vector-icons';
 import * as AppleAuthentication from 'expo-apple-authentication';
 import { router } from 'expo-router';
-import { Box, Icon, IconButton, Text, useToast, VStack } from 'native-base';
+import { Box, Icon, IconButton, Text, VStack } from 'native-base';
 import React, { useState } from 'react';
 import { Alert, Linking, Platform } from 'react-native';
 
 export default function LoginScreen() {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isAppleLoading, setIsAppleLoading] = useState(false);
-  const toast = useToast();
-  const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
@@ -22,13 +20,12 @@ export default function LoginScreen() {
       console.log('LoginScreen: Initiating Google Sign-In...');
       await loginWithGoogle();
       
-      // onAuthStateChange in _layout should handle user state.
-      // We can now mark onboarding as complete and navigate.
-      setHasCompletedOnboarding(true);
-      console.log('LoginScreen: loginWithGoogle successful. Onboarding marked as complete.');
+      // onAuthStateChange in _layout handles user state.
+      // Onboarding is NOT complete yet. Navigate to the paywall.
+      console.log('LoginScreen: loginWithGoogle successful. Navigating to paywall.');
       
-      // Use replace to prevent going back to the login screen
-      requestAnimationFrame(() => router.replace('/(main)'));
+      // Navigate to paywall screen
+      requestAnimationFrame(() => router.push('./paywall'));
 
     } catch (err: any) {
       console.error("LoginScreen: Google Sign-In Error caught:", err.message);
@@ -48,11 +45,10 @@ export default function LoginScreen() {
       console.log('LoginScreen: Initiating Apple Sign-In...');
       await loginWithApple();
       
-      // As with Google, onAuthStateChange in _layout should handle the rest.
-      setHasCompletedOnboarding(true);
-      console.log('LoginScreen: loginWithApple successful. Onboarding marked complete.');
+      // Onboarding is NOT complete yet. Navigate to the paywall.
+      console.log('LoginScreen: loginWithApple successful. Navigating to paywall.');
       
-      requestAnimationFrame(() => router.replace('/(main)'));
+      requestAnimationFrame(() => router.push('./paywall'));
 
     } catch (err: any) {
       // Don't show an alert if the user just cancelled
