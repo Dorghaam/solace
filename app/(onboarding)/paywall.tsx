@@ -1,103 +1,70 @@
 import { useUserStore } from '@/store/userStore';
+import { router } from 'expo-router';
 import { Box, Spinner, Text } from 'native-base';
-import React from 'react';
+import React, { Suspense, useCallback } from 'react';
 import Purchases from 'react-native-purchases';
-import { AppState } from 'react-native';
-
-// Import the actual RevenueCat Paywall component
 import RevenueCatUI from 'react-native-purchases-ui';
 
-// Global flag to prevent multiple presentations
-let hasGloballyPresented = false;
+/**
+ * A separate, stable component to hold the paywall logic.
+ * This prevents the main export from having complex logic and satisfies ESLint.
+ */
+function PaywallContent() {
+  const setHasCompletedOnboarding = useUserStore((s) => s.setHasCompletedOnboarding);
 
-export default function PaywallScreen() {
-  const setHasCompletedOnboarding = useUserStore((state) => state.setHasCompletedOnboarding);
-  const [paywallDismissed, setPaywallDismissed] = React.useState(false);
+  /**
+   * Creates a stable function to navigate to the main app.
+   * It only gets re-created if `setHasCompletedOnboarding` changes (which it won't).
+   */
+  const navigateToMainApp = useCallback(() => {
+    console.log('[PaywallContent] Completing onboarding and navigating to main');
+    setHasCompletedOnboarding(true);
+    router.replace('/(main)');
+  }, [setHasCompletedOnboarding]);
 
-  console.log('[PaywallScreen] PaywallScreen mounted, globallyPresented:', hasGloballyPresented);
-
-  const completeOnboarding = React.useCallback(() => {
-    if (!paywallDismissed) {
-      console.log('[PaywallScreen] Completing onboarding and navigating to main');
-      setPaywallDismissed(true);
-      setHasCompletedOnboarding(true);
+  /**
+   * Creates a stable function to handle a successful purchase or restore.
+   * It depends on `navigateToMainApp`, which is also stable.
+   */
+  const handleSuccess = useCallback(async () => {
+    console.log('[PaywallContent] Purchase/Restore completed');
+    try {
+      await Purchases.syncPurchases();
+    } catch (err) {
+      console.error('[PaywallContent] Error syncing purchases after success:', err);
     }
-  }, [paywallDismissed, setHasCompletedOnboarding]);
+    navigateToMainApp();
+  }, [navigateToMainApp]);
 
-  React.useEffect(() => {
-    // Only present once globally
-    if (hasGloballyPresented) {
-      console.log('[PaywallScreen] Already presented globally, completing onboarding');
-      completeOnboarding();
-      return;
-    }
+  const handleDismiss = useCallback(() => {
+    console.log('[PaywallContent] Paywall dismissed via onDismiss');
+    navigateToMainApp();
+  }, [navigateToMainApp]);
 
-    const presentPaywall = async () => {
-      hasGloballyPresented = true;
-      console.log('[PaywallScreen] Presenting RevenueCat paywall...');
-      
-      try {
-        await RevenueCatUI.presentPaywall({
-          onPurchaseCompleted: async () => {
-            console.log('[PaywallScreen] Purchase completed');
-            await Purchases.syncPurchases();
-            completeOnboarding();
-          },
-          onRestoreCompleted: async () => {
-            console.log('[PaywallScreen] Restore completed');
-            await Purchases.syncPurchases();
-            completeOnboarding();
-          },
-          onDismiss: () => {
-            console.log('[PaywallScreen] Paywall dismissed via onDismiss');
-            completeOnboarding();
-          },
-        });
-        
-        // Add a fallback - if we reach here without callbacks, assume dismissed
-        console.log('[PaywallScreen] RevenueCat presentPaywall promise resolved');
-        setTimeout(() => {
-          if (!paywallDismissed) {
-            console.log('[PaywallScreen] Fallback: Assuming paywall was dismissed');
-            completeOnboarding();
-          }
-        }, 1000);
-        
-      } catch (error) {
-        console.error('[PaywallScreen] Error presenting paywall:', error);
-        completeOnboarding();
-      }
-    };
-
-    // Small delay to ensure component is fully mounted
-    const timer = setTimeout(presentPaywall, 100);
-    return () => clearTimeout(timer);
-  }, [completeOnboarding, paywallDismissed]);
-
-  // Monitor app state changes to detect when user returns from paywall
-  React.useEffect(() => {
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState === 'active' && hasGloballyPresented && !paywallDismissed) {
-        console.log('[PaywallScreen] App became active after paywall, completing onboarding');
-        completeOnboarding();
-      }
-    };
-
-    const subscription = AppState.addEventListener('change', handleAppStateChange);
-    return () => subscription?.remove();
-  }, [completeOnboarding, paywallDismissed]);
-
-  // If onboarding is completed, show nothing to allow navigation
-  if (paywallDismissed) {
-    console.log('[PaywallScreen] Paywall dismissed, allowing navigation');
-    return null;
-  }
-
-  // Simple loading view
   return (
-    <Box flex={1} justifyContent="center" alignItems="center" bg="miracleBackground">
-      <Spinner size="lg" />
-      <Text mt={4}>Loading...</Text>
-    </Box>
+    <RevenueCatUI.Paywall
+      onPurchaseCompleted={handleSuccess}
+      onRestoreCompleted={handleSuccess}
+      onDismiss={handleDismiss}
+    />
+  );
+}
+
+/**
+ * The outer screen component, which uses Suspense to show a loading state
+ * while the PaywallContent fetches its data.
+ */
+export default function PaywallScreen() {
+  return (
+    <Suspense
+      fallback={
+        <Box flex={1} justifyContent="center" alignItems="center" bg="backgroundLight">
+          <Spinner size="lg" />
+          <Text mt={4}>Loading Offers...</Text>
+        </Box>
+      }
+    >
+      <PaywallContent />
+    </Suspense>
   );
 }

@@ -25,7 +25,7 @@ export default function LoginScreen() {
       console.log('LoginScreen: loginWithGoogle successful. Navigating to paywall.');
       
       // Navigate to paywall screen
-      requestAnimationFrame(() => router.push('./paywall'));
+      requestAnimationFrame(() => router.replace('./paywall'));
 
     } catch (err: any) {
       console.error("LoginScreen: Google Sign-In Error caught:", err.message);
@@ -48,7 +48,7 @@ export default function LoginScreen() {
       // Onboarding is NOT complete yet. Navigate to the paywall.
       console.log('LoginScreen: loginWithApple successful. Navigating to paywall.');
       
-      requestAnimationFrame(() => router.push('./paywall'));
+      requestAnimationFrame(() => router.replace('./paywall'));
 
     } catch (err: any) {
       // Don't show an alert if the user just cancelled

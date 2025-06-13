@@ -7,4 +7,16 @@ module.exports = defineConfig([
   {
     ignores: ['dist/*'],
   },
+  {
+    rules: {
+      'react/no-unstable-nested-components': ['warn', { allowAsProps: true }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { 
+          argsIgnorePattern: '^_', 
+          ignoreRestSiblings: true 
+        },
+      ],
+    },
+  },
 ]);
