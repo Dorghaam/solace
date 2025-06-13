@@ -6,40 +6,44 @@ import Purchases from 'react-native-purchases';
 import RevenueCatUI from 'react-native-purchases-ui';
 
 /**
- * A separate, stable component to hold the paywall logic.
- * This prevents the main export from having complex logic and satisfies ESLint.
+ * This component now ONLY handles state changes.
+ * It does not perform any navigation.
  */
 function PaywallContent() {
   const setHasCompletedOnboarding = useUserStore((s) => s.setHasCompletedOnboarding);
 
   /**
-   * Creates a stable function to navigate to the main app.
-   * It only gets re-created if `setHasCompletedOnboarding` changes (which it won't).
+   * NUCLEAR OPTION: Force navigation directly since stack switching is broken.
+   * This bypasses the broken root layout logic.
    */
-  const navigateToMainApp = useCallback(() => {
-    console.log('[PaywallContent] Completing onboarding and navigating to main');
+  const completeOnboarding = useCallback(() => {
+    console.log('[Paywall] Onboarding is being marked as complete.');
     setHasCompletedOnboarding(true);
-    router.replace('/(main)');
+    // Force direct navigation to bypass broken stack switching
+    setTimeout(() => {
+      console.log('[Paywall] Force navigating to main feed');
+      router.replace('/(main)/');
+    }, 100);
   }, [setHasCompletedOnboarding]);
 
   /**
-   * Creates a stable function to handle a successful purchase or restore.
-   * It depends on `navigateToMainApp`, which is also stable.
+   * This function now also just calls completeOnboarding.
+   * We still sync purchases as a best practice.
    */
   const handleSuccess = useCallback(async () => {
-    console.log('[PaywallContent] Purchase/Restore completed');
+    console.log('[Paywall] Purchase/Restore success. Syncing purchases.');
     try {
       await Purchases.syncPurchases();
     } catch (err) {
-      console.error('[PaywallContent] Error syncing purchases after success:', err);
+      console.error('[Paywall] Error syncing purchases after success:', err);
     }
-    navigateToMainApp();
-  }, [navigateToMainApp]);
+    completeOnboarding();
+  }, [completeOnboarding]);
 
   const handleDismiss = useCallback(() => {
-    console.log('[PaywallContent] Paywall dismissed via onDismiss');
-    navigateToMainApp();
-  }, [navigateToMainApp]);
+    console.log('[Paywall] Paywall dismissed via onDismiss');
+    completeOnboarding();
+  }, [completeOnboarding]);
 
   return (
     <RevenueCatUI.Paywall

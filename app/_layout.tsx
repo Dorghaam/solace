@@ -204,7 +204,7 @@ export default function RootLayout() {
   if (supabaseUser && hasCompletedOnboarding) {
     console.log("_layout.tsx: Rendering (main) stack.");
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView key="main-root" style={{ flex: 1 }}>
         <NativeBaseProvider theme={solaceTheme}>
           <MainStack />
           <StatusBar style="dark" backgroundColor={solaceTheme.colors.miracleBackground} />
@@ -214,7 +214,7 @@ export default function RootLayout() {
   } else {
     console.log("_layout.tsx: Rendering (onboarding) stack.");
     return (
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView key="onboarding-root" style={{ flex: 1 }}>
         <NativeBaseProvider theme={solaceTheme}>
           <OnboardingStack />
           <StatusBar style="dark" backgroundColor={solaceTheme.colors.miracleBackground} />

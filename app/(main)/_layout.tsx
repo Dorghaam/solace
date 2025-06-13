@@ -1,35 +1,13 @@
 import { hapticService } from '@/services/hapticService';
-import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
-import { Tabs, router } from 'expo-router';
-import { Box, Icon, Text, VStack, useTheme } from 'native-base';
-import { useEffect } from 'react';
+import { Tabs } from 'expo-router';
+import { Icon, useTheme } from 'native-base';
 
 export default function MainAppTabLayout() {
   const theme = useTheme();
-  const supabaseUser = useUserStore((state) => state.supabaseUser);
-  const hasCompletedOnboarding = useUserStore((state) => state.hasCompletedOnboarding);
 
-  // Authentication guard: redirect to onboarding if not authenticated or onboarding not completed
-  useEffect(() => {
-    if (!supabaseUser || !hasCompletedOnboarding) {
-      console.log('MainAppTabLayout: User not authenticated or onboarding not completed, redirecting...');
-      router.replace('/(onboarding)');
-    }
-  }, [supabaseUser, hasCompletedOnboarding]);
-
-  // Show loading or redirect message while checking authentication
-  if (!supabaseUser || !hasCompletedOnboarding) {
-    return (
-      <Box flex={1} bg="miracleBackground" justifyContent="center" alignItems="center">
-        <VStack space={3} alignItems="center">
-          <Text fontSize="lg" color="textSecondary">
-            Checking authentication...
-          </Text>
-        </VStack>
-      </Box>
-    );
-  }
+  // Note: Authentication is handled by the root _layout.tsx
+  // This component only renders when user is authenticated and onboarding is complete
 
   const handleTabPress = () => {
     hapticService.light();
