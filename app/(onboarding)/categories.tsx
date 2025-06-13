@@ -34,7 +34,17 @@ export default function InterestCategoriesScreen() {
       Alert.alert(
         "Premium Feature",
         `"${category.label}" is a premium category. Unlock all categories with Solace Premium!`,
-        [{ text: "OK" }]
+        [
+          { text: "Not Now", style: "cancel" },
+          { 
+            text: "Upgrade Now", 
+            style: "default",
+            onPress: () => {
+              console.log(`Paywall: User chose to upgrade from category: ${category.label}`);
+              router.push('/(onboarding)/paywall');
+            }
+          }
+        ]
       );
       console.log(`Paywall: User tried to access premium category: ${category.label}`);
     } else {

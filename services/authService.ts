@@ -2,6 +2,8 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Crypto from 'expo-crypto';
 import 'react-native-get-random-values'; // Polyfill for crypto
+import type { SubscriptionTier } from '../store/userStore';
+import { useUserStore } from '../store/userStore';
 import { supabase } from './supabaseClient';
 
 export const loginWithGoogle = async () => {
@@ -130,5 +132,61 @@ export const loginWithApple = async () => {
       console.error('authService: loginWithApple error:', e);
       throw new Error(e.message || 'An unknown error occurred during Apple Sign-In.');
     }
+  }
+};
+
+/**
+ * Updates the user's subscription tier in the Supabase database
+ * This should be called whenever the subscription status changes
+ */
+export const updateUserSubscriptionTier = async (userId: string, tier: SubscriptionTier) => {
+  try {
+    console.log(`[AuthService] Updating user ${userId} subscription tier to: ${tier}`);
+    
+    const { data, error } = await supabase
+      .from('profiles') // Using profiles table as seen in profileService
+      .update({ 
+        subscription_tier: tier,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', userId)
+      .select();
+
+    if (error) {
+      console.error('[AuthService] Error updating subscription tier in Supabase:', error);
+      throw error;
+    }
+
+    console.log('[AuthService] Successfully updated subscription tier in Supabase:', data);
+    return data;
+  } catch (error) {
+    console.error('[AuthService] Failed to update subscription tier:', error);
+    throw error;
+  }
+};
+
+/**
+ * Sync subscription tier: Update both local state AND Supabase database
+ * This is the main function you should call when subscription status changes
+ */
+export const syncSubscriptionTier = async (tier: SubscriptionTier) => {
+  try {
+    const { supabaseUser } = useUserStore.getState();
+    
+    if (!supabaseUser?.id) {
+      console.warn('[AuthService] Cannot sync subscription tier - no authenticated user');
+      return;
+    }
+
+    // Update local state first (immediate UI update)
+    useUserStore.getState().setSubscriptionTier(tier);
+    
+    // Then update Supabase database (persistent storage)
+    await updateUserSubscriptionTier(supabaseUser.id, tier);
+    
+    console.log(`[AuthService] Successfully synced subscription tier to: ${tier}`);
+  } catch (error) {
+    console.error('[AuthService] Error syncing subscription tier:', error);
+    // Don't throw here - we want local state to still work even if DB update fails
   }
 }; 

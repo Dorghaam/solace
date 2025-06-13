@@ -2,12 +2,14 @@ import { signOut } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
 import { reviewService } from '@/services/reviewService';
+import { isDevelopment, TestingService } from '@/services/testingService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Box, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, useToast, VStack } from 'native-base';
+import { Badge, Box, Divider, HStack, Icon, Pressable, ScrollView, Switch, Text, useToast, VStack } from 'native-base';
 import React from 'react';
-import { Alert } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
+import Purchases from 'react-native-purchases';
 
 // Reusable Setting Item Component
 const SettingItem: React.FC<{label: string, value?: string, onPress?: () => void, rightContent?: React.ReactNode }> = 
@@ -46,7 +48,8 @@ export default function SettingsScreen() {
     setNotificationSettings, // For toggling directly
     setPushToken, // For clearing token if notifications disabled
     resetState,
-    setHasCompletedOnboarding
+    setHasCompletedOnboarding,
+    subscriptionTier // Add subscription tier
   } = useUserStore();
 
   const toast = useToast();
@@ -121,6 +124,72 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleUpgradeToPremium = () => {
+    hapticService.medium();
+    console.log('Settings: Navigating to paywall for upgrade');
+    router.push('/(onboarding)/paywall');
+  };
+
+  const handleManageSubscription = async () => {
+    hapticService.light();
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      const managementURL = customerInfo.managementURL;
+      
+      if (managementURL) {
+        await Linking.openURL(managementURL);
+      } else {
+        // Fallback to platform-specific subscription management
+        const url = Platform.OS === 'ios' 
+          ? 'https://apps.apple.com/account/subscriptions'
+          : 'https://play.google.com/store/account/subscriptions';
+        await Linking.openURL(url);
+      }
+    } catch (error) {
+      console.error('Error opening subscription management:', error);
+      toast.show({
+        title: "Unable to Open",
+        description: "Could not open subscription management. Please check your device's app store.",
+        duration: 3000,
+      });
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    hapticService.medium();
+    try {
+      toast.show({
+        title: "Restoring Purchases...",
+        description: "Please wait while we restore your purchases.",
+        duration: 2000,
+      });
+
+      const customerInfo = await Purchases.restorePurchases();
+      const hasActiveSubscription = Object.keys(customerInfo.entitlements.active).length > 0;
+      
+      if (hasActiveSubscription) {
+        toast.show({
+          title: "Purchases Restored!",
+          description: "Your premium subscription has been restored.",
+          duration: 3000,
+        });
+      } else {
+        toast.show({
+          title: "No Purchases Found",
+          description: "No active subscriptions were found to restore.",
+          duration: 3000,
+        });
+      }
+    } catch (error) {
+      console.error('Error restoring purchases:', error);
+      toast.show({
+        title: "Restore Failed",
+        description: "Could not restore purchases. Please try again later.",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
       <Box px={4} py={4} justifyContent="center" alignItems="center" borderBottomWidth={1} borderColor="gray.100">
@@ -137,6 +206,53 @@ export default function SettingsScreen() {
                 label="Name" 
                 value={userName || "Not set"} 
                 onPress={() => router.push({ pathname: '/(onboarding)/name', params: { editing: 'true' } })} 
+              />
+            </Box>
+          </Box>
+
+          {/* Subscription Management Section */}
+          <Box>
+            <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+              SUBSCRIPTION
+            </Text>
+            <Box bg="white" rounded="lg" mx={4} shadow="1">
+              <SettingItem
+                label="Current Plan"
+                rightContent={
+                  <Badge
+                    colorScheme={subscriptionTier === 'premium' ? 'success' : 'gray'}
+                    variant="subtle"
+                    rounded="full"
+                  >
+                    {subscriptionTier?.toUpperCase() || 'FREE'}
+                  </Badge>
+                }
+              />
+              {subscriptionTier === 'free' && (
+                <>
+                  <Divider />
+                  <SettingItem
+                    label="Upgrade to Premium"
+                    value="Unlock all categories"
+                    onPress={handleUpgradeToPremium}
+                  />
+                </>
+              )}
+              {subscriptionTier === 'premium' && (
+                <>
+                  <Divider />
+                  <SettingItem
+                    label="Manage Subscription"
+                    value="Billing & cancellation"
+                    onPress={handleManageSubscription}
+                  />
+                </>
+              )}
+              <Divider />
+              <SettingItem
+                label="Restore Purchases"
+                value="Sync previous purchases"
+                onPress={handleRestorePurchases}
               />
             </Box>
           </Box>
@@ -198,6 +314,34 @@ export default function SettingsScreen() {
               />
             </Box>
           </Box>
+
+          {/* Development Testing Section - Only shown in development */}
+          {isDevelopment && (
+            <Box>
+              <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+                🧪 TESTING (DEV ONLY)
+              </Text>
+              <Box bg="white" rounded="lg" mx={4} shadow="1">
+                <SettingItem
+                  label="Simulate Subscription States"
+                  value="Test premium/free modes"
+                  onPress={() => {
+                    hapticService.light();
+                    TestingService.showTestingOptions();
+                  }}
+                />
+                <Divider />
+                <SettingItem
+                  label="View Subscription Info"
+                  value="Current state details"
+                  onPress={() => {
+                    hapticService.light();
+                    TestingService.showSubscriptionInfo();
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
 
           {/* Sign Out Section */}
           <Box>

@@ -1,3 +1,4 @@
+import { syncSubscriptionTier } from '@/services/authService';
 import { useUserStore } from '@/store/userStore';
 import { router } from 'expo-router';
 import { Box, Spinner, Text } from 'native-base';
@@ -24,20 +25,20 @@ function PaywallContent() {
     // Force direct navigation to bypass broken stack switching
     setTimeout(() => {
       console.log('[Paywall] Force navigating to main feed');
-      router.replace('/(main)/');
+      router.replace('/(main)/' as any);
     }, 100);
   }, [setHasCompletedOnboarding]);
 
   /**
    * Handles successful purchase/restore and navigates to main feed.
-   * Updates subscription tier and syncs purchases.
+   * Updates subscription tier locally AND syncs to Supabase database.
    */
   const handleSuccess = useCallback(async () => {
     console.log('[Paywall] Purchase/Restore success. Processing...');
     
-    // Update subscription tier immediately
-    setSubscriptionTier('premium');
-    console.log('[Paywall] Subscription tier updated to premium');
+    // Sync subscription tier to both local state AND Supabase database
+    await syncSubscriptionTier('premium');
+    console.log('[Paywall] Subscription tier synced to premium');
     
     try {
       await Purchases.syncPurchases();
@@ -48,7 +49,7 @@ function PaywallContent() {
     
     console.log('[Paywall] Completing onboarding after purchase');
     completeOnboarding();
-  }, [completeOnboarding, setSubscriptionTier]);
+  }, [completeOnboarding]);
 
   const handleDismiss = useCallback(() => {
     console.log('[Paywall] Paywall dismissed via onDismiss');
@@ -60,10 +61,11 @@ function PaywallContent() {
     const checkPurchaseStatus = async () => {
       try {
         const customerInfo = await Purchases.getCustomerInfo();
-        const hasActiveSubscription = Object.keys(customerInfo.entitlements.active).length > 0;
+        // Check for the specific 'premium' entitlement instead of just any active entitlement
+        const hasPremiumEntitlement = customerInfo.entitlements.active['premium']?.isActive || false;
         
-        if (hasActiveSubscription && !hasCompletedRef.current) {
-          console.log('[Paywall] Fallback: Detected active subscription, completing onboarding');
+        if (hasPremiumEntitlement && !hasCompletedRef.current) {
+          console.log('[Paywall] Fallback: Detected premium entitlement, completing onboarding');
           hasCompletedRef.current = true;
           handleSuccess();
         }
@@ -78,11 +80,11 @@ function PaywallContent() {
 
   return (
     <RevenueCatUI.Paywall
-      onPurchaseCompleted={(customerInfo) => {
+      onPurchaseCompleted={({ customerInfo }) => {
         console.log('[Paywall] onPurchaseCompleted called:', customerInfo?.entitlements?.active);
         handleSuccess();
       }}
-      onRestoreCompleted={(customerInfo) => {
+      onRestoreCompleted={({ customerInfo }) => {
         console.log('[Paywall] onRestoreCompleted called:', customerInfo?.entitlements?.active);
         handleSuccess();
       }}
