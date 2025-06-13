@@ -85,10 +85,11 @@ export default function RootLayout() {
       
       setInitialSessionCheckDone(true);
       
-      // Check authentication sync after initial session check
+      // Check authentication sync after initial session check with sufficient delay
+      // This ensures RevenueCat has time to properly determine subscription status
       setTimeout(() => {
         checkAuthenticationSync();
-      }, 1000); // Small delay to ensure both services are initialized
+      }, 3000); // Increased delay to ensure both services are fully initialized
     });
   }, [zustandReady, setSupabaseUser]); // setSupabaseUser is stable
 

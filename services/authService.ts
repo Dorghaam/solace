@@ -176,29 +176,10 @@ export const syncSubscriptionTier = async (tier: SubscriptionTier) => {
     if (!supabaseUser?.id) {
       console.warn('[AuthService] Cannot sync subscription tier - no authenticated Supabase user');
       
-      // Check if this is an authentication mismatch (RevenueCat has user, Supabase doesn't)
-      try {
-        const Purchases = await import('react-native-purchases').then(m => m.default);
-        const customerInfo = await Purchases.getCustomerInfo();
-        
-        if (!customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
-          console.warn('[AuthService] ⚠️ Authentication mismatch detected!');
-          console.warn('[AuthService] RevenueCat user:', customerInfo.originalAppUserId);
-          console.warn('[AuthService] Supabase user: null');
-          console.warn('[AuthService] This may indicate a session expiry or authentication sync issue');
-          
-          // Update local state only (can't sync to database without user)
-          useUserStore.getState().setSubscriptionTier(tier);
-          
-          // Consider logging out from RevenueCat to maintain consistency
-          console.log('[AuthService] Logging out from RevenueCat to maintain auth consistency');
-          const { rcLogOut } = await import('./revenueCatService');
-          await rcLogOut();
-        }
-      } catch (rcError) {
-        console.warn('[AuthService] Could not check RevenueCat state:', rcError);
-      }
+      // Update local state only (can't sync to database without user)
+      useUserStore.getState().setSubscriptionTier(tier);
       
+      console.log('[AuthService] Updated local subscription tier to:', tier, '(database sync skipped - no user)');
       return;
     }
 

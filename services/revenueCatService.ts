@@ -28,11 +28,19 @@ export const initRevenueCat = () => {
         hasPremiumEntitlement,
         newTier,
         activeEntitlements: Object.keys(info.entitlements.active),
-        activeSubscriptions: info.activeSubscriptions
+        activeSubscriptions: info.activeSubscriptions,
+        timestamp: new Date().toISOString()
       });
       
-      // Sync subscription tier to both local state AND Supabase database
-      syncSubscriptionTier(newTier);
+      // Only sync if this represents a meaningful change
+      const currentTier = require('../store/userStore').useUserStore.getState().subscriptionTier;
+      if (currentTier !== newTier) {
+        console.log('[RevenueCat] Subscription tier changed from', currentTier, 'to', newTier, '- syncing...');
+        // Sync subscription tier to both local state AND Supabase database
+        syncSubscriptionTier(newTier);
+      } else {
+        console.log('[RevenueCat] Subscription tier unchanged (', newTier, ') - no sync needed');
+      }
     });
     
     console.log('[RevenueCat] SDK configured successfully with customer info listener');
