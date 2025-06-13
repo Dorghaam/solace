@@ -174,7 +174,31 @@ export const syncSubscriptionTier = async (tier: SubscriptionTier) => {
     const { supabaseUser } = useUserStore.getState();
     
     if (!supabaseUser?.id) {
-      console.warn('[AuthService] Cannot sync subscription tier - no authenticated user');
+      console.warn('[AuthService] Cannot sync subscription tier - no authenticated Supabase user');
+      
+      // Check if this is an authentication mismatch (RevenueCat has user, Supabase doesn't)
+      try {
+        const Purchases = await import('react-native-purchases').then(m => m.default);
+        const customerInfo = await Purchases.getCustomerInfo();
+        
+        if (!customerInfo.originalAppUserId.startsWith('$RCAnonymousID:')) {
+          console.warn('[AuthService] ⚠️ Authentication mismatch detected!');
+          console.warn('[AuthService] RevenueCat user:', customerInfo.originalAppUserId);
+          console.warn('[AuthService] Supabase user: null');
+          console.warn('[AuthService] This may indicate a session expiry or authentication sync issue');
+          
+          // Update local state only (can't sync to database without user)
+          useUserStore.getState().setSubscriptionTier(tier);
+          
+          // Consider logging out from RevenueCat to maintain consistency
+          console.log('[AuthService] Logging out from RevenueCat to maintain auth consistency');
+          const { rcLogOut } = await import('./revenueCatService');
+          await rcLogOut();
+        }
+      } catch (rcError) {
+        console.warn('[AuthService] Could not check RevenueCat state:', rcError);
+      }
+      
       return;
     }
 
@@ -188,5 +212,67 @@ export const syncSubscriptionTier = async (tier: SubscriptionTier) => {
   } catch (error) {
     console.error('[AuthService] Error syncing subscription tier:', error);
     // Don't throw here - we want local state to still work even if DB update fails
+  }
+};
+
+/**
+ * Check for authentication mismatches between Supabase and RevenueCat
+ * Call this during app initialization to ensure both services are in sync
+ */
+export const checkAuthenticationSync = async () => {
+  try {
+    console.log('[AuthService] Checking authentication sync between Supabase and RevenueCat...');
+    
+    const { supabaseUser } = useUserStore.getState();
+    const Purchases = await import('react-native-purchases').then(m => m.default);
+    const customerInfo = await Purchases.getCustomerInfo();
+    
+    const hasSupabaseUser = !!supabaseUser?.id;
+    const hasRevenueCatUser = !customerInfo.originalAppUserId.startsWith('$RCAnonymousID:');
+    
+    console.log('[AuthService] Auth sync check:', {
+      hasSupabaseUser,
+      hasRevenueCatUser,
+      supabaseUserId: supabaseUser?.id || 'null',
+      revenueCatUserId: customerInfo.originalAppUserId
+    });
+    
+    // Case 1: Both are logged in - check if they match
+    if (hasSupabaseUser && hasRevenueCatUser) {
+      if (supabaseUser.id !== customerInfo.originalAppUserId) {
+        console.warn('[AuthService] ⚠️ User ID mismatch!');
+        console.warn('[AuthService] Supabase user:', supabaseUser.id);
+        console.warn('[AuthService] RevenueCat user:', customerInfo.originalAppUserId);
+        
+        // Logout from RevenueCat and re-login with correct Supabase user
+        const { rcLogOut, rcLogIn } = await import('./revenueCatService');
+        await rcLogOut();
+        await rcLogIn(supabaseUser.id);
+      } else {
+        console.log('[AuthService] ✅ Authentication is properly synced');
+      }
+    }
+    
+    // Case 2: Supabase logged in, RevenueCat anonymous - login to RevenueCat
+    else if (hasSupabaseUser && !hasRevenueCatUser) {
+      console.log('[AuthService] Supabase logged in, RevenueCat anonymous - logging into RevenueCat');
+      const { rcLogIn } = await import('./revenueCatService');
+      await rcLogIn(supabaseUser.id);
+    }
+    
+    // Case 3: RevenueCat logged in, Supabase anonymous - logout from RevenueCat
+    else if (!hasSupabaseUser && hasRevenueCatUser) {
+      console.log('[AuthService] RevenueCat logged in, Supabase anonymous - logging out from RevenueCat');
+      const { rcLogOut } = await import('./revenueCatService');
+      await rcLogOut();
+    }
+    
+    // Case 4: Both anonymous - no action needed
+    else {
+      console.log('[AuthService] Both services are in anonymous state - no sync needed');
+    }
+    
+  } catch (error) {
+    console.error('[AuthService] Error checking authentication sync:', error);
   }
 }; 

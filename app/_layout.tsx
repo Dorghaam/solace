@@ -6,6 +6,7 @@ import 'react-native-get-random-values'; // MUST BE AT THE TOP
 import 'react-native-reanimated';
 
 import { solaceTheme } from '@/constants/theme';
+import { checkAuthenticationSync } from '@/services/authService';
 import { configureGoogleSignIn } from '@/services/googleAuthService';
 import { setupNotificationResponseListener } from '@/services/notificationService';
 import { fetchAndSetUserProfile } from '@/services/profileService';
@@ -68,25 +69,28 @@ export default function RootLayout() {
     initRevenueCat();
   }, []); // Empty dependency array: runs once
 
-  // 3. Supabase session on cold start (Engineer's Fix Point 4 - part of side-effects)
+  // 3. Initial session fetch (Engineer's Fix Point 3)
   useEffect(() => {
-    if (!zustandReady || initialSessionCheckDone) { // Only run if zustand is ready and check not done
+    if (!zustandReady) {
       return;
     }
-    console.log('_layout.tsx: Supabase getSession - Zustand ready, fetching session.');
+    console.log('_layout.tsx: Supabase getSession - Attempting to fetch...');
     supabase.auth.getSession().then(({ data: { session } }) => {
       console.log('_layout.tsx: Supabase getSession - Fetched. Session User ID:', session?.user?.id || 'null');
       setSupabaseUser(session?.user ?? null);
+      
       if (session?.user) {
         fetchAndSetUserProfile(session.user.id);
       }
+      
       setInitialSessionCheckDone(true);
-    }).catch(error => {
-      console.error('_layout.tsx: Supabase getSession - Error:', error);
-      setSupabaseUser(null);
-      setInitialSessionCheckDone(true);
+      
+      // Check authentication sync after initial session check
+      setTimeout(() => {
+        checkAuthenticationSync();
+      }, 1000); // Small delay to ensure both services are initialized
     });
-  }, [zustandReady, initialSessionCheckDone, setSupabaseUser]); // setSupabaseUser is stable
+  }, [zustandReady, setSupabaseUser]); // setSupabaseUser is stable
 
   // 4. Real-time auth listener (Engineer's Fix Point 4)
   useEffect(() => {
