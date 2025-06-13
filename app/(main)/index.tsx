@@ -33,7 +33,7 @@ export default function FeedScreen() {
   const removeFavorite = useUserStore((state) => state.removeFavoriteQuoteId);
   const targetQuote = useUserStore((state) => state.targetQuote);
   const clearTargetQuote = useUserStore((state) => state.clearTargetQuote);
-  const dailyMood = useUserStore((state) => state.dailyMood); // ADDED: Get dailyMood
+
   
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -43,8 +43,7 @@ export default function FeedScreen() {
   const [optimisticFavorites, setOptimisticFavorites] = useState<Set<string>>(new Set()); // Add optimistic state
   const flatListRef = useRef<FlatList>(null);
 
-  const todayDateString = new Date().toISOString().split('T')[0]; // ADDED: Today's date
-  const moodLoggedToday = dailyMood && dailyMood.date === todayDateString; // ADDED: Check if mood is logged
+
 
   // Authentication guard: redirect to onboarding if not authenticated
   useEffect(() => {
@@ -385,10 +384,12 @@ export default function FeedScreen() {
                 </Box>
               </Pressable>
 
-              {/* UPDATED: Mood Check-in Button */}
+              {/* UPDATED: Premium Upgrade Button */}
               <Pressable onPress={() => {
                 hapticService.medium();
-                router.push('/(main)/moodSelection');
+                if (subscriptionTier === 'free') {
+                  router.push('/(onboarding)/paywall');
+                }
               }}>
                 <Box
                   bg="rgba(255,255,255,0.9)"
@@ -399,15 +400,17 @@ export default function FeedScreen() {
                   justifyContent="center"
                   minW="70px"
                 >
-                  {moodLoggedToday && dailyMood?.emoji ? (
-                    <Text fontSize="xs" fontWeight="bold">{dailyMood.emoji}</Text>
+                  {subscriptionTier === 'free' ? (
+                    <Icon as={Ionicons} name="star-outline" color="primary.600" size="sm" />
                   ) : (
-                    <Icon as={Ionicons} name="happy-outline" color="primary.600" size="sm" />
+                    <Icon as={Ionicons} name="star" color="primary.600" size="sm" />
                   )}
                   <Text fontSize="xs" fontWeight="bold" color="textPrimary">
-                    {moodLoggedToday ? dailyMood?.mood : "mood"}
+                    {subscriptionTier === 'free' ? "upgrade" : "premium"}
                   </Text>
-                  <Text fontSize="2xs" color="textSecondary">check-in</Text>
+                  <Text fontSize="2xs" color="textSecondary">
+                    {subscriptionTier === 'free' ? "to premium" : "active"}
+                  </Text>
                 </Box>
               </Pressable>
             </HStack>
