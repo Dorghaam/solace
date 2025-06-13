@@ -204,7 +204,6 @@ export default function SettingsScreen() {
               <SettingItem 
                 label="Name" 
                 value={userName || "Not set"} 
-                onPress={() => router.push({ pathname: '/(onboarding)/name', params: { editing: 'true' } })} 
               />
             </Box>
           </Box>
@@ -270,7 +269,8 @@ export default function SettingsScreen() {
               />
               <Divider />
               <SettingItem 
-                label="Home Screen Widget" 
+                label="Lock Screen Widget" 
+                value="Updates every 2 hours"
                 onPress={() => router.push('/(main)/widgetconfig')}
               />
             </Box>

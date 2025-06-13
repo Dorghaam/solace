@@ -232,20 +232,20 @@ export default function WidgetConfigScreen() {
                   : breakupInterestCategories.find(c=>c.id === storeWidgetSettings.category)?.label || `Affirmations for ${userName || 'you'}`}"
               </Text>
             </Box>
-            <Text mt={2} color="textSecondary" fontSize="xs">Small Widget Preview</Text>
+            <Text mt={2} color="textSecondary" fontSize="xs">Lock Screen Widget Preview</Text>
           </Box>
 
           <Box mt={4} mb={2} px={4} alignItems="center">
             <Text fontSize="sm" color="textSecondary" textAlign="center">
               {isCustomizing
-                ? "Touch and hold the widget on your Home Screen to add and configure it."
-                : "Widget shows quotes from your selected app topic or 'All'."}
+                ? "Add the widget to your Lock Screen: Lock your phone, touch and hold the Lock Screen, then tap 'Customize' and select 'Lock Screen' to add widgets."
+                : "Lock Screen widget shows quotes from your selected category and updates every 2 hours."}
             </Text>
           </Box>
 
           <Box>
-            <Text fontSize="lg" fontWeight="medium" mb={1}>Add Solace to Your Home Screen</Text>
-            <Text color="textSecondary" fontSize="sm">1. Touch & hold an empty area on your Home Screen.</Text>
+                          <Text fontSize="lg" fontWeight="medium" mb={1}>Add Solace to Your Lock Screen</Text>
+              <Text color="textSecondary" fontSize="sm">1. Lock your phone and touch & hold the Lock Screen.</Text>
             <Text color="textSecondary" fontSize="sm">2. Tap the '+' button in the corner.</Text>
             <Text color="textSecondary" fontSize="sm">3. Search "Solace" and add the widget.</Text>
           </Box>
