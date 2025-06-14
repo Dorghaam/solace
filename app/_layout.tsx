@@ -93,8 +93,12 @@ export default function RootLayout() {
       setInitialSessionCheckDone(true);
       
       // Check authentication sync after initial session check with sufficient delay
-      setTimeout(() => {
-        checkAuthenticationSync();
+      setTimeout(async () => {
+        await checkAuthenticationSync();
+        
+        // Also trigger a subscription sync to ensure tier is correct on app startup
+        const { subscriptionSyncService } = await import('@/services/subscriptionSyncService');
+        await subscriptionSyncService.syncSubscriptionTier('auth_sync');
       }, 3000);
     }).catch((error) => {
       console.error('_layout.tsx: Error fetching session:', error);

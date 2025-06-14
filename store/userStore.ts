@@ -223,15 +223,29 @@ export const useUserStore = create<UserState>()(
         // activeQuoteCategory and targetQuote are typically transient
       }),
       // Custom hydration logic if needed
-      onRehydrateStorage: () => (state) => {
+      onRehydrateStorage: () => async (state) => {
         console.log('UserStore: Hydration starts.');
         if (state) {
           // Ensure critical defaults if hydration somehow misses them
           state.widgetSettings = state.widgetSettings || initialState.widgetSettings;
           state.notificationSettings = state.notificationSettings || initialState.notificationSettings;
           state.interestCategories = state.interestCategories && state.interestCategories.length > 0 ? state.interestCategories : initialState.interestCategories;
-          state.subscriptionTier = state.subscriptionTier || initialState.subscriptionTier;
           state.isWidgetCustomizing = state.isWidgetCustomizing !== undefined ? state.isWidgetCustomizing : initialState.isWidgetCustomizing;
+          
+          // Enhanced subscription tier recovery
+          if (!state.subscriptionTier) {
+            // Try to get cached subscription state for offline resilience
+            try {
+              const { subscriptionSyncService } = await import('../services/subscriptionSyncService');
+              const cachedTier = await subscriptionSyncService.getCachedSubscriptionState();
+              state.subscriptionTier = cachedTier || initialState.subscriptionTier;
+              console.log('UserStore: Used cached subscription tier:', state.subscriptionTier);
+            } catch (error) {
+              console.warn('UserStore: Failed to get cached subscription tier:', error);
+              state.subscriptionTier = initialState.subscriptionTier;
+            }
+          }
+          
           console.log('UserStore: Hydration complete, state:', {
             userName: state.userName,
             hasCompletedOnboarding: state.hasCompletedOnboarding,

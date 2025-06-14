@@ -5,6 +5,7 @@ import 'react-native-get-random-values'; // Polyfill for crypto
 import type { SubscriptionTier } from '../store/userStore';
 import { useUserStore } from '../store/userStore';
 import { supabase } from './supabaseClient';
+import { subscriptionSyncService } from './subscriptionSyncService';
 
 export const loginWithGoogle = async () => {
   try {
@@ -166,34 +167,12 @@ export const updateUserSubscriptionTier = async (userId: string, tier: Subscript
 };
 
 /**
- * Sync subscription tier: Update both local state AND Supabase database
- * This is the main function you should call when subscription status changes
+ * Legacy sync function - now delegates to centralized sync service
+ * Kept for backward compatibility
  */
 export const syncSubscriptionTier = async (tier: SubscriptionTier) => {
-  try {
-    const { supabaseUser } = useUserStore.getState();
-    
-    if (!supabaseUser?.id) {
-      console.warn('[AuthService] Cannot sync subscription tier - no authenticated Supabase user');
-      
-      // Update local state only (can't sync to database without user)
-      useUserStore.getState().setSubscriptionTier(tier);
-      
-      console.log('[AuthService] Updated local subscription tier to:', tier, '(database sync skipped - no user)');
-      return;
-    }
-
-    // Update local state first (immediate UI update)
-    useUserStore.getState().setSubscriptionTier(tier);
-    
-    // Then update Supabase database (persistent storage)
-    await updateUserSubscriptionTier(supabaseUser.id, tier);
-    
-    console.log(`[AuthService] Successfully synced subscription tier to: ${tier}`);
-  } catch (error) {
-    console.error('[AuthService] Error syncing subscription tier:', error);
-    // Don't throw here - we want local state to still work even if DB update fails
-  }
+  console.log('[AuthService] Legacy syncSubscriptionTier called, delegating to centralized service');
+  return subscriptionSyncService.syncSubscriptionTier('auth_sync', tier);
 };
 
 /**
@@ -229,6 +208,9 @@ export const checkAuthenticationSync = async () => {
         const { rcLogOut, rcLogIn } = await import('./revenueCatService');
         await rcLogOut();
         await rcLogIn(supabaseUser.id);
+        
+        // Trigger a sync after fixing the authentication mismatch
+        await subscriptionSyncService.syncSubscriptionTier('auth_sync');
       } else {
         console.log('[AuthService] ✅ Authentication is properly synced');
       }
@@ -239,6 +221,9 @@ export const checkAuthenticationSync = async () => {
       console.log('[AuthService] Supabase logged in, RevenueCat anonymous - logging into RevenueCat');
       const { rcLogIn } = await import('./revenueCatService');
       await rcLogIn(supabaseUser.id);
+      
+      // Trigger a sync after logging in to RevenueCat
+      await subscriptionSyncService.syncSubscriptionTier('auth_sync');
     }
     
     // Case 3: RevenueCat logged in, Supabase anonymous - logout from RevenueCat

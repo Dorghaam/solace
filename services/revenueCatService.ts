@@ -1,6 +1,6 @@
 import Constants from 'expo-constants';
 import Purchases, { CustomerInfo } from 'react-native-purchases';
-import { syncSubscriptionTier } from './authService';
+import { subscriptionSyncService } from './subscriptionSyncService';
 
 // Ensure your RevenueCat public API key is in .env and app.config.js
 const apiKey = Constants.expoConfig?.extra?.RC_API_KEY as string;
@@ -35,15 +35,8 @@ export const initRevenueCat = () => {
         timestamp: new Date().toISOString()
       });
       
-      // Only sync if this represents a meaningful change
-      const currentTier = require('../store/userStore').useUserStore.getState().subscriptionTier;
-      if (currentTier !== newTier) {
-        console.log('[RevenueCat] Subscription tier changed from', currentTier, 'to', newTier, '- syncing...');
-        // Sync subscription tier to both local state AND Supabase database
-        syncSubscriptionTier(newTier);
-      } else {
-        console.log('[RevenueCat] Subscription tier unchanged (', newTier, ') - no sync needed');
-      }
+      // Use the centralized sync service with the definitive tier from RevenueCat
+      subscriptionSyncService.syncSubscriptionTier('revenuecat_listener', newTier);
     });
     
     // Start periodic subscription checking
@@ -83,8 +76,8 @@ export const rcLogIn = async (userId: string) => {
       originalAppUserId: customerInfo.originalAppUserId
     });
     
-    // Sync subscription tier to both local state AND Supabase database
-    await syncSubscriptionTier(tier);
+    // Use centralized sync service
+    await subscriptionSyncService.syncSubscriptionTier('auth_sync', tier);
     
     // Restart periodic checking after login
     startPeriodicSubscriptionCheck();
@@ -179,28 +172,20 @@ const startPeriodicSubscriptionCheck = () => {
   // Clear any existing timer
   stopPeriodicSubscriptionCheck();
   
-  console.log('[RevenueCat] Starting periodic subscription check (every 5 minutes)');
+  console.log('[RevenueCat] Starting periodic subscription check (every 10 minutes)');
   
   subscriptionCheckTimer = setInterval(async () => {
     try {
-      const { useUserStore } = await import('../store/userStore');
-      const currentTier = useUserStore.getState().subscriptionTier;
+      console.log('[RevenueCat] Starting periodic subscription check...');
       
-      console.log('[RevenueCat] Periodic subscription check - current tier:', currentTier);
+      // Use centralized sync service for periodic checks
+      await subscriptionSyncService.syncSubscriptionTier('periodic_check');
       
-      const hasPremiumEntitlement = await checkPremiumStatus(5000); // 5 second timeout for periodic checks
-      const actualTier = hasPremiumEntitlement ? 'premium' : 'free';
-      
-      if (currentTier !== actualTier) {
-        console.log(`[RevenueCat] 🔄 Periodic check detected tier mismatch: ${currentTier} → ${actualTier}`);
-        await syncSubscriptionTier(actualTier);
-      } else {
-        console.log('[RevenueCat] ✅ Periodic check - subscription tier is in sync');
-      }
+      console.log('[RevenueCat] ✅ Periodic check completed');
     } catch (error) {
       console.warn('[RevenueCat] Periodic subscription check failed:', error);
     }
-  }, 5 * 60 * 1000); // Check every 5 minutes
+  }, 10 * 60 * 1000); // Check every 10 minutes (reduced frequency)
 };
 
 /**
@@ -221,11 +206,11 @@ export const forceRefreshSubscriptionStatus = async (): Promise<void> => {
   console.log('[RevenueCat] 🔄 Force refreshing subscription status...');
   try {
     await Purchases.syncPurchases();
-    const hasPremiumEntitlement = await checkPremiumStatus(10000);
-    const tier = hasPremiumEntitlement ? 'premium' : 'free';
     
-    console.log('[RevenueCat] Force refresh result:', tier);
-    await syncSubscriptionTier(tier);
+    // Use centralized sync service with force refresh
+    await subscriptionSyncService.syncSubscriptionTier('manual_refresh');
+    
+    console.log('[RevenueCat] ✅ Force refresh completed');
   } catch (error) {
     console.error('[RevenueCat] Force refresh failed:', error);
     throw error;

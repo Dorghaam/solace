@@ -2,6 +2,7 @@ import { signOut } from '@/services/authService';
 import { hapticService } from '@/services/hapticService';
 import { cancelAllScheduledAffirmationReminders, getPushTokenAndPermissionsAsync, scheduleDailyAffirmationReminders } from '@/services/notificationService';
 import { reviewService } from '@/services/reviewService';
+import { isDevelopment, TestingService } from '@/services/testingService';
 import { useUserStore } from '@/store/userStore';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -333,8 +334,48 @@ export default function SettingsScreen() {
                 value="Help us improve"
                 onPress={() => reviewService.requestReview()} 
               />
+              <Divider />
+              <SettingItem
+                label="Restore Purchases"
+                value="Recover subscription"
+                onPress={handleRestorePurchases}
+              />
+              <Divider />
+              <SettingItem
+                label="Refresh Subscription"
+                value="Check status"
+                onPress={handleRefreshSubscription}
+              />
             </Box>
           </Box>
+
+          {/* Development Testing Section - Only visible in development */}
+          {isDevelopment && (
+            <Box>
+              <Text fontWeight="bold" fontSize="xs" color="textSecondary" mb={3} px={4} letterSpacing="0.5">
+                🧪 TESTING (DEV ONLY)
+              </Text>
+              <Box bg="white" rounded="lg" mx={4} shadow="1">
+                <SettingItem
+                  label="Simulate Subscription States"
+                  value="Test premium/free tiers"
+                  onPress={() => {
+                    hapticService.light();
+                    TestingService.showTestingOptions();
+                  }}
+                />
+                <Divider />
+                <SettingItem
+                  label="Subscription Info"
+                  value="Current tier details"
+                  onPress={() => {
+                    hapticService.light();
+                    TestingService.showSubscriptionInfo();
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
 
 
 
