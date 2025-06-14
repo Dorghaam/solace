@@ -16,7 +16,7 @@ PODS:
     - ExpoModulesCore
   - EXNotifications (0.31.3):
     - ExpoModulesCore
-  - Expo (53.0.10):
+  - Expo (53.0.11):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -299,7 +299,7 @@ PODS:
     - ExpoModulesCore
   - ExpoHead (5.1.0):
     - ExpoModulesCore
-  - ExpoImage (2.2.0):
+  - ExpoImage (2.3.0):
     - ExpoModulesCore
     - libavif/libdav1d
     - SDWebImage (~> 5.21.0)
@@ -2849,7 +2849,7 @@ SPEC CHECKSUMS:
   EXJSONUtils: 1d3e4590438c3ee593684186007028a14b3686cd
   EXManifests: 951161dd9a63523c4eef0fa2a7476639a7ba230d
   EXNotifications: 1afe5275cf399920480fc5a9008676749a767d19
-  Expo: 116e821c61d3e46c3722010eedf197842f55b0fb
+  Expo: b6709ec3e6b2f69e59d596d2472c591885014cb2
   expo-dev-client: cdc6599329032065992014c40413afd46629a9bc
   expo-dev-launcher: f140b882984301127172e7fe20757f3ba30bece4
   expo-dev-menu: 6ddc56aca0dc6ec5b6125cc52920a3ace2a0526c
@@ -2863,7 +2863,7 @@ SPEC CHECKSUMS:
   ExpoFont: abbb91a911eb961652c2b0a22eef801860425ed6
   ExpoHaptics: 0ff6e0d83cd891178a306e548da1450249d54500
   ExpoHead: 1e65b47330de2164c628da2bddf73d57cac123bf
-  ExpoImage: 01564db38c4a19f61413a1fb8cc7b4464d3c7fe4
+  ExpoImage: 6aa234344f378d78c0d50dc6c4d946546b8742bf
   ExpoKeepAwake: bf0811570c8da182bfb879169437d4de298376e7
   ExpoLinearGradient: 7734c8059972fcf691fb4330bcdf3390960a152d
   ExpoLinking: b85ff4eafeae6fc638c6cace60007ae521af0ef4
