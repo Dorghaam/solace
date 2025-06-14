@@ -28,74 +28,75 @@ export const fetchAndSetUserProfile = async (userId: string) => {
         setUserName(data.username);
       }
       
-      // For subscription tier, check RevenueCat first to avoid overriding accurate subscription status
-      try {
-        const { checkPremiumStatus } = await import('./revenueCatService');
-        const hasPremiumEntitlement = await checkPremiumStatus();
-        const revenueCatTier: SubscriptionTier = hasPremiumEntitlement ? 'premium' : 'free';
-        
-        console.log('profileService: RevenueCat tier:', revenueCatTier, 'Database tier:', data.subscription_tier);
-        
-        // If RevenueCat and database disagree, trust RevenueCat and update the database
-        if (revenueCatTier !== data.subscription_tier) {
-          console.log('profileService: Subscription tier mismatch detected. Using RevenueCat status and updating database.');
-          
-          // Update local state with RevenueCat's accurate information
-          const { setSubscriptionTier } = useUserStore.getState();
-          setSubscriptionTier(revenueCatTier);
-          
-          // Update the database to match RevenueCat
-          const { syncSubscriptionTier } = await import('./authService');
-          await syncSubscriptionTier(revenueCatTier);
-        } else {
-          // Both agree, just update local state
-          const { setSubscriptionTier } = useUserStore.getState();
-          setSubscriptionTier(data.subscription_tier as SubscriptionTier);
-        }
-        
-      } catch (rcError) {
-        console.warn('profileService: Could not check RevenueCat status, falling back to database tier:', rcError);
-        // If RevenueCat check fails, fall back to database value
-        const { setSubscriptionTier } = useUserStore.getState();
-        setSubscriptionTier(data.subscription_tier as SubscriptionTier);
-      }
+      // IMPROVED: Robust subscription tier checking with retry logic
+      await checkAndSyncSubscriptionTier(data.subscription_tier);
       
     } else {
         console.warn('profileService: No profile found for user, checking RevenueCat before defaulting to free tier.');
         
-        // No profile found, but check RevenueCat before defaulting to free
-        try {
-          const { checkPremiumStatus } = await import('./revenueCatService');
-          const hasPremiumEntitlement = await checkPremiumStatus();
-          const tier: SubscriptionTier = hasPremiumEntitlement ? 'premium' : 'free';
-          
-          console.log('profileService: No database profile, using RevenueCat tier:', tier);
-          useUserStore.getState().setSubscriptionTier(tier);
-          
-          // Sync to database for future use
-          const { syncSubscriptionTier } = await import('./authService');
-          await syncSubscriptionTier(tier);
-          
-        } catch (rcError) {
-          console.warn('profileService: Could not check RevenueCat, defaulting to free tier:', rcError);
-          useUserStore.getState().setSubscriptionTier('free');
-        }
+        // IMPROVED: No profile found, robust RevenueCat check
+        await checkAndSyncSubscriptionTier(null);
     }
   } catch (error: any) {
     console.error('profileService: Error fetching user profile:', error.message);
     
-    // On error, check RevenueCat before defaulting to free
-    try {
-      const { checkPremiumStatus } = await import('./revenueCatService');
-      const hasPremiumEntitlement = await checkPremiumStatus();
-      const tier: SubscriptionTier = hasPremiumEntitlement ? 'premium' : 'free';
+    // IMPROVED: On error, still attempt robust subscription check
+    await checkAndSyncSubscriptionTier(null);
+  }
+};
+
+/**
+ * Robust subscription tier checking with retry logic and better error handling
+ * RevenueCat is the single source of truth
+ */
+const checkAndSyncSubscriptionTier = async (databaseTier: string | null, retryCount = 0): Promise<void> => {
+  const MAX_RETRIES = 3;
+  const RETRY_DELAY = 2000; // 2 seconds
+  
+  try {
+    console.log(`profileService: Checking RevenueCat subscription (attempt ${retryCount + 1}/${MAX_RETRIES + 1})`);
+    
+    const { checkPremiumStatus } = await import('./revenueCatService');
+    const hasPremiumEntitlement = await checkPremiumStatus();
+    const revenueCatTier: SubscriptionTier = hasPremiumEntitlement ? 'premium' : 'free';
+    
+    console.log('profileService: RevenueCat tier:', revenueCatTier, 'Database tier:', databaseTier);
+    
+    // Update local state with RevenueCat's authoritative information
+    const { setSubscriptionTier } = useUserStore.getState();
+    setSubscriptionTier(revenueCatTier);
+    
+    // If database disagrees with RevenueCat, update database to match
+    if (databaseTier !== null && revenueCatTier !== databaseTier) {
+      console.log('profileService: Subscription tier mismatch detected. Updating database to match RevenueCat.');
+      const { syncSubscriptionTier } = await import('./authService');
+      await syncSubscriptionTier(revenueCatTier);
+    }
+    
+    console.log(`profileService: ✅ Successfully set subscription tier to: ${revenueCatTier}`);
+    
+  } catch (rcError) {
+    console.warn(`profileService: RevenueCat check failed (attempt ${retryCount + 1}):`, rcError);
+    
+    // CRITICAL CHANGE: Only retry, don't fallback to potentially stale database data
+    if (retryCount < MAX_RETRIES) {
+      console.log(`profileService: Retrying RevenueCat check in ${RETRY_DELAY}ms...`);
+      setTimeout(() => {
+        checkAndSyncSubscriptionTier(databaseTier, retryCount + 1);
+      }, RETRY_DELAY);
+    } else {
+      console.error('profileService: ❌ All RevenueCat checks failed. Keeping current local state.');
       
-      console.log('profileService: Profile fetch error, using RevenueCat tier:', tier);
-      useUserStore.getState().setSubscriptionTier(tier);
+      // Don't change the subscription tier if RevenueCat is completely unavailable
+      // This prevents overriding a valid premium state with a potentially stale free state
+      const currentTier = useUserStore.getState().subscriptionTier;
+      console.log(`profileService: Maintaining current subscription tier: ${currentTier}`);
       
-    } catch (rcError) {
-      console.warn('profileService: Could not check RevenueCat after profile error, defaulting to free tier:', rcError);
-      useUserStore.getState().setSubscriptionTier('free');
+      // Schedule a background retry in 30 seconds
+      setTimeout(() => {
+        console.log('profileService: Background retry of RevenueCat check...');
+        checkAndSyncSubscriptionTier(databaseTier, 0);
+      }, 30000);
     }
   }
 }; 

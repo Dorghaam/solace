@@ -5,6 +5,9 @@ import { syncSubscriptionTier } from './authService';
 // Ensure your RevenueCat public API key is in .env and app.config.js
 const apiKey = Constants.expoConfig?.extra?.RC_API_KEY as string;
 
+// Add a periodic check timer
+let subscriptionCheckTimer: ReturnType<typeof setInterval> | null = null;
+
 /**
  * Initializes the RevenueCat SDK with the API key.
  * Sets up a listener to automatically update the subscription tier in the Zustand store
@@ -15,7 +18,7 @@ export const initRevenueCat = () => {
   
   if (apiKey) {
     console.log('[RevenueCat] API key found, configuring SDK. Key starts with:', apiKey.substring(0, 8) + '...');
-    Purchases.configure({ apiKey }); // Configure with API key
+    Purchases.configure({ apiKey });
 
     // Add a listener for customer info updates
     Purchases.addCustomerInfoUpdateListener((info: CustomerInfo) => {
@@ -42,6 +45,9 @@ export const initRevenueCat = () => {
         console.log('[RevenueCat] Subscription tier unchanged (', newTier, ') - no sync needed');
       }
     });
+    
+    // Start periodic subscription checking
+    startPeriodicSubscriptionCheck();
     
     console.log('[RevenueCat] SDK configured successfully with customer info listener');
   } else {
@@ -80,6 +86,9 @@ export const rcLogIn = async (userId: string) => {
     // Sync subscription tier to both local state AND Supabase database
     await syncSubscriptionTier(tier);
     
+    // Restart periodic checking after login
+    startPeriodicSubscriptionCheck();
+    
   } catch (e: any) {
     console.error('[RevenueCat] Login failed for user:', userId, 'Error:', e);
     
@@ -112,6 +121,10 @@ export const rcLogOut = async () => {
     console.log('[RevenueCat] Attempting to logout user:', originalUserId);
     await Purchases.logOut();
     console.log('[RevenueCat] User logged out successfully.');
+    
+    // Stop periodic checking after logout
+    stopPeriodicSubscriptionCheck();
+    
   } catch (e: any) {
     // Check if the error is specifically about anonymous user
     if (e.message && e.message.includes('anonymous')) {
@@ -125,21 +138,96 @@ export const rcLogOut = async () => {
 };
 
 /**
- * Get current customer info and check entitlements
+ * Get current customer info and check entitlements with improved error handling
  */
-export const checkPremiumStatus = async (): Promise<boolean> => {
+export const checkPremiumStatus = async (timeoutMs: number = 10000): Promise<boolean> => {
+  const timeoutPromise = new Promise<boolean>((_, reject) => {
+    setTimeout(() => reject(new Error('RevenueCat timeout')), timeoutMs);
+  });
+
+  const checkPromise = async (): Promise<boolean> => {
+    try {
+      const customerInfo = await Purchases.getCustomerInfo();
+      const hasPremiumEntitlement = customerInfo.entitlements.active['premium']?.isActive || false;
+      
+      console.log('[RevenueCat] Premium status check:', {
+        hasPremiumEntitlement,
+        activeEntitlements: Object.keys(customerInfo.entitlements.active),
+        timestamp: new Date().toISOString()
+      });
+      
+      return hasPremiumEntitlement;
+    } catch (error) {
+      console.error('[RevenueCat] Error checking premium status:', error);
+      throw error;
+    }
+  };
+
   try {
-    const customerInfo = await Purchases.getCustomerInfo();
-    const hasPremiumEntitlement = customerInfo.entitlements.active['premium']?.isActive || false;
-    
-    console.log('[RevenueCat] Premium status check:', {
-      hasPremiumEntitlement,
-      activeEntitlements: Object.keys(customerInfo.entitlements.active)
-    });
-    
-    return hasPremiumEntitlement;
+    return await Promise.race([checkPromise(), timeoutPromise]);
   } catch (error) {
-    console.error('[RevenueCat] Error checking premium status:', error);
+    console.error('[RevenueCat] Premium status check failed:', error);
     return false;
+  }
+};
+
+/**
+ * Start periodic subscription status checking
+ * This helps catch subscription changes that might not trigger the listener
+ */
+const startPeriodicSubscriptionCheck = () => {
+  // Clear any existing timer
+  stopPeriodicSubscriptionCheck();
+  
+  console.log('[RevenueCat] Starting periodic subscription check (every 5 minutes)');
+  
+  subscriptionCheckTimer = setInterval(async () => {
+    try {
+      const { useUserStore } = await import('../store/userStore');
+      const currentTier = useUserStore.getState().subscriptionTier;
+      
+      console.log('[RevenueCat] Periodic subscription check - current tier:', currentTier);
+      
+      const hasPremiumEntitlement = await checkPremiumStatus(5000); // 5 second timeout for periodic checks
+      const actualTier = hasPremiumEntitlement ? 'premium' : 'free';
+      
+      if (currentTier !== actualTier) {
+        console.log(`[RevenueCat] 🔄 Periodic check detected tier mismatch: ${currentTier} → ${actualTier}`);
+        await syncSubscriptionTier(actualTier);
+      } else {
+        console.log('[RevenueCat] ✅ Periodic check - subscription tier is in sync');
+      }
+    } catch (error) {
+      console.warn('[RevenueCat] Periodic subscription check failed:', error);
+    }
+  }, 5 * 60 * 1000); // Check every 5 minutes
+};
+
+/**
+ * Stop periodic subscription checking
+ */
+const stopPeriodicSubscriptionCheck = () => {
+  if (subscriptionCheckTimer) {
+    console.log('[RevenueCat] Stopping periodic subscription check');
+    clearInterval(subscriptionCheckTimer);
+    subscriptionCheckTimer = null;
+  }
+};
+
+/**
+ * Force refresh subscription status (useful for debugging)
+ */
+export const forceRefreshSubscriptionStatus = async (): Promise<void> => {
+  console.log('[RevenueCat] 🔄 Force refreshing subscription status...');
+  try {
+    await Purchases.syncPurchases();
+    const hasPremiumEntitlement = await checkPremiumStatus(10000);
+    const tier = hasPremiumEntitlement ? 'premium' : 'free';
+    
+    console.log('[RevenueCat] Force refresh result:', tier);
+    await syncSubscriptionTier(tier);
+  } catch (error) {
+    console.error('[RevenueCat] Force refresh failed:', error);
+    throw error;
   }
 };

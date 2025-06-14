@@ -189,6 +189,33 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleRefreshSubscription = async () => {
+    hapticService.medium();
+    try {
+      toast.show({
+        title: "Refreshing Subscription...",
+        description: "Checking your subscription status with RevenueCat.",
+        duration: 2000,
+      });
+
+      const { forceRefreshSubscriptionStatus } = await import('@/services/revenueCatService');
+      await forceRefreshSubscriptionStatus();
+      
+      toast.show({
+        title: "Subscription Refreshed!",
+        description: "Your subscription status has been updated.",
+        duration: 3000,
+      });
+    } catch (error) {
+      console.error('Error refreshing subscription:', error);
+      toast.show({
+        title: "Refresh Failed",
+        description: "Could not refresh subscription status. Please try again later.",
+        duration: 3000,
+      });
+    }
+  };
+
   return (
     <Box flex={1} bg="backgroundLight" safeArea>
       <Box px={4} py={4} justifyContent="center" alignItems="center" borderBottomWidth={1} borderColor="gray.100">
