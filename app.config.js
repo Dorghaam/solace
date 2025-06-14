@@ -21,7 +21,7 @@ export default ({ config }) => {
         isTabletOnly: false,
         requireFullScreen: true,
         bundleIdentifier: "com.dorghaamhaidar.solace.iphone",
-        buildNumber: "5",
+        buildNumber: "13",
         googleServicesFile: "./GoogleService-Info.plist",
         entitlements: {
           "com.apple.security.application-groups": [
