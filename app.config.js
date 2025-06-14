@@ -9,7 +9,7 @@ export default ({ config }) => {
     expo: {
       name: "Solace",
       slug: "solace",
-      version: "1.0.3",
+      version: "1.0.4",
       orientation: "portrait",
       icon: "./assets/images/icon.png",
       scheme: "solaceapp",
